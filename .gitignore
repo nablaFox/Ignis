@@ -1,0 +1,6 @@
+build
+cpm-package-lock.cmake
+CPM_modules
+compile_commands.json
+.cache
+.clang-tidy

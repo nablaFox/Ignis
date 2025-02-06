@@ -1,0 +1,17 @@
+---
+Language: Cpp
+BasedOnStyle: Chromium
+
+UseTab: Always
+IndentWidth: 4
+TabWidth: 4
+AccessModifierOffset: -4
+DerivePointerAlignment: false
+PointerAlignment: Left
+ColumnLimit: 85
+MaxEmptyLinesToKeep: 1
+SortIncludes: false
+AlwaysBreakTemplateDeclarations: true
+---
+
+
