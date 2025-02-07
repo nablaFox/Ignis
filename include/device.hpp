@@ -9,35 +9,28 @@ class Semaphore;
 class Fence;
 class Command;
 
-struct Queue {
-	VkQueue queue;
-	VkQueueFlags type;
-	uint32_t family;
-	uint32_t index;
-};
-
-// Note 1: the library will support just 1 instance, physical and logical device
-// Note 2: for now we handle only graphics queues
+// Note 1: the library supports just 1 instance, physical and logical device
+// Note 2: we handle only graphics queues
 
 class Device {
 public:
 	Device();
 	~Device();
 
-	bool getQueue(uint32_t index, Queue*) const;
+	bool getQueue(uint32_t index, VkQueue*) const;
 
 	void submitCommands(const std::vector<Command>&,
 						const std::vector<Semaphore>& waitSemaphores,
 						const std::vector<Semaphore>& signalSemaphores,
 						const Fence&);
 
-	VkCommandPool getCommandPool(Queue);
+	VkCommandPool getCommandPool();
 
 	VkDevice getDevice() const { return m_device; }
 
 private:
 	std::vector<VkCommandPool> m_pools;
-	std::vector<std::vector<Queue>> m_queues;
+	std::vector<std::vector<VkQueue>> m_queues;
 	VkDevice m_device;
 
 public:

@@ -5,7 +5,6 @@
 namespace ignis {
 
 class Device;
-struct Queue;
 class Pipeline;
 
 template <typename T>
@@ -36,20 +35,20 @@ struct DepthAttachment {
 	VkAttachmentStoreOp storeAction;
 };
 
-// Note 1: for now every command is a graphics one
-// Note 2: deallocation and resetting is per-command, not per-pool
-// Note 3: samplers must be bound with a sampled image. We can't have samplers
-// separate from sampled images
-// Note 4: every draw command is indexed
-// Note 5: for now we use default clear values
-// Note 6: we'll use default values for the render area when beginning a rendering
-// operation
-// Note 7: we don't handle rendering to multiple draw attachments
-// Note 8: we can only bind 1 buffer/image at a time
+// Note 1: every command is a graphics one
+// Note 2: every command is a primary one
+// Note 3: allocation, deallocation and resetting is per-command, not per-pool, i.e.
+// we can't batch those operations for multiple commands
+// Note 4: we can't bind single samplers
+// Note 5: every draw command is indexed
+// Note 6: clear values are fixed
+// Note 7: the render area is fixed
+// Note 8: we can only render to 1 draw attachment
+// Note 9: we can only bind 1 buffer/image at a time
 
 class Command {
 public:
-	Command(Device, Queue);
+	Command(Device, VkQueue);
 	~Command();
 
 	void begin(VkCommandBufferUsageFlags flags);
