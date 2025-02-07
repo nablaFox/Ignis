@@ -7,8 +7,8 @@ namespace ignis {
 
 class Device;
 
-struct PipelineBinding {
-	VkDescriptorType descriptorType;
+struct Binding {
+	VkDescriptorType bindingType;
 	VkShaderStageFlags stages;
 	VkAccessFlags access;
 	uint32_t binding;
@@ -18,7 +18,7 @@ struct PipelineBinding {
 
 class DescriptorSetLayout {
 public:
-	DescriptorSetLayout(Device& m_device, std::vector<PipelineBinding>);
+	DescriptorSetLayout(Device&, const std::vector<Binding>&);
 	~DescriptorSetLayout();
 
 private:
