@@ -8,7 +8,7 @@
 namespace ignis {
 
 class Device;
-class Binding;
+struct Binding;
 
 struct ShaderResources {
 	std::unordered_map<uint32_t, std::vector<Binding>> bindings;

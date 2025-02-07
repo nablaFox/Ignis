@@ -13,10 +13,12 @@ class Buffer;
 
 template <typename T>
 class Image;
+
 class Sampler;
 
 template <typename T>
 class VertexBuffer;
+
 class IndexBuffer;
 
 class ColorImage;
@@ -40,8 +42,10 @@ struct DepthAttachment {
 // separate from sampled images
 // Note 4: every draw command is indexed
 // Note 5: for now we use default clear values
-// Note 6: we'll use default values for the render area
+// Note 6: we'll use default values for the render area when beginning a rendering
+// operation
 // Note 7: we don't handle rendering to multiple draw attachments
+// Note 8: we can only bind 1 buffer/image at a time
 
 class Command {
 public:
@@ -92,7 +96,7 @@ public:
 						  uint32_t arrayElement = 1);
 
 	template <typename T>
-	void bindVertexbuffer(const VertexBuffer<T>&);
+	void bindVertexbuffer(const VertexBuffer<T>&, uint32_t binding);
 
 	void bindIndexBuffer(const IndexBuffer&);
 

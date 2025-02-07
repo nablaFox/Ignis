@@ -4,17 +4,18 @@
 #include "pipeline_layout.hpp"
 #include "device.hpp"
 #include "exceptions.hpp"
+#include "vertex_input_layout.hpp"
 
 using namespace ignis;
 
 Pipeline::Pipeline(Device& device,
 				   std::vector<Shader> shaders,
 				   ColorFormat colorFormat,
-				   DepthFormat depthFormat)
+				   DepthFormat depthFormat,
+				   const VertexInputLayout& vertexInputLayout)
 	: m_device(device) {
 	m_pipelineLayout = std::make_unique<PipelineLayout>(m_device, shaders);
 
-	// shader stage create info structures.
 	std::vector<VkPipelineShaderStageCreateInfo> shaderStages(shaders.size());
 
 	for (const auto& shader : shaders)
@@ -25,13 +26,17 @@ Pipeline::Pipeline(Device& device,
 			.pName = "main",
 		});
 
-	// TODO vertex input state
+	auto vertexBindings = vertexInputLayout.getBindings();
+	auto vertexAttributes = vertexInputLayout.getAttributes();
+
 	VkPipelineVertexInputStateCreateInfo vertexInput{
 		.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
-		.vertexBindingDescriptionCount = 0,
-		.pVertexBindingDescriptions = nullptr,
-		.vertexAttributeDescriptionCount = 0,
-		.pVertexAttributeDescriptions = nullptr,
+		.vertexBindingDescriptionCount =
+			static_cast<uint32_t>(vertexBindings.size()),
+		.pVertexBindingDescriptions = vertexBindings.data(),
+		.vertexAttributeDescriptionCount =
+			static_cast<uint32_t>(vertexAttributes.size()),
+		.pVertexAttributeDescriptions = vertexAttributes.data(),
 	};
 
 	VkPipelineInputAssemblyStateCreateInfo inputAssembly{

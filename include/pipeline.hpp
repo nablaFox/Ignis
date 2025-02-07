@@ -12,6 +12,7 @@ class DescriptorSetLayout;
 class PipelineLayout;
 enum class ColorFormat;
 enum class DepthFormat;
+class VertexInputLayout;
 
 // Note 1: for now we handle only graphics pipelines
 // Note 2: we can't render to multiple images, just to a single one
@@ -22,7 +23,11 @@ enum class DepthFormat;
 
 class Pipeline {
 protected:
-	Pipeline(Device&, std::vector<Shader>, ColorFormat, DepthFormat);
+	Pipeline(Device&,
+			 std::vector<Shader>,
+			 ColorFormat,
+			 DepthFormat,
+			 const VertexInputLayout&);
 	~Pipeline();
 
 private:
