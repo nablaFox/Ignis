@@ -60,8 +60,9 @@ public:
 
 	void endRendering();
 
+	// will write sizeof(T) bytes starting at offset
 	template <typename T>
-	void pushConstants(const T& data);
+	void pushConstants(const T& data, uint32_t offset = 0);
 
 	template <typename T>
 	void bindBuffer(const Buffer<T>&,

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vulkan/vulkan_core.h>
+#include <memory>
 #include <unordered_map>
 #include <vector>
 
@@ -9,6 +10,7 @@ namespace ignis {
 class Device;
 class Shader;
 class DescriptorSetLayout;
+class PipelineLayout;
 
 // Note 1: for now we handle only graphics pipelines
 
@@ -19,9 +21,9 @@ protected:
 
 private:
 	Device& m_device;
-	VkPipeline m_pipeline;
-	VkPipelineLayout m_pipelineLayout;
+	std::unique_ptr<PipelineLayout> m_pipelineLayout;
 	std::unordered_map<uint32_t, DescriptorSetLayout> m_descriptorSetLayouts;
+	VkPipeline m_pipeline;
 
 public:
 	Pipeline(const Pipeline&) = delete;
