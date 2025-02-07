@@ -7,30 +7,12 @@
 
 using namespace ignis;
 
-// TODO implement this
-static void getMergedResources(ShaderResources inputResources,
-							   ShaderResources* outputResources) {}
-
 Pipeline::Pipeline(Device& device,
 				   std::vector<Shader> shaders,
 				   ColorFormat colorFormat,
 				   DepthFormat depthFormat)
 	: m_device(device) {
-	ShaderResources shaderResources;
-
-	for (const auto& shader : shaders)
-		getMergedResources(std::move(shader.getResources()), &shaderResources);
-
-	std::unordered_map<uint32_t, DescriptorSetLayout> descriptorSetLayouts;
-	descriptorSetLayouts.reserve(shaderResources.bindings.size());
-
-	for (const auto& [slot, bindings] : shaderResources.bindings)
-		descriptorSetLayouts.try_emplace(slot, m_device, bindings);
-
-	m_pipelineLayout = std::make_unique<PipelineLayout>(
-		m_device, std::move(descriptorSetLayouts), shaderResources.pushConstants);
-
-	// allocate the pipeline //
+	m_pipelineLayout = std::make_unique<PipelineLayout>(m_device, shaders);
 
 	// shader stage create info structures.
 	std::vector<VkPipelineShaderStageCreateInfo> shaderStages(shaders.size());

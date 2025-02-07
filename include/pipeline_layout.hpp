@@ -2,25 +2,25 @@
 
 #include <vulkan/vulkan_core.h>
 #include <unordered_map>
+#include <vector>
 
 namespace ignis {
 
 class Device;
 class DescriptorSetLayout;
+class Shader;
 
 class PipelineLayout {
 public:
-	PipelineLayout(Device&,
-				   std::unordered_map<uint32_t, DescriptorSetLayout>,
-				   VkPushConstantRange);
+	PipelineLayout(Device&, const std::vector<Shader>&);
 	~PipelineLayout();
 
 	VkPipelineLayout getHandle() { return m_layout; }
 
 private:
 	Device& m_device;
-	VkPipelineLayout m_layout;
 	std::unordered_map<uint32_t, DescriptorSetLayout> m_descriptorSetLayouts;
+	VkPipelineLayout m_layout{VK_NULL_HANDLE};
 
 public:
 	PipelineLayout(const PipelineLayout&) = delete;

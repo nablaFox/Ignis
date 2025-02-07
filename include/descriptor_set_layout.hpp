@@ -21,6 +21,8 @@ public:
 	DescriptorSetLayout(Device&, std::vector<Binding>);
 	~DescriptorSetLayout();
 
+	VkDescriptorSetLayout getHandle() const { return m_descriptorSetLayout; }
+
 private:
 	Device& m_device;
 	VkDescriptorSetLayout m_descriptorSetLayout;
