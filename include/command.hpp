@@ -6,20 +6,11 @@ namespace ignis {
 
 class Device;
 class Pipeline;
-
-template <typename T>
 class Buffer;
-
-template <typename T>
 class Image;
-
 class Sampler;
-
-template <typename T>
 class VertexBuffer;
-
 class IndexBuffer;
-
 class ColorImage;
 class DepthImage;
 
@@ -67,35 +58,30 @@ public:
 	template <typename T>
 	void pushConstants(const T& data, uint32_t offset = 0);
 
-	template <typename T>
-	void bindBuffer(const Buffer<T>&,
+	void bindBuffer(const Buffer&,
 					uint32_t set,
 					uint32_t binding,
 					uint32_t arrayElement = 1);
 
-	template <typename T>
-	void bindSubBuffer(const Buffer<T>&,
+	void bindSubBuffer(const Buffer&,
 					   uint32_t firstElement,
 					   uint32_t lastElement,
 					   uint32_t set,
 					   uint32_t binding,
 					   uint32_t arrayElement = 1);
 
-	template <typename T>
-	void bindStorageImage(const Image<T>&,
-						  uint32_t set,
-						  uint32_t binding,
-						  uint32_t arrayElement = 1);
+	void bindImge(const Image&,
+				  uint32_t set,
+				  uint32_t binding,
+				  uint32_t arrayElement = 1);
 
-	template <typename T>
-	void bindSampledImage(const Image<T>&,
+	void bindSampledImage(const Image&,
 						  const Sampler&,
 						  uint32_t set,
 						  uint32_t binding,
 						  uint32_t arrayElement = 1);
 
-	template <typename T>
-	void bindVertexbuffer(const VertexBuffer<T>&, uint32_t binding);
+	void bindVertexbuffer(const VertexBuffer&, uint32_t binding);
 
 	void bindIndexBuffer(const IndexBuffer&);
 
