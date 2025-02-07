@@ -26,6 +26,9 @@ public:
 
 	VkShaderStageFlagBits getStage() const { return m_stage; }
 
+	static void getMergedResources(ShaderResources inputResources,
+								   ShaderResources* outputResources);
+
 private:
 	Device& m_device;
 	ShaderResources m_resources;
