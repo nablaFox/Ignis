@@ -2,7 +2,7 @@
 
 > The essence of Vulkan
 
-A rendering library offering high-level abstractions over the [Vulkan](https://docs.vulkan.org/spec/latest/index.html) API.
+A C++ rendering library offering high-level abstractions over the [Vulkan](https://docs.vulkan.org/spec/latest/index.html) API.
 
 ## Rationale
 
@@ -22,8 +22,8 @@ Currently, the only officially supported platform is Linux.
 First, ensure you have:
 
 - A `C++17` compatible compiler;
-- The Vulkan SDK (on Arch Linux: `sudo pacman -S vulkan-devel`)
-- CMake 3.14 or later
+- The Vulkan SDK (on Arch Linux: `sudo pacman -S vulkan-devel`);
+- CMake 3.14 or later.
 
 Then run:
 
