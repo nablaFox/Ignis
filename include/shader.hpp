@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vulkan/vulkan_core.h>
+#include <string>
 #include <unordered_map>
 #include <vector>
 
@@ -16,15 +17,20 @@ struct ShaderResources {
 
 class Shader {
 public:
-	Shader(Device&);
+	Shader(Device&, std::string shaderCode);
 	~Shader();
 
-	ShaderResources getResources() { return m_resources; };
+	ShaderResources getResources() const { return m_resources; };
+
+	VkShaderModule getModule() const { return m_module; }
+
+	VkShaderStageFlagBits getStage() const { return m_stage; }
 
 private:
 	Device& m_device;
-	VkShaderModule m_module;
 	ShaderResources m_resources;
+	VkShaderStageFlagBits m_stage;
+	VkShaderModule m_module;
 
 public:
 	Shader(const Shader&) = delete;

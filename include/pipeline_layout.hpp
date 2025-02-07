@@ -15,6 +15,8 @@ public:
 				   VkPushConstantRange);
 	~PipelineLayout();
 
+	VkPipelineLayout getHandle() { return m_layout; }
+
 private:
 	Device& m_device;
 	VkPipelineLayout m_layout;

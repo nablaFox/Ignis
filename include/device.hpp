@@ -33,9 +33,12 @@ public:
 
 	VkCommandPool getCommandPool(Queue);
 
+	VkDevice getDevice() const { return m_device; }
+
 private:
 	std::vector<VkCommandPool> m_pools;
 	std::vector<std::vector<Queue>> m_queues;
+	VkDevice m_device;
 
 public:
 	Device(const Device&) = default;
