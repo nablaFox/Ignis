@@ -11,13 +11,14 @@ class DescriptorSetLayout;
 class PipelineLayout {
 public:
 	PipelineLayout(Device&,
-				   const std::unordered_map<uint32_t, DescriptorSetLayout>&,
+				   std::unordered_map<uint32_t, DescriptorSetLayout>,
 				   VkPushConstantRange);
 	~PipelineLayout();
 
 private:
 	Device& m_device;
 	VkPipelineLayout m_layout;
+	std::unordered_map<uint32_t, DescriptorSetLayout> m_descriptorSetLayouts;
 
 public:
 	PipelineLayout(const PipelineLayout&) = delete;

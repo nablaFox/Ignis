@@ -2,7 +2,6 @@
 
 #include <vulkan/vulkan_core.h>
 #include <memory>
-#include <unordered_map>
 #include <vector>
 
 namespace ignis {
@@ -22,7 +21,6 @@ protected:
 private:
 	Device& m_device;
 	std::unique_ptr<PipelineLayout> m_pipelineLayout;
-	std::unordered_map<uint32_t, DescriptorSetLayout> m_descriptorSetLayouts;
 	VkPipeline m_pipeline;
 
 public:

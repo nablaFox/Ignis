@@ -18,7 +18,7 @@ struct Binding {
 
 class DescriptorSetLayout {
 public:
-	DescriptorSetLayout(Device&, const std::vector<Binding>&);
+	DescriptorSetLayout(Device&, std::vector<Binding>);
 	~DescriptorSetLayout();
 
 private:
