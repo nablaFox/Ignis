@@ -7,7 +7,7 @@ namespace ignis {
 
 class Device;
 
-struct Binding {
+struct BindingInfo {
 	VkDescriptorType bindingType;
 	VkShaderStageFlags stages;
 	VkAccessFlags access;
@@ -18,7 +18,7 @@ struct Binding {
 
 class DescriptorSetLayout {
 public:
-	DescriptorSetLayout(Device&, std::vector<Binding>);
+	DescriptorSetLayout(Device&, std::vector<BindingInfo>);
 	~DescriptorSetLayout();
 
 	VkDescriptorSetLayout getHandle() const { return m_descriptorSetLayout; }

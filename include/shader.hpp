@@ -8,10 +8,10 @@
 namespace ignis {
 
 class Device;
-struct Binding;
+struct BindingInfo;
 
 struct ShaderResources {
-	std::unordered_map<uint32_t, std::vector<Binding>> bindings;
+	std::unordered_map<uint32_t, std::vector<BindingInfo>> bindings;
 	VkPushConstantRange pushConstants;
 };
 
