@@ -2,37 +2,35 @@
 
 > The essence of Vulkan
 
-A C++ rendering library offering high-level abstractions over the [Vulkan](https://docs.vulkan.org/spec/latest/index.html) API.
+Ignis is a C++ 20 API abstraction over Vulkan.
 
-## Rationale
+## Features
 
-This project aims to provide a modern, user-friendly interface to the Vulkan API.
+1. Ergonomic API in a declarative style.
 
-1. Resource management is automatic thanks to a 100% RAII compliant design.
+2. 100% RAII compliant design.
 
-2. The API interface is declarative, with a focus on ease of use and safety.
+3. Simplicity as a core value in the development.
 
-2. Abstraction, by definition, reduces control and flexibility. The library tries
-   to be as minimal as possible while still hiding as many details as it can.
+## Dependencies
+
+- C++ 20 standard library
+- Vulkan SDK
+- CMake 3.14
+- [VMA](https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator) (temporary)
 
 ## Building
 
 Currently, the only officially supported platform is Linux. 
 
-First, ensure you have:
-
-- A `C++17` compatible compiler;
-- The Vulkan SDK (on Arch Linux: `sudo pacman -S vulkan-devel`);
-- CMake 3.14 or later.
-
-Then run:
+Run:
 
 ```sh
 cmake -S . -B build
 cmake --build build
 ```
 
-You'll find the library at `build/libignis.a`.
+You'll find the compiled library at `build/libignis.a`.
 
 ## Usage with CPM.cmake
 
