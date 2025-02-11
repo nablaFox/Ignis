@@ -3,7 +3,7 @@ project(ignis)
 
 include(cmake/CPM.cmake)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(Vulkan REQUIRED)
@@ -14,7 +14,7 @@ target_include_directories(ignis PUBLIC include)
 
 add_library(Ignis::Ignis ALIAS ignis)
 
-# TEMP: there should be no dependencies
+# TEMP
 CPMAddPackage(
   NAME VulkanMemoryAllocator
   GITHUB_REPOSITORY GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator
@@ -27,9 +27,9 @@ target_link_libraries(ignis PUBLIC
 )
 
 # "tests"
-option(BUILD_TESTING "Build the tests" ON)
+option(IGNIS_BUILD_TESTS "Build the tests" ON)
 
-if(NOT BUILD_TESTING)
+if(NOT IGNIS_BUILD_TESTS)
   return()
 endif()
 
