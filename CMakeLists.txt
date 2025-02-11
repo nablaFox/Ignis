@@ -10,7 +10,7 @@ find_package(Vulkan REQUIRED)
 
 file(GLOB IGNIS_SRC "src/*.cpp")
 add_library(ignis STATIC ${IGNIS_SRC})
-target_include_directories(ignis PUBLIC include)
+target_include_directories(ignis PUBLIC include/ignis)
 
 add_library(Ignis::Ignis ALIAS ignis)
 
