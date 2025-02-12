@@ -1,10 +1,10 @@
-#include "ignis/pipeline.hpp"
-#include "ignis/shader.hpp"
-#include "ignis/descriptor_set_layout.hpp"
-#include "ignis/pipeline_layout.hpp"
-#include "ignis/device.hpp"
-#include "ignis/exceptions.hpp"
-#include "ignis/vertex_input_layout.hpp"
+#include "pipeline.hpp"
+#include "shader.hpp"
+#include "descriptor_set_layout.hpp"
+#include "pipeline_layout.hpp"
+#include "device.hpp"
+#include "exceptions.hpp"
+#include "vertex_input_layout.hpp"
 
 using namespace ignis;
 
@@ -58,8 +58,8 @@ Pipeline::Pipeline(Device& device,
 		.polygonMode = VK_POLYGON_MODE_FILL,
 		.cullMode = VK_CULL_MODE_BACK_BIT,
 		.frontFace = VK_FRONT_FACE_CLOCKWISE,
-		.lineWidth = 1.0f,
 		.depthBiasEnable = VK_FALSE,
+		.lineWidth = 1.0f,
 	};
 
 	VkPipelineMultisampleStateCreateInfo multisampling{
@@ -78,9 +78,9 @@ Pipeline::Pipeline(Device& device,
 	};
 
 	VkPipelineColorBlendAttachmentState colorBlendAttachment{
+		.blendEnable = VK_FALSE,
 		.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
 						  VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
-		.blendEnable = VK_FALSE,
 	};
 
 	VkPipelineColorBlendStateCreateInfo colorBlending{

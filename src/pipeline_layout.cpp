@@ -1,8 +1,8 @@
-#include "ignis/pipeline_layout.hpp"
-#include "ignis/shader.hpp"
-#include "ignis/device.hpp"
-#include "ignis/descriptor_set_layout.hpp"
-#include "ignis/exceptions.hpp"
+#include "pipeline_layout.hpp"
+#include "shader.hpp"
+#include "device.hpp"
+#include "descriptor_set_layout.hpp"
+#include "exceptions.hpp"
 
 using namespace ignis;
 
@@ -19,8 +19,12 @@ PipelineLayout::PipelineLayout(Device& device, const std::vector<Shader>& shader
 	m_descriptorSetLayouts.reserve(shaderResources.bindings.size());
 
 	for (const auto& [slot, bindings] : shaderResources.bindings) {
-		m_descriptorSetLayouts.try_emplace(slot, m_device, bindings);
-		vkDescriptorSetLayouts.push_back(m_descriptorSetLayouts[slot].getHandle());
+		for (const auto& [slot, bindings] : shaderResources.bindings) {
+			auto [it, inserted] =
+				m_descriptorSetLayouts.try_emplace(slot, m_device, bindings);
+
+			vkDescriptorSetLayouts.push_back(it->second.getHandle());
+		}
 	}
 
 	VkPipelineLayoutCreateInfo layoutInfo = {
