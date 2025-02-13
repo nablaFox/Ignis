@@ -19,7 +19,8 @@ class Command;
 class Device {
 public:
 	struct CreateInfo {
-		std::vector<std::string> extensions;
+		std::string appName{"Ignis App"};
+		std::vector<std::string> extensions{};
 	};
 
 	Device(CreateInfo);

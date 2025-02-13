@@ -53,10 +53,10 @@ static void createDebugUtilsMessenger(VkInstance instance,
 }
 #endif
 
-static void createInstance(VkInstance* instance) {
+static void createInstance(VkInstance* instance, std::string appName) {
 	VkApplicationInfo appInfo{
 		.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
-		.pApplicationName = "Ignis App",
+		.pApplicationName = appName.c_str(),
 		.applicationVersion = VK_MAKE_VERSION(1, 0, 0),
 		.pEngineName = "Ignis",
 		.engineVersion = VK_MAKE_VERSION(1, 0, 0),
@@ -174,7 +174,7 @@ static void createLogicalDevice(VkPhysicalDevice physicalDevice,
 }
 
 Device::Device(CreateInfo createInfo) {
-	createInstance(&m_instance);
+	createInstance(&m_instance, createInfo.appName);
 
 #ifndef NDEBUG
 	createDebugUtilsMessenger(m_instance, &m_debugMessenger);
