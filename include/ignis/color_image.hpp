@@ -23,15 +23,10 @@ public:
 
 	ColorImage(CreateInfo);
 
-	// will use as the optimal layout COLOR_ATTACHMENT_OPTIMAL
-	// and as the usage COLOR_ATTACHMENT_BIT
-	struct DrawImageCreateInfo {
-		Device* device;
-		VkExtent2D extent;
-		ColorFormat format;
-	};
-
-	static ColorImage* createDrawImage(DrawImageCreateInfo);
+	// - optimal layout COLOR_ATTACHMENT_OPTIMAL
+	// - usage COLOR_ATTACHMENT_BIT
+	// - format RGBA16
+	static ColorImage* createDrawImage(Device* device, VkExtent2D extent);
 };
 
 }  // namespace ignis

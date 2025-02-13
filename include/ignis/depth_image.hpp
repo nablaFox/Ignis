@@ -23,15 +23,10 @@ public:
 
 	DepthImage(CreateInfo);
 
-	// will use as the optimal layout DEPTH_STENCIL_ATTACHMENT_OPTIMAL
-	// and as the usage DEPTH_STENCIL_ATTACHMENT_BIT
-	// and the format DEPTH_STENCIL
-	struct DepthStencilCreateInfo {
-		Device* device;
-		VkExtent2D extent;
-	};
-
-	static DepthImage* createDepthStencilImage(DepthStencilCreateInfo);
+	// - optimal layout DEPTH_STENCIL_ATTACHMENT_OPTIMAL
+	// - usage DEPTH_STENCIL_ATTACHMENT_BIT
+	// - format DEPTH_STENCIL
+	static DepthImage* createDepthStencilImage(Device* device, VkExtent2D extent);
 };
 
 }  // namespace ignis
