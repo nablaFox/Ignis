@@ -20,6 +20,7 @@ class Device {
 public:
 	struct CreateInfo {
 		std::string appName{"Ignis App"};
+		std::string shadersFolder{"shaders"};
 		std::vector<std::string> extensions{};
 	};
 
@@ -37,6 +38,9 @@ public:
 
 	VkDevice getDevice() const { return m_device; }
 
+	// will return the full shaderPath only if shaderPath is not an absolute path
+	std::string getFullShaderPath(std::string shaderPath) const;
+
 private:
 	VkInstance m_instance{nullptr};
 	VkDebugUtilsMessengerEXT m_debugMessenger{nullptr};
@@ -44,6 +48,7 @@ private:
 	VkDevice m_device{nullptr};
 	std::vector<VkQueue> m_queues;
 	std::vector<VkCommandPool> m_pools;
+	std::string m_shadersFolder;
 
 public:
 	Device(const Device&) = default;

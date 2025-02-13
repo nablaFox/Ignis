@@ -173,7 +173,7 @@ static void createLogicalDevice(VkPhysicalDevice physicalDevice,
 	}
 }
 
-Device::Device(CreateInfo createInfo) {
+Device::Device(CreateInfo createInfo) : m_shadersPath(createInfo.shadersPath) {
 	createInstance(&m_instance, createInfo.appName);
 
 #ifndef NDEBUG

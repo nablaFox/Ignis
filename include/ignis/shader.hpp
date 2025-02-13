@@ -15,9 +15,12 @@ struct ShaderResources {
 	VkPushConstantRange pushConstants;
 };
 
+// Note 1: we don't support supplying the entry points
+// Note 2: we don't support supplying the shader code directly
+
 class Shader {
 public:
-	Shader(Device&, std::string shaderCode);
+	Shader(Device&, std::string shaderPath);
 	~Shader();
 
 	ShaderResources getResources() const { return m_resources; };

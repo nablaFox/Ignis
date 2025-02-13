@@ -18,7 +18,7 @@ struct BindingInfo {
 
 class DescriptorSetLayout {
 public:
-	DescriptorSetLayout(Device& device, std::vector<BindingInfo>)
+	DescriptorSetLayout(Device& device, const std::vector<BindingInfo>&)
 		: m_device(device) {}
 
 	~DescriptorSetLayout() {}

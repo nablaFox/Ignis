@@ -16,7 +16,7 @@ class Device;
 class Image {
 protected:
 	struct CreateInfo {
-		Device& device;	 // sus
+		Device& device;
 		VkExtent2D extent;
 		VkImageUsageFlagBits usage;
 

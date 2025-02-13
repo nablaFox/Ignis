@@ -6,12 +6,13 @@
 
 using namespace ignis;
 
-PipelineLayout::PipelineLayout(Device& device, const std::vector<Shader>& shaders)
+PipelineLayout::PipelineLayout(Device& device,
+							   const std::vector<std::unique_ptr<Shader>>& shaders)
 	: m_device(device) {
 	ShaderResources shaderResources;
 
 	for (const auto& shader : shaders)
-		Shader::getMergedResources(shader.getResources(), &shaderResources);
+		Shader::getMergedResources(shader->getResources(), &shaderResources);
 
 	std::vector<VkDescriptorSetLayout> vkDescriptorSetLayouts;
 	vkDescriptorSetLayouts.reserve(shaderResources.bindings.size());

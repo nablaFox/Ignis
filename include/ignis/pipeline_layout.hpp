@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vulkan/vulkan_core.h>
+#include <memory>
 #include <unordered_map>
 #include <vector>
 
@@ -12,7 +13,7 @@ class Shader;
 
 class PipelineLayout {
 public:
-	PipelineLayout(Device&, const std::vector<Shader>&);
+	PipelineLayout(Device&, const std::vector<std::unique_ptr<Shader>>& /* (sus) */);
 	~PipelineLayout();
 
 	VkPipelineLayout getHandle() { return m_layout; }

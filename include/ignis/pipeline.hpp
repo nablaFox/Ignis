@@ -24,8 +24,8 @@ enum class DepthFormat;
 class Pipeline {
 protected:
 	struct CreateInfo {
-		Device& device;						 // sus
-		const std::vector<Shader>& shaders;	 // sus
+		Device& device;
+		std::vector<std::string> shaders;
 		ColorFormat colorFormat;
 		DepthFormat depthFormat;
 	};

@@ -8,15 +8,22 @@
 using namespace ignis;
 
 Pipeline::Pipeline(CreateInfo info) : m_device(info.device) {
-	m_pipelineLayout = std::make_unique<PipelineLayout>(m_device, info.shaders);
+	std::vector<std::unique_ptr<Shader>> shaders;
+
+	for (const auto& shaderPath : info.shaders) {
+		shaders.emplace_back(std::make_unique<Shader>(
+			m_device, m_device.getFullShaderPath(shaderPath)));
+	}
+
+	m_pipelineLayout = std::make_unique<PipelineLayout>(m_device, shaders);
 
 	std::vector<VkPipelineShaderStageCreateInfo> shaderStages(info.shaders.size());
 
-	for (const auto& shader : info.shaders)
+	for (const auto& shader : shaders)
 		shaderStages.push_back({
 			.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
-			.stage = shader.getStage(),
-			.module = shader.getModule(),
+			.stage = shader->getStage(),
+			.module = shader->getModule(),
 			.pName = "main",
 		});
 
