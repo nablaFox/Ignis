@@ -1,7 +1,7 @@
 #include <cstring>
 #include <iostream>
 #include "device.hpp"
-#include "exception.hpp"
+#include "exceptions.hpp"
 #include "features.hpp"
 
 using namespace ignis;
@@ -48,8 +48,8 @@ static void createDebugUtilsMessenger(VkInstance instance,
 	if (func == nullptr)
 		throw Exception("Failed to load vkCreateDebugUtilsMessengerEXT");
 
-	RETURN_VULKAN_ERROR(func(instance, &createInfo, nullptr, debugMessenger),
-						"Failed to allocate debug messenger");
+	THROW_VULKAN_ERROR(func(instance, &createInfo, nullptr, debugMessenger),
+					   "Failed to allocate debug messenger");
 }
 #endif
 
@@ -83,8 +83,8 @@ static void createInstance(VkInstance* instance) {
 	}
 #endif
 
-	RETURN_VULKAN_ERROR(vkCreateInstance(&createInstanceInfo, nullptr, instance),
-						"Failed to create instance");
+	THROW_VULKAN_ERROR(vkCreateInstance(&createInstanceInfo, nullptr, instance),
+					   "Failed to create instance");
 }
 
 static void getPhysicalDevice(VkInstance instance,
@@ -163,8 +163,8 @@ static void createLogicalDevice(VkPhysicalDevice physicalDevice,
 		.pEnabledFeatures = nullptr,
 	};
 
-	RETURN_VULKAN_ERROR(vkCreateDevice(physicalDevice, &createInfo, nullptr, device),
-						"Failed to create logical device");
+	THROW_VULKAN_ERROR(vkCreateDevice(physicalDevice, &createInfo, nullptr, device),
+					   "Failed to create logical device");
 
 	for (uint32_t i = 0; i < graphicsQueueCount; i++) {
 		VkQueue queue = nullptr;
