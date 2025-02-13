@@ -18,7 +18,7 @@ public:
 		VkExtent2D extent;
 		VkImageUsageFlagBits usage;
 		VkImageLayout optimalLayout;
-		std::vector<void*> initialPixels;
+		std::span<void*> initialPixels;
 	};
 
 	DepthImage(CreateInfo);

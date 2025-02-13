@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vk_mem_alloc.h>
-#include <vector>
+#include <span>
 
 namespace ignis {
 
@@ -17,7 +17,7 @@ public:
 		VkBufferUsageFlagBits bufferUsage;
 		uint32_t elementCount;
 		VkDeviceSize stride;
-		std::vector<void*> initialData;	 // TODO use span
+		std::span<void*> initialData;
 	};
 
 	Buffer(CreateInfo);
@@ -29,14 +29,12 @@ public:
 	VkBuffer getHandle() const { return buffer; }
 
 	// this only works for host visible memory
-	// TODO use span instead of vector
-	void writeData(std::vector<void*> data, uint32_t offset = 0);
+	void writeData(std::span<void*> data, uint32_t offset = 0);
 
 	static Buffer createStagingBuffer(uint32_t elementCount, VkDeviceSize stride);
 
-	// TODO use span instead of vector
 	static Buffer createIndexBuffer32(uint32_t elementCount,
-									  std::vector<uint32_t> indices = {});
+									  std::span<uint32_t> indices = {});
 
 private:
 	Device& m_device;

@@ -18,7 +18,7 @@ public:
 		VkExtent2D extent;
 		VkImageUsageFlagBits usage;
 		VkImageLayout optimalLayout;
-		std::vector<void*> initialPixels;  // TODO use span
+		std::span<void*> initialPixels;
 	};
 
 	ColorImage(CreateInfo);
