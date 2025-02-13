@@ -31,10 +31,10 @@ public:
 	// this only works for host visible memory
 	void writeData(std::span<void*> data, uint32_t offset = 0);
 
-	static Buffer createStagingBuffer(uint32_t elementCount, VkDeviceSize stride);
+	static Buffer* createStagingBuffer(uint32_t elementCount, VkDeviceSize stride);
 
-	static Buffer createIndexBuffer32(uint32_t elementCount,
-									  std::span<uint32_t> indices = {});
+	static Buffer* createIndexBuffer32(uint32_t elementCount,
+									   std::span<uint32_t> indices = {});
 
 private:
 	Device& m_device;

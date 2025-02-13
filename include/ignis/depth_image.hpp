@@ -31,7 +31,7 @@ public:
 		VkExtent2D extent;
 	};
 
-	static DepthImage createDepthStencilImage(DepthStencilCreateInfo);
+	static DepthImage* createDepthStencilImage(DepthStencilCreateInfo);
 };
 
 }  // namespace ignis

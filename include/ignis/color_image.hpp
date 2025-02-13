@@ -31,7 +31,7 @@ public:
 		ColorFormat format;
 	};
 
-	static ColorImage createDrawImage(DrawImageCreateInfo);
+	static ColorImage* createDrawImage(DrawImageCreateInfo);
 };
 
 }  // namespace ignis
