@@ -173,7 +173,7 @@ static void createLogicalDevice(VkPhysicalDevice physicalDevice,
 	}
 }
 
-Device::Device(CreateDeviceInfo createInfo) {
+Device::Device(CreateInfo createInfo) {
 	createInstance(&m_instance);
 
 #ifndef NDEBUG

@@ -12,11 +12,15 @@ class Device;
 
 class Buffer {
 public:
-	Buffer(Device&,
-		   VkBufferUsageFlagBits,
-		   uint32_t elementCount,
-		   VkDeviceSize stride,
-		   const void* data = {});
+	struct CreateInfo {
+		Device& device;
+		VkBufferUsageFlagBits bufferUsage;
+		uint32_t elementCount;
+		VkDeviceSize stride;
+		const void* data = {};
+	};
+
+	Buffer(CreateInfo);
 
 	virtual ~Buffer();
 

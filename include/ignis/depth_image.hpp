@@ -12,15 +12,11 @@ enum class DepthFormat {
 
 class DepthImage : public Image {
 public:
-	DepthImage(Device&,
-			   VkExtent2D,
-			   DepthFormat,
-			   VkImageUsageFlagBits,
+	struct CreateInfo : Image::CreateInfo {
+		DepthFormat format;
+	};
 
-			   // will try to infer the best layout if not specified
-			   VkImageLayout optimalLayout = VK_IMAGE_LAYOUT_GENERAL,
-
-			   std::vector<void*> initialPixels = {});
+	DepthImage(CreateInfo);
 
 	// will use as the optimal layout DEPTH_STENCIL_ATTACHMENT_OPTIMAL
 	// and as the usage DEPTH_STENCIL_ATTACHMENT_BIT

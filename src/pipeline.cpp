@@ -7,16 +7,12 @@
 
 using namespace ignis;
 
-Pipeline::Pipeline(Device& device,
-				   const std::vector<Shader>& shaders,
-				   ColorFormat colorFormat,
-				   DepthFormat depthFormat)
-	: m_device(device) {
-	m_pipelineLayout = std::make_unique<PipelineLayout>(m_device, shaders);
+Pipeline::Pipeline(CreateInfo info) : m_device(info.device) {
+	m_pipelineLayout = std::make_unique<PipelineLayout>(m_device, info.shaders);
 
-	std::vector<VkPipelineShaderStageCreateInfo> shaderStages(shaders.size());
+	std::vector<VkPipelineShaderStageCreateInfo> shaderStages(info.shaders.size());
 
-	for (const auto& shader : shaders)
+	for (const auto& shader : info.shaders)
 		shaderStages.push_back({
 			.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
 			.stage = shader.getStage(),
@@ -94,8 +90,8 @@ Pipeline::Pipeline(Device& device,
 		.pDynamicStates = dynamicStates.data(),
 	};
 
-	VkFormat vkColorFormat = static_cast<VkFormat>(colorFormat);
-	VkFormat vkDepthFormat = static_cast<VkFormat>(depthFormat);
+	VkFormat vkColorFormat = static_cast<VkFormat>(info.colorFormat);
+	VkFormat vkDepthFormat = static_cast<VkFormat>(info.depthFormat);
 
 	VkPipelineRenderingCreateInfo pipelineRenderingInfo{
 		.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO,

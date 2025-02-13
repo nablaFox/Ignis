@@ -18,11 +18,11 @@ class Command;
 
 class Device {
 public:
-	struct CreateDeviceInfo {
+	struct CreateInfo {
 		std::vector<std::string> extensions;
 	};
 
-	Device(CreateDeviceInfo);
+	Device(CreateInfo);
 	~Device();
 
 	bool getQueue(uint32_t index, VkQueue*) const;
