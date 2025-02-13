@@ -13,7 +13,7 @@ enum class ColorFormat {
 class ColorImage : public Image {
 public:
 	struct CreateInfo {
-		Device& device;
+		Device* device;
 		ColorFormat format;
 		VkExtent2D extent;
 		VkImageUsageFlagBits usage;

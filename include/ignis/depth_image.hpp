@@ -13,7 +13,7 @@ enum class DepthFormat {
 class DepthImage : public Image {
 public:
 	struct CreateInfo {
-		Device& device;
+		Device* device;
 		DepthFormat format;
 		VkExtent2D extent;
 		VkImageUsageFlagBits usage;

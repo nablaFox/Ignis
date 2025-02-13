@@ -13,7 +13,7 @@ class Device;
 class Buffer {
 public:
 	struct CreateInfo {
-		Device& device;
+		Device* device;
 		VkBufferUsageFlagBits bufferUsage;
 		uint32_t elementCount;
 		VkDeviceSize stride;
