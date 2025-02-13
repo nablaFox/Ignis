@@ -13,7 +13,7 @@ class Device;
 class Buffer {
 public:
 	struct CreateInfo {
-		Device* device;
+		const Device* device;
 		VkBufferUsageFlagBits bufferUsage;
 		uint32_t elementCount;
 		uint32_t elementSize;
@@ -32,18 +32,20 @@ public:
 	void writeData(const void* data, uint32_t start = 0, uint32_t end = 0);
 
 	// - usage = TRANSFER_SRC_BIT | TRANSFER_DST_BIT
-	static Buffer* createStagingBuffer(uint32_t elementCount,
+	static Buffer* createStagingBuffer(const Device*,
+									   uint32_t elementCount,
 									   VkDeviceSize elementSize,
 									   const void* data = nullptr);
 
 	// - stride = sizeof(uint32_t)
 	// - elementCount = span.size() / sizeof(uint32_t)
 	// - usage = INDEX_BUFFER_BIT
-	static Buffer* createIndexBuffer32(std::span<uint32_t>);
+	static Buffer* createIndexBuffer32(const Device*, std::span<uint32_t>);
 
 	// - stride = (elementSize + alignment - 1) & ~(alignment - 1);
 	// - usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT
-	static Buffer* createUBO(uint32_t elementCount,
+	static Buffer* createUBO(const Device*,
+							 uint32_t elementCount,
 							 VkDeviceSize elementSize,
 							 const void* data = nullptr);
 

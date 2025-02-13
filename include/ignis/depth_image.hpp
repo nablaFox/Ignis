@@ -13,7 +13,7 @@ enum class DepthFormat {
 class DepthImage : public Image {
 public:
 	struct CreateInfo {
-		Device* device;
+		const Device* device;
 		DepthFormat format;
 		VkExtent2D extent;
 		VkImageUsageFlagBits usage;
@@ -26,7 +26,8 @@ public:
 	// - optimal layout DEPTH_STENCIL_ATTACHMENT_OPTIMAL
 	// - usage DEPTH_STENCIL_ATTACHMENT_BIT
 	// - format DEPTH_STENCIL
-	static DepthImage* createDepthStencilImage(Device* device, VkExtent2D extent);
+	static DepthImage* createDepthStencilImage(const Device* device,
+											   VkExtent2D extent);
 };
 
 }  // namespace ignis

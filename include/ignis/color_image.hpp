@@ -13,7 +13,7 @@ enum class ColorFormat {
 class ColorImage : public Image {
 public:
 	struct CreateInfo {
-		Device* device;
+		const Device* device;
 		ColorFormat format;
 		VkExtent2D extent;
 		VkImageUsageFlagBits usage;
@@ -26,7 +26,7 @@ public:
 	// - optimal layout COLOR_ATTACHMENT_OPTIMAL
 	// - usage COLOR_ATTACHMENT_BIT
 	// - format RGBA16
-	static ColorImage* createDrawImage(Device* device, VkExtent2D extent);
+	static ColorImage* createDrawImage(const Device* device, VkExtent2D extent);
 };
 
 }  // namespace ignis

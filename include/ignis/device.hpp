@@ -17,6 +17,7 @@ class Command;
 // required features
 // Note 4: we don't handle custom features/extensions
 
+// PONDER probaly device should inherit a pointer class
 class Device {
 public:
 	struct CreateInfo {
