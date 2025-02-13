@@ -22,7 +22,7 @@ enum class DepthFormat;
 // Note 6: to pass buffers you have to use push constants
 
 class Pipeline {
-protected:
+public:
 	struct CreateInfo {
 		Device& device;
 		std::vector<std::string> shaders;

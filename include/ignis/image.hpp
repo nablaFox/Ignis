@@ -15,17 +15,12 @@ class Device;
 
 class Image {
 protected:
-	struct CreateInfo {
-		Device& device;
-		VkExtent2D extent;
-		VkImageUsageFlagBits usage;
-
-		// will try to infer the best layout if not specified
-		VkImageLayout optimalLayout = VK_IMAGE_LAYOUT_GENERAL;
-		std::vector<void*> initialPixels = {};
-	};
-
-	Image(CreateInfo);
+	Image(Device&,
+		  VkExtent2D,
+		  VkFormat,
+		  VkImageUsageFlagBits,
+		  VkImageLayout optimalLayout,
+		  std::vector<void*> initialPixels);
 
 	~Image();
 

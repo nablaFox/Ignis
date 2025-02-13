@@ -17,7 +17,7 @@ public:
 		VkBufferUsageFlagBits bufferUsage;
 		uint32_t elementCount;
 		VkDeviceSize stride;
-		const void* data = {};
+		std::vector<void*> initialData;	 // TODO use span
 	};
 
 	Buffer(CreateInfo);
@@ -29,10 +29,12 @@ public:
 	VkBuffer getHandle() const { return buffer; }
 
 	// this only works for host visible memory
+	// TODO use span instead of vector
 	void writeData(std::vector<void*> data, uint32_t offset = 0);
 
 	static Buffer createStagingBuffer(uint32_t elementCount, VkDeviceSize stride);
 
+	// TODO use span instead of vector
 	static Buffer createIndexBuffer32(uint32_t elementCount,
 									  std::vector<uint32_t> indices = {});
 

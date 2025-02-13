@@ -12,15 +12,26 @@ enum class DepthFormat {
 
 class DepthImage : public Image {
 public:
-	struct CreateInfo : Image::CreateInfo {
+	struct CreateInfo {
+		Device& device;
 		DepthFormat format;
+		VkExtent2D extent;
+		VkImageUsageFlagBits usage;
+		VkImageLayout optimalLayout;
+		std::vector<void*> initialPixels;
 	};
 
 	DepthImage(CreateInfo);
 
 	// will use as the optimal layout DEPTH_STENCIL_ATTACHMENT_OPTIMAL
 	// and as the usage DEPTH_STENCIL_ATTACHMENT_BIT
-	static DepthImage createDepthStencilImage(Device&, VkExtent2D, DepthFormat);
+	// and the format DEPTH_STENCIL
+	struct DepthStencilCreateInfo {
+		Device* device;
+		VkExtent2D extent;
+	};
+
+	static DepthImage createDepthStencilImage(DepthStencilCreateInfo);
 };
 
 }  // namespace ignis

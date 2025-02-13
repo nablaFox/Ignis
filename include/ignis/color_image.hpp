@@ -12,17 +12,26 @@ enum class ColorFormat {
 
 class ColorImage : public Image {
 public:
-	struct CreateInfo : Image::CreateInfo {
+	struct CreateInfo {
+		Device& device;
 		ColorFormat format;
+		VkExtent2D extent;
+		VkImageUsageFlagBits usage;
+		VkImageLayout optimalLayout;
+		std::vector<void*> initialPixels;  // TODO use span
 	};
 
 	ColorImage(CreateInfo);
 
 	// will use as the optimal layout COLOR_ATTACHMENT_OPTIMAL
 	// and as the usage COLOR_ATTACHMENT_BIT
-	static ColorImage createDrawImage(Device&,
-									  VkExtent2D,
-									  ColorFormat = ColorFormat::RGBA8);
+	struct DrawImageCreateInfo {
+		Device* device;
+		VkExtent2D extent;
+		ColorFormat format;
+	};
+
+	static ColorImage createDrawImage(DrawImageCreateInfo);
 };
 
 }  // namespace ignis
