@@ -1,7 +1,6 @@
 #pragma once
 
 #include <vk_mem_alloc.h>
-#include <span>
 
 namespace ignis {
 
@@ -32,22 +31,27 @@ public:
 	void writeData(const void* data, uint32_t start = 0, uint32_t end = 0);
 
 	// - usage = TRANSFER_SRC_BIT | TRANSFER_DST_BIT
+	template <typename T>
 	static Buffer* createStagingBuffer(const Device*,
 									   uint32_t elementCount,
-									   VkDeviceSize elementSize,
-									   const void* data = nullptr);
+									   const T* data = nullptr);
 
 	// - stride = sizeof(uint32_t)
 	// - elementCount = span.size() / sizeof(uint32_t)
 	// - usage = INDEX_BUFFER_BIT
-	static Buffer* createIndexBuffer32(const Device*, std::span<uint32_t>);
+	static Buffer* createIndexBuffer32(const Device*,
+									   uint32_t elementCount,
+									   uint32_t* data = nullptr);
 
 	// - stride = (elementSize + alignment - 1) & ~(alignment - 1);
 	// - usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT
+	template <typename T>
 	static Buffer* createUBO(const Device*,
 							 uint32_t elementCount,
-							 VkDeviceSize elementSize,
-							 const void* data = nullptr);
+							 const T* data = nullptr);
+
+	// TODO add vertex buffer creation
+	// TODO add storage buffer creation
 
 private:
 	Device& m_device;
