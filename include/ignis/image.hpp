@@ -1,7 +1,6 @@
 #pragma once
 
 #include <vulkan/vulkan_core.h>
-#include <span>
 
 namespace ignis {
 
@@ -20,7 +19,7 @@ protected:
 		  VkFormat,
 		  VkImageUsageFlagBits,
 		  VkImageLayout optimalLayout,
-		  std::span<void*> initialPixels);
+		  const void* initialPixels);
 
 	~Image();
 

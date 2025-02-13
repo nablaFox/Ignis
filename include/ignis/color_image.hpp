@@ -18,7 +18,7 @@ public:
 		VkExtent2D extent;
 		VkImageUsageFlagBits usage;
 		VkImageLayout optimalLayout;
-		std::span<void*> initialPixels;
+		const void* initialPixels;
 	};
 
 	ColorImage(CreateInfo);
