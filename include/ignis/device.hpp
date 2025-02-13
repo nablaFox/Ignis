@@ -1,5 +1,6 @@
 #pragma once
 
+#include <vk_mem_alloc.h>
 #include <vulkan/vulkan_core.h>
 #include <string>
 #include <vector>
@@ -38,6 +39,8 @@ public:
 
 	VkDevice getDevice() const { return m_device; }
 
+	VmaAllocator getAllocator() const { return m_allocator; }
+
 	// will return the full shaderPath only if shaderPath is not an absolute path
 	std::string getFullShaderPath(std::string shaderPath) const;
 
@@ -46,8 +49,11 @@ private:
 	VkDebugUtilsMessengerEXT m_debugMessenger{nullptr};
 	VkPhysicalDevice m_phyiscalDevice{nullptr};
 	VkDevice m_device{nullptr};
+	VmaAllocator m_allocator{nullptr};
+
 	std::vector<VkQueue> m_queues;
 	std::vector<VkCommandPool> m_pools;
+
 	std::string m_shadersFolder;
 
 public:

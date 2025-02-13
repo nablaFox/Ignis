@@ -4,6 +4,9 @@
 #include "exceptions.hpp"
 #include "features.hpp"
 
+#define VMA_IMPLEMENTATION
+#include <vk_mem_alloc.h>
+
 using namespace ignis;
 
 #ifndef NDEBUG
@@ -183,6 +186,16 @@ Device::Device(CreateInfo createInfo) : m_shadersFolder(createInfo.shadersFolder
 	getPhysicalDevice(m_instance, &m_phyiscalDevice, createInfo.extensions);
 
 	createLogicalDevice(m_phyiscalDevice, &m_device, &m_queues);
+
+	VmaAllocatorCreateInfo allocatorInfo = {
+		.flags = VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT,
+		.physicalDevice = m_phyiscalDevice,
+		.device = m_device,
+		.instance = m_instance,
+	};
+
+	THROW_VULKAN_ERROR(vmaCreateAllocator(&allocatorInfo, &m_allocator),
+					   "Failed to create VMA");
 }
 
 Device::~Device() {
