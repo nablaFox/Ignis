@@ -29,6 +29,9 @@ public:
 
 	static Buffer createStagingBuffer(uint32_t elementCount, VkDeviceSize stride);
 
+	static Buffer createIndexBuffer32(uint32_t elementCount,
+									  std::vector<uint32_t> indices = {});
+
 private:
 	Device& m_device;
 	VkBufferUsageFlagBits bufferUsage;

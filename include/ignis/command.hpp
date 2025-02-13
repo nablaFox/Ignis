@@ -81,8 +81,6 @@ public:
 						  uint32_t binding,
 						  uint32_t arrayElement = 1);
 
-	void bindVertexbuffer(const VertexBuffer&, uint32_t binding);
-
 	void bindIndexBuffer(const IndexBuffer&);
 
 	void draw(uint32_t vertexCount, uint32_t firstVertex = 0);
