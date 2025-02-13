@@ -10,6 +10,7 @@ Image::Image(const Device& device,
 			 VkFormat format,
 			 VkImageUsageFlagBits usage,
 			 VkImageLayout optimalLayout,
+			 VkImageAspectFlags viewAspect,
 			 const void* initialPixels)
 	: m_device(device),
 	  m_extent(extent),
@@ -40,7 +41,6 @@ Image::Image(const Device& device,
 					   &m_image, &m_allocation, nullptr),
 		"Failed to create image");
 
-	// create default view
 	VkImageViewCreateInfo viewInfo = {
 		.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
 		.image = m_image,
@@ -48,7 +48,7 @@ Image::Image(const Device& device,
 		.format = format,
 		.subresourceRange =
 			{
-				.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+				.aspectMask = viewAspect,
 				.baseMipLevel = 0,
 				.levelCount = 1,
 				.baseArrayLayer = 0,

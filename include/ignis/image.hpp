@@ -21,6 +21,7 @@ protected:
 		  VkFormat,
 		  VkImageUsageFlagBits,
 		  VkImageLayout optimalLayout,
+		  VkImageAspectFlags viewAspect,
 		  const void* initialPixels);
 
 	~Image();
