@@ -5,7 +5,7 @@
 
 using namespace ignis;
 
-Image::Image(Device& device,
+Image::Image(const Device& device,
 			 VkExtent2D extent,
 			 VkFormat format,
 			 VkImageUsageFlagBits usage,

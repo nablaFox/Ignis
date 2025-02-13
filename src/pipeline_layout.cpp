@@ -6,7 +6,7 @@
 
 using namespace ignis;
 
-PipelineLayout::PipelineLayout(Device& device,
+PipelineLayout::PipelineLayout(const Device& device,
 							   const std::vector<std::unique_ptr<Shader>>& shaders)
 	: m_device(device) {
 	ShaderResources shaderResources;

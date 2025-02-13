@@ -13,13 +13,14 @@ class Shader;
 
 class PipelineLayout {
 public:
-	PipelineLayout(Device&, const std::vector<std::unique_ptr<Shader>>& /* (sus) */);
+	PipelineLayout(const Device&,
+				   const std::vector<std::unique_ptr<Shader>>& /* (sus) */);
 	~PipelineLayout();
 
 	VkPipelineLayout getHandle() { return m_layout; }
 
 private:
-	Device& m_device;
+	const Device& m_device;
 	std::unordered_map<uint32_t, DescriptorSetLayout> m_descriptorSetLayouts;
 	VkPipelineLayout m_layout{VK_NULL_HANDLE};
 

@@ -18,7 +18,7 @@ struct BindingInfo {
 
 class DescriptorSetLayout {
 public:
-	DescriptorSetLayout(Device& device, const std::vector<BindingInfo>&)
+	DescriptorSetLayout(const Device& device, const std::vector<BindingInfo>&)
 		: m_device(device) {}
 
 	~DescriptorSetLayout() {}
@@ -26,7 +26,7 @@ public:
 	VkDescriptorSetLayout getHandle() const { return m_descriptorSetLayout; }
 
 private:
-	Device& m_device;
+	const Device& m_device;
 	VkDescriptorSetLayout m_descriptorSetLayout{VK_NULL_HANDLE};
 
 public:

@@ -16,7 +16,7 @@ class Device;
 
 class Image {
 protected:
-	Image(Device&,
+	Image(const Device&,
 		  VkExtent2D,
 		  VkFormat,
 		  VkImageUsageFlagBits,
@@ -37,7 +37,7 @@ public:
 	VkImageUsageFlagBits getUsage() const { return m_usage; }
 
 private:
-	Device& m_device;
+	const Device& m_device;
 	VmaAllocation m_allocation{nullptr};
 	VkImage m_image{nullptr};
 	VkImageView m_view{nullptr};

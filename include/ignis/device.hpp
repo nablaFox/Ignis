@@ -38,7 +38,7 @@ public:
 		Fence* fence;
 	};
 
-	void submitCommands(std::vector<SubmitInfo>);
+	void submitCommands(std::vector<SubmitInfo>) const;
 
 	VkCommandPool getCommandPool();
 

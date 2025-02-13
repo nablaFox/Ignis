@@ -54,7 +54,7 @@ public:
 	// TODO add storage buffer creation
 
 private:
-	Device& m_device;
+	const Device& m_device;
 	VkBufferUsageFlagBits m_bufferUsage;
 	VmaAllocation m_allocation;
 	VmaAllocationInfo m_allocationInfo;

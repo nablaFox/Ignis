@@ -20,7 +20,7 @@ struct ShaderResources {
 
 class Shader {
 public:
-	Shader(Device&, std::string shaderPath);
+	Shader(const Device&, std::string shaderPath);
 	~Shader();
 
 	ShaderResources getResources() const { return m_resources; };
@@ -33,7 +33,7 @@ public:
 								   ShaderResources* outputResources);
 
 private:
-	Device& m_device;
+	const Device& m_device;
 	ShaderResources m_resources;
 	VkShaderStageFlagBits m_stage;
 	VkShaderModule m_module;

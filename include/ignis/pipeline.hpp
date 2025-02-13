@@ -35,7 +35,7 @@ public:
 	~Pipeline();
 
 private:
-	Device& m_device;
+	const Device& m_device;
 	std::unique_ptr<PipelineLayout> m_pipelineLayout;
 	VkPipeline m_pipeline{VK_NULL_HANDLE};
 

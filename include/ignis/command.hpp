@@ -39,7 +39,7 @@ struct DepthAttachment {
 
 class Command {
 public:
-	Command(Device&, VkQueue = VK_NULL_HANDLE);
+	Command(const Device&, VkQueue = VK_NULL_HANDLE);
 	~Command();
 
 	void begin(VkCommandBufferUsageFlags flags);
