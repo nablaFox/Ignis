@@ -31,10 +31,14 @@ public:
 
 	bool getQueue(uint32_t index, VkQueue*) const;
 
-	void submitCommands(const std::vector<Command>&,
-						const std::vector<Semaphore>& waitSemaphores,
-						const std::vector<Semaphore>& signalSemaphores,
-						const Fence&);
+	struct SubmitInfo {
+		std::vector<const Semaphore*> waitSemaphores;
+		std::vector<const Semaphore*> signalSemaphores;
+		const Command* command;
+		Fence* fence;
+	};
+
+	void submitCommands(std::vector<SubmitInfo>);
 
 	VkCommandPool getCommandPool();
 

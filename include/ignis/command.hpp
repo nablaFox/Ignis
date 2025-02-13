@@ -39,7 +39,7 @@ struct DepthAttachment {
 
 class Command {
 public:
-	Command(Device&, VkQueue);
+	Command(Device&, VkQueue = VK_NULL_HANDLE);
 	~Command();
 
 	void begin(VkCommandBufferUsageFlags flags);
@@ -57,6 +57,20 @@ public:
 	// will write sizeof(T) bytes starting at offset
 	template <typename T>
 	void pushConstants(const T& data, uint32_t offset = 0);
+
+	void transitionImageLayout(const Image&, VkImageLayout);
+
+	void copyImage(const Image& src, const Image& dst);
+
+	void updateImage(const Image&,
+					 const void* pixels,
+					 VkOffset2D imageOffset = {0, 0},
+					 VkExtent2D imageSize = {});
+
+	void updateBuffer(const Buffer&,
+					  const void* data,
+					  uint32_t start = 0,
+					  uint32_t end = 0);
 
 	void bindBuffer(const Buffer&,
 					uint32_t set,

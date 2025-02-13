@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vulkan/vulkan_core.h>
+#include <vk_mem_alloc.h>
 
 namespace ignis {
 
@@ -11,6 +12,7 @@ class Device;
 // Note 3: we don't allow for multisampled images
 // Note 4: we don't allow for 3D images
 // Note 5: we don't allow for custom image creation flags
+// Note 6: images are never host visible
 
 class Image {
 protected:
@@ -35,17 +37,20 @@ public:
 	VkImageUsageFlagBits getUsage() const { return m_usage; }
 
 private:
-	VkImage m_image;
-	VkImageView m_view;
+	Device& m_device;
+	VmaAllocation m_allocation{nullptr};
+	VkImage m_image{nullptr};
+	VkImageView m_view{nullptr};
 	VkExtent2D m_extent;
+	VkFormat m_format;
 	VkImageUsageFlagBits m_usage;
 	VkImageLayout m_optimalLayout;
 	VkImageLayout m_currentLayout;
 
 public:
-	Image(const Image&) = default;
+	Image(const Image&) = delete;
 	Image(Image&&) = delete;
-	Image& operator=(const Image&) = default;
+	Image& operator=(const Image&) = delete;
 	Image& operator=(Image&&) = delete;
 };
 
