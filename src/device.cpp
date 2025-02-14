@@ -1,8 +1,10 @@
 #include <cstring>
 #include <iostream>
 #include "device.hpp"
+#include "command.hpp"
 #include "exceptions.hpp"
 #include "features.hpp"
+#include "fence.hpp"
 #include "vk_utils.hpp"
 
 #define VMA_IMPLEMENTATION
@@ -231,6 +233,59 @@ Device::Device(CreateInfo createInfo) : m_shadersFolder(createInfo.shadersFolder
 
 	allocateCommandPools(m_device, m_graphicsQueuesCount, m_graphicsFamilyIndex,
 						 &m_commandPools);
+}
+
+void Device::submitCommands(std::vector<SubmitInfo> submits,
+							const Fence& fence) const {
+	uint32_t queueIndex = submits[0].command->getQueueIndex();
+
+#ifndef NDEBUG
+	for (const auto& submit : submits) {
+		if (submit.command->getQueueIndex() != queueIndex) {
+			std::cerr << "ignis::Device::submitCommands: "
+						 "commands must be relative to the same queue"
+					  << std::endl;
+		}
+	}
+#endif
+
+	std::vector<VkCommandBufferSubmitInfo> commandsInfos(submits.size());
+	for (uint32_t i = 0; i < submits.size(); i++) {
+		commandsInfos[i] = {
+			.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO,
+			.commandBuffer = submits[i].command->getHandle(),
+		};
+	}
+
+	std::vector<VkSemaphoreSubmitInfo> waitSemaphoresInfos(submits.size());
+	for (uint32_t i = 0; i < submits.size(); i++) {
+		waitSemaphoresInfos[i] = {
+			.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
+			// .semaphore = submits[i].waitSemaphore->getHandle(),
+		};
+	}
+
+	std::vector<VkSemaphoreSubmitInfo> signalSeamphoresInfos(submits.size());
+	for (uint32_t i = 0; i < submits.size(); i++) {
+		signalSeamphoresInfos[i] = {
+			.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
+			// .semaphore = submits[i].signalSemaphore->getHandle(),
+		};
+	}
+
+	VkSubmitInfo2 submitInfo = {
+		.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO_2,
+		.waitSemaphoreInfoCount = static_cast<uint32_t>(waitSemaphoresInfos.size()),
+		.pWaitSemaphoreInfos = waitSemaphoresInfos.data(),
+		.commandBufferInfoCount = static_cast<uint32_t>(commandsInfos.size()),
+		.pCommandBufferInfos = commandsInfos.data(),
+		.signalSemaphoreInfoCount =
+			static_cast<uint32_t>(signalSeamphoresInfos.size()),
+		.pSignalSemaphoreInfos = signalSeamphoresInfos.data(),
+	};
+
+	vkQueueSubmit2(m_queues[queueIndex], submits.size(), &submitInfo,
+				   fence.getHandle());
 }
 
 bool Device::getCommandPool(uint32_t index, VkCommandPool* pool) const {

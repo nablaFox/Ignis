@@ -74,10 +74,7 @@ Image::Image(const Device& device,
 
 	Fence fence(m_device);
 
-	m_device.submitCommands({{
-		.command = &cmd,
-		.fence = &fence,
-	}});
+	m_device.submitCommands({{&cmd}}, fence);
 
 	fence.wait();
 }

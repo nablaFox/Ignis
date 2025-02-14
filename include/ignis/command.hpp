@@ -107,9 +107,14 @@ public:
 					   uint32_t firstVertex = 0,
 					   uint32_t firstInstance = 0);
 
+	uint32_t getQueueIndex() const { return m_queueIndex; }
+
+	VkCommandBuffer getHandle() const { return m_commandBuffer; }
+
 private:
 	const Device& m_device;
 	VkCommandPool m_commandPool{nullptr};
+	uint32_t m_queueIndex;
 	VkCommandBuffer m_commandBuffer{nullptr};
 	bool m_isRecording{false};
 	std::vector<Buffer*> m_stagingBuffers;

@@ -31,14 +31,14 @@ public:
 	Device(CreateInfo);
 	~Device();
 
+	// each command should be relative to the same queue
 	struct SubmitInfo {
-		std::vector<const Semaphore*> waitSemaphores;
-		std::vector<const Semaphore*> signalSemaphores;
 		const Command* command;
-		Fence* fence;
+		const Semaphore* waitSemaphore;
+		const Semaphore* signalSemaphore;
 	};
 
-	void submitCommands(std::vector<SubmitInfo>) const;
+	void submitCommands(std::vector<SubmitInfo>, const Fence& fence) const;
 
 	bool getQueue(uint32_t index, VkQueue*) const;
 
