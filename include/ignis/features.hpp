@@ -5,10 +5,10 @@
 namespace ignis {
 
 struct RequiredFeatures {
-	VkPhysicalDeviceBufferDeviceAddressFeatures
-		physicalDeviceBufferDeviceAddressFeatures{};
-	VkPhysicalDeviceDynamicRenderingFeatures
-		physicalDeviceDynamicRenderingFeatures{};
+	VkPhysicalDeviceBufferDeviceAddressFeatures bufferDeviceAddress{};
+	VkPhysicalDeviceDynamicRenderingFeatures dynamicRendering{};
+	VkPhysicalDeviceSynchronization2FeaturesKHR syncrhonization2{};
+
 	VkPhysicalDeviceFeatures2 physicalDeviceFeatures2{};
 
 	RequiredFeatures();

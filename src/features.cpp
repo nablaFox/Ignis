@@ -3,21 +3,28 @@
 using namespace ignis;
 
 RequiredFeatures::RequiredFeatures() {
-	physicalDeviceBufferDeviceAddressFeatures.sType =
-		VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_DEVICE_ADDRESS_FEATURES;
-	physicalDeviceBufferDeviceAddressFeatures.pNext =
-		&physicalDeviceDynamicRenderingFeatures;
+	bufferDeviceAddress = {
+		.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_DEVICE_ADDRESS_FEATURES,
+		.pNext = nullptr,
+		.bufferDeviceAddress = VK_TRUE,
+	};
 
-	physicalDeviceDynamicRenderingFeatures.sType =
-		VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES;
-	physicalDeviceDynamicRenderingFeatures.pNext = nullptr;
+	dynamicRendering = {
+		.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES,
+		.pNext = &bufferDeviceAddress,
+		.dynamicRendering = VK_TRUE,
+	};
 
-	physicalDeviceFeatures2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
-	physicalDeviceFeatures2.pNext = &physicalDeviceBufferDeviceAddressFeatures;
+	syncrhonization2 = {
+		.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SYNCHRONIZATION_2_FEATURES_KHR,
+		.pNext = &dynamicRendering,
+		.synchronization2 = VK_TRUE,
+	};
 
-	// enable the features
-	physicalDeviceBufferDeviceAddressFeatures.bufferDeviceAddress = VK_TRUE;
-	physicalDeviceDynamicRenderingFeatures.dynamicRendering = VK_TRUE;
+	physicalDeviceFeatures2 = {
+		.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
+		.pNext = &syncrhonization2,
+	};
 }
 
 bool RequiredFeatures::checkCompatibility(VkPhysicalDevice device) {
@@ -25,10 +32,11 @@ bool RequiredFeatures::checkCompatibility(VkPhysicalDevice device) {
 	vkGetPhysicalDeviceFeatures2(device, &features.physicalDeviceFeatures2);
 
 	bool hasBufferDeviceAddress =
-		features.physicalDeviceBufferDeviceAddressFeatures.bufferDeviceAddress ==
-		VK_TRUE;
-	bool hasDynamicRendering =
-		features.physicalDeviceDynamicRenderingFeatures.dynamicRendering == VK_TRUE;
+		features.bufferDeviceAddress.bufferDeviceAddress == VK_TRUE;
 
-	return hasBufferDeviceAddress && hasDynamicRendering;
+	bool hasDynamicRendering = features.dynamicRendering.dynamicRendering == VK_TRUE;
+
+	bool hasSynchronization2 = features.syncrhonization2.synchronization2 == VK_TRUE;
+
+	return hasBufferDeviceAddress && hasDynamicRendering && hasSynchronization2;
 }
