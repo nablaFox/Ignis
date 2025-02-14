@@ -23,9 +23,6 @@ public:
 
 	ColorImage(CreateInfo);
 
-	// - optimal layout COLOR_ATTACHMENT_OPTIMAL
-	// - usage COLOR_ATTACHMENT_BIT
-	// - format RGBA16
 	static ColorImage* createDrawImage(const Device* device, VkExtent2D extent);
 };
 
