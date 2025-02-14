@@ -2,6 +2,7 @@
 #include "command.hpp"
 #include "device.hpp"
 #include "exceptions.hpp"
+#include "fence.hpp"
 
 using namespace ignis;
 
@@ -69,12 +70,14 @@ Image::Image(const Device& device,
 
 	cmd.end();
 
+	Fence fence(m_device);
+
 	m_device.submitCommands({{
 		.command = &cmd,
-		// pass the fence
+		.fence = &fence,
 	}});
 
-	// wait for the command to be executed
+	fence.wait();
 }
 
 Image::~Image() {
