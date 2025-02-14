@@ -3,7 +3,8 @@
 using namespace ignis;
 
 ColorImage::ColorImage(CreateInfo info)
-	: Image(*info.device,
+	: m_format(info.format),
+	  Image(*info.device,
 			info.extent,
 			static_cast<VkFormat>(info.format),
 			info.usage,

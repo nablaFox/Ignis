@@ -23,11 +23,13 @@ public:
 
 	DepthImage(CreateInfo);
 
-	// - optimal layout DEPTH_STENCIL_ATTACHMENT_OPTIMAL
-	// - usage DEPTH_STENCIL_ATTACHMENT_BIT
-	// - format DEPTH_STENCIL
 	static DepthImage* createDepthStencilImage(const Device* device,
 											   VkExtent2D extent);
+
+	DepthFormat getFormat() const { return m_format; }
+
+private:
+	DepthFormat m_format;
 };
 
 }  // namespace ignis

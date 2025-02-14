@@ -41,8 +41,6 @@ public:
 
 	VkImageLayout getCurrentLayout() const { return m_currentLayout; }
 
-	VkFormat getFormat() const { return m_format; }
-
 private:
 	const Device& m_device;
 	VmaAllocation m_allocation{nullptr};
@@ -51,7 +49,6 @@ private:
 	VkImageAspectFlags m_viewAspect;
 	VkDeviceSize m_pixelSize;
 	VkExtent2D m_extent;
-	VkFormat m_format;
 	VkImageLayout m_optimalLayout;
 	VkImageLayout m_currentLayout{VK_IMAGE_LAYOUT_UNDEFINED};
 

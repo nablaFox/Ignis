@@ -17,7 +17,6 @@ Image::Image(const Device& device,
 	: m_device(device),
 	  m_extent(extent),
 	  m_optimalLayout(optimalLayout),
-	  m_format(format),
 	  m_viewAspect(viewAspect),
 	  m_pixelSize(::getPixelSize(format)) {
 	VkImageCreateInfo imageInfo = {

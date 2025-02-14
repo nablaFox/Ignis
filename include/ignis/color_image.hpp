@@ -24,6 +24,11 @@ public:
 	ColorImage(CreateInfo);
 
 	static ColorImage* createDrawImage(const Device* device, VkExtent2D extent);
+
+	ColorFormat getFormat() const { return m_format; }
+
+private:
+	ColorFormat m_format;
 };
 
 }  // namespace ignis
