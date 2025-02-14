@@ -34,6 +34,8 @@ public:
 
 	~Pipeline();
 
+	VkPipeline getPipeline() const { return m_pipeline; }
+
 private:
 	const Device& m_device;
 	std::unique_ptr<PipelineLayout> m_pipelineLayout;

@@ -15,6 +15,8 @@ class Device;
 // Note 6: images are never host visible
 
 class Image {
+	friend class Command;
+
 protected:
 	Image(const Device&,
 		  VkExtent2D,
@@ -29,11 +31,15 @@ protected:
 public:
 	VkImageView getView() const { return m_view; }
 
+	VkImage getImage() const { return m_image; }
+
 	VkExtent2D getExtent() const { return m_extent; }
 
 	VkImageLayout getOptimalLayout() const { return m_optimalLayout; }
 
 	VkImageLayout getCurrentLayout() const { return m_currentLayout; }
+
+	VkFormat getFormat() const { return m_format; }
 
 	VkImageUsageFlagBits getUsage() const { return m_usage; }
 
@@ -42,6 +48,7 @@ private:
 	VmaAllocation m_allocation{nullptr};
 	VkImage m_image{nullptr};
 	VkImageView m_view{nullptr};
+	VkImageAspectFlags m_viewAspect;
 	VkExtent2D m_extent;
 	VkFormat m_format;
 	VkImageUsageFlagBits m_usage;

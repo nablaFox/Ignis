@@ -28,7 +28,7 @@ public:
 	VkBuffer getHandle() const { return m_buffer; }
 
 	// this only works for host visible memory
-	void writeData(const void* data, uint32_t start = 0, uint32_t end = 0);
+	void writeData(const void* data, uint32_t size = 0, uint32_t offset = 0);
 
 	// - usage = TRANSFER_SRC_BIT | TRANSFER_DST_BIT
 	template <typename T>

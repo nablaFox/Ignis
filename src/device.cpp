@@ -3,6 +3,7 @@
 #include "device.hpp"
 #include "exceptions.hpp"
 #include "features.hpp"
+#include "vk_utils.hpp"
 
 #define VMA_IMPLEMENTATION
 #include <vk_mem_alloc.h>
@@ -92,7 +93,7 @@ static void createInstance(VkInstance* instance, std::string appName) {
 
 static void getPhysicalDevice(VkInstance instance,
 							  VkPhysicalDevice* device,
-							  const std::vector<std::string> requiredExtensions) {
+							  const std::vector<std::string>& requiredExtensions) {
 	uint32_t deviceCount = 0;
 	vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
 
@@ -192,6 +193,25 @@ static void createAllocator(VkDevice device,
 					   "Failed to create allocator");
 }
 
+static void allocateCommandPools(VkDevice device,
+								 uint32_t graphicsQueuesCount,
+								 uint32_t graphicsFamilyIndex,
+								 std::vector<VkCommandPool>* commandPools) {
+	for (uint32_t i = 0; i < graphicsQueuesCount; i++) {
+		VkCommandPoolCreateInfo poolInfo{
+			.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+			.queueFamilyIndex = graphicsFamilyIndex,
+		};
+
+		VkCommandPool commandPool = nullptr;
+		THROW_VULKAN_ERROR(
+			vkCreateCommandPool(device, &poolInfo, nullptr, &commandPool),
+			"Failed to create command pool");
+
+		commandPools->push_back(commandPool);
+	}
+}
+
 Device::Device(CreateInfo createInfo) : m_shadersFolder(createInfo.shadersFolder) {
 	createInstance(&m_instance, createInfo.appName);
 
@@ -208,9 +228,31 @@ Device::Device(CreateInfo createInfo) : m_shadersFolder(createInfo.shadersFolder
 						m_graphicsFamilyIndex, &m_queues, &m_device);
 
 	createAllocator(m_device, m_phyiscalDevice, m_instance, &m_allocator);
+
+	allocateCommandPools(m_device, m_graphicsQueuesCount, m_graphicsFamilyIndex,
+						 &m_commandPools);
+}
+
+bool Device::getCommandPool(uint32_t index, VkCommandPool* pool) const {
+	if (index >= m_commandPools.size())
+		return false;
+
+	*pool = m_commandPools[index];
+	return true;
+}
+
+bool Device::getQueue(uint32_t index, VkQueue* queue) const {
+	if (index >= m_queues.size())
+		return false;
+
+	*queue = m_queues[index];
+	return true;
 }
 
 Device::~Device() {
+	for (auto commandPool : m_commandPools)
+		vkDestroyCommandPool(m_device, commandPool, nullptr);
+
 	vkDestroyDevice(m_device, nullptr);
 
 #ifndef NDEBUG

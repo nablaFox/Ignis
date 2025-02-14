@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vulkan/vulkan_core.h>
+#include <vector>
 
 namespace ignis {
 
@@ -26,8 +27,8 @@ struct DepthAttachment {
 	VkAttachmentStoreOp storeAction;
 };
 
-// Note 1: every command is a graphics one
-// Note 2: every command is a primary one
+// Note 1: every command is a graphics command
+// Note 2: every command is primary
 // Note 3: allocation, deallocation and resetting is per-command, not per-pool, i.e.
 // we can't batch those operations for multiple commands
 // Note 4: we can't bind single samplers
@@ -39,10 +40,12 @@ struct DepthAttachment {
 
 class Command {
 public:
-	Command(const Device&, VkQueue = VK_NULL_HANDLE);
+	Command(const Device&, uint32_t queueIndex = 0);
 	~Command();
 
-	void begin(VkCommandBufferUsageFlags flags);
+	// will clear the staging buffers
+	void begin(VkCommandBufferUsageFlags flags =
+				   VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
 
 	void end();
 
@@ -58,11 +61,11 @@ public:
 	template <typename T>
 	void pushConstants(const T& data, uint32_t offset = 0);
 
-	void transitionImageLayout(const Image&, VkImageLayout);
+	void transitionImageLayout(Image&, VkImageLayout);
 
 	void copyImage(const Image& src, const Image& dst);
 
-	void updateImage(const Image&,
+	void updateImage(Image&,
 					 const void* pixels,
 					 VkOffset2D imageOffset = {0, 0},
 					 VkExtent2D imageSize = {});
@@ -105,10 +108,13 @@ public:
 					   uint32_t firstInstance = 0);
 
 private:
-	Device& m_device;
-	VkQueue m_queue;
-	VkCommandPool m_pool;
-	VkCommandBuffer m_commandBuffer;
+	const Device& m_device;
+	VkCommandPool m_commandPool{nullptr};
+	VkCommandBuffer m_commandBuffer{nullptr};
+	bool m_isRecording{false};
+	std::vector<Buffer*> m_stagingBuffers;
+
+	const Pipeline* m_currentPipeline{nullptr};
 
 public:
 	Command(const Command&) = delete;

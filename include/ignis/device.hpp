@@ -16,6 +16,8 @@ class Command;
 // Note 3: the library works only in vulkan 1.3 with dynamic rendering and other
 // required features
 // Note 4: we don't handle custom features/extensions
+// Note 5: command pools are relative to a single thread
+// Note 6: we allocate a command pool for each queue
 
 // PONDER probaly device should inherit a pointer class
 class Device {
@@ -29,8 +31,6 @@ public:
 	Device(CreateInfo);
 	~Device();
 
-	bool getQueue(uint32_t index, VkQueue*) const;
-
 	struct SubmitInfo {
 		std::vector<const Semaphore*> waitSemaphores;
 		std::vector<const Semaphore*> signalSemaphores;
@@ -40,7 +40,9 @@ public:
 
 	void submitCommands(std::vector<SubmitInfo>) const;
 
-	VkCommandPool getCommandPool();
+	bool getQueue(uint32_t index, VkQueue*) const;
+
+	bool getCommandPool(uint32_t index, VkCommandPool*) const;
 
 	VkDevice getDevice() const { return m_device; }
 
@@ -59,7 +61,7 @@ private:
 	uint32_t m_graphicsFamilyIndex{0};
 	uint32_t m_graphicsQueuesCount{0};
 	std::vector<VkQueue> m_queues;
-	std::vector<VkCommandPool> m_pools;
+	std::vector<VkCommandPool> m_commandPools;
 
 	std::string m_shadersFolder;
 

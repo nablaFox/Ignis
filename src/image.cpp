@@ -17,7 +17,8 @@ Image::Image(const Device& device,
 	  m_usage(usage),
 	  m_optimalLayout(optimalLayout),
 	  m_currentLayout(optimalLayout),
-	  m_format(format) {
+	  m_format(format),
+	  m_viewAspect(viewAspect) {
 	VkImageCreateInfo imageInfo = {
 		.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
 		.imageType = VK_IMAGE_TYPE_2D,
@@ -62,13 +63,18 @@ Image::Image(const Device& device,
 
 	Command cmd(m_device);
 
+	cmd.begin();
+
 	cmd.updateImage(*this, initialPixels);
 
-	cmd.transitionImageLayout(*this, m_optimalLayout);
+	cmd.end();
 
 	m_device.submitCommands({{
 		.command = &cmd,
+		// pass the fence
 	}});
+
+	// wait for the command to be executed
 }
 
 Image::~Image() {
