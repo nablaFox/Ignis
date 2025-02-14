@@ -18,7 +18,7 @@ static void clearStagingBuffers(std::vector<Buffer*>& buffers) {
 
 Command::Command(const Device& device, uint32_t queueIndex)
 	: m_device(device), m_queueIndex(queueIndex) {
-	THROW_ERROR(m_device.getCommandPool(queueIndex, &m_commandPool),
+	THROW_ERROR(!m_device.getCommandPool(queueIndex, &m_commandPool),
 				"Failed to get the command pool");
 
 	VkCommandBufferAllocateInfo allocInfo{

@@ -1,3 +1,5 @@
+#pragma once
+
 #include <stdexcept>
 #include <vulkan/vulkan_core.h>
 #include <vulkan/vk_enum_string_helper.h>
@@ -27,7 +29,7 @@ private:
 	throw VulkanException(message, result)
 
 #define THROW_ERROR(result, message) \
-	if (!(result))                   \
+	if (result)                      \
 	throw Exception(message)
 
 }  // namespace ignis
