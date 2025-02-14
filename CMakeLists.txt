@@ -21,9 +21,21 @@ CPMAddPackage(
   GIT_TAG v3.2.0
 )
 
+# TEMP
+CPMAddPackage(
+  NAME SPIRV-Cross
+  GITHUB_REPOSITORY KhronosGroup/SPIRV-Cross
+  GIT_TAG 2021-01-15
+)
+
+target_include_directories(ignis PUBLIC
+	SPIRV-CRoss_SOURCE_DIR
+)
+
 target_link_libraries(ignis PUBLIC
   Vulkan::Vulkan
   GPUOpen::VulkanMemoryAllocator
+  spirv-cross-cpp
 )
 
 # "tests"

@@ -11,8 +11,7 @@ Pipeline::Pipeline(CreateInfo info) : m_device(*info.device) {
 	std::vector<std::unique_ptr<Shader>> shaders;
 
 	for (const auto& shaderPath : info.shaders) {
-		shaders.emplace_back(std::make_unique<Shader>(
-			m_device, m_device.getFullShaderPath(shaderPath)));
+		shaders.emplace_back(std::make_unique<Shader>(m_device, shaderPath));
 	}
 
 	m_pipelineLayout = std::make_unique<PipelineLayout>(m_device, shaders);

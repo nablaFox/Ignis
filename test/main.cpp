@@ -4,11 +4,14 @@
 #include "color_image.hpp"
 #include "command.hpp"
 #include "fence.hpp"
+#include "shader.hpp"
 
 using namespace ignis;
 
 int main(int argc, char* argv[]) {
-	Device device({});
+	Device device({
+		.shadersFolder = "test/shaders",
+	});
 
 	struct Color {
 		uint16_t r;
@@ -52,6 +55,8 @@ int main(int argc, char* argv[]) {
 	ubo->writeData(pixels);
 
 	delete ubo;
+
+	Shader shader(device, "vertex.spv");
 
 	return 0;
 }

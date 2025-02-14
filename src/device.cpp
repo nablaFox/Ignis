@@ -314,6 +314,13 @@ bool Device::getQueue(uint32_t index, VkQueue* queue) const {
 	return true;
 }
 
+std::string Device::getFullShaderPath(std::string shaderPath) const {
+	if (shaderPath[0] == '/')
+		return shaderPath;
+
+	return m_shadersFolder + "/" + shaderPath;
+}
+
 Device::~Device() {
 	for (auto queue : m_queues)
 		vkQueueWaitIdle(queue);

@@ -7,14 +7,7 @@ namespace ignis {
 
 class Device;
 
-struct BindingInfo {
-	VkDescriptorType bindingType;
-	VkShaderStageFlags stages;
-	VkAccessFlags access;
-	uint32_t binding;
-	uint32_t arraySize;
-	uint32_t size;
-};
+struct BindingInfo;
 
 class DescriptorSetLayout {
 public:
