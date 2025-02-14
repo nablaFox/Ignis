@@ -17,7 +17,7 @@ struct DirectionalLight {
 layout(set = 0, binding = 0) uniform SceneData {   
     mat4 viewproj;
     vec4 ambientColor;
-    DirectionalLight sun; // fixed typo here
+    DirectionalLight sun;
 } sceneData;
 
 // declares a pointer to a vertex buffer

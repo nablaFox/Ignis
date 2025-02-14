@@ -9,7 +9,7 @@ using namespace ignis;
 PipelineLayout::PipelineLayout(const Device& device,
 							   const std::vector<std::unique_ptr<Shader>>& shaders)
 	: m_device(device) {
-	ShaderResources shaderResources;
+	ShaderResources shaderResources{};
 
 	for (const auto& shader : shaders)
 		Shader::getMergedResources(shader->getResources(), &shaderResources);
@@ -20,12 +20,10 @@ PipelineLayout::PipelineLayout(const Device& device,
 	m_descriptorSetLayouts.reserve(shaderResources.bindings.size());
 
 	for (const auto& [slot, bindings] : shaderResources.bindings) {
-		for (const auto& [slot, bindings] : shaderResources.bindings) {
-			auto [it, inserted] =
-				m_descriptorSetLayouts.try_emplace(slot, m_device, bindings);
+		auto [it, inserted] =
+			m_descriptorSetLayouts.try_emplace(slot, m_device, bindings);
 
-			vkDescriptorSetLayouts.push_back(it->second.getHandle());
-		}
+		vkDescriptorSetLayouts.push_back(it->second.getHandle());
 	}
 
 	VkPipelineLayoutCreateInfo layoutInfo = {

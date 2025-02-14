@@ -5,6 +5,7 @@
 #include "command.hpp"
 #include "fence.hpp"
 #include "shader.hpp"
+#include "pipeline.hpp"
 
 using namespace ignis;
 
@@ -57,6 +58,11 @@ int main(int argc, char* argv[]) {
 	delete ubo;
 
 	Shader shader(device, "vertex.spv");
+
+	Pipeline pipeline({
+		.device = &device,
+		.shaders = {"vertex.spv"},
+	});
 
 	return 0;
 }

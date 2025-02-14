@@ -177,21 +177,22 @@ void Shader::getMergedResources(ShaderResources inputResources,
 		}
 	}
 
-	if (inputResources.pushConstants.size > 0 &&
-		(*outputResources).pushConstants.size == 0) {
+	if (inputResources.pushConstants.size == 0) {
+		return;
+	}
+
+	if ((*outputResources).pushConstants.size == 0) {
 		(*outputResources).pushConstants = inputResources.pushConstants;
 		return;
 	}
 
-	uint32_t newOffset = std::min((*outputResources).pushConstants.offset,
-								  inputResources.pushConstants.offset);
+	uint32_t outOffset = (*outputResources).pushConstants.offset;
+	uint32_t outSize = (*outputResources).pushConstants.size;
+	uint32_t inOffset = inputResources.pushConstants.offset;
+	uint32_t inSize = inputResources.pushConstants.size;
 
-	uint32_t end1 = (*outputResources).pushConstants.offset +
-					(*outputResources).pushConstants.size;
-	uint32_t end2 =
-		inputResources.pushConstants.offset + inputResources.pushConstants.size;
-	uint32_t newEnd = std::max(end1, end2);
-
+	uint32_t newOffset = std::min(outOffset, inOffset);
+	uint32_t newEnd = std::max(outOffset + outSize, inOffset + inSize);
 	(*outputResources).pushConstants.offset = newOffset;
 	(*outputResources).pushConstants.size = newEnd - newOffset;
 	(*outputResources).pushConstants.stageFlags |=

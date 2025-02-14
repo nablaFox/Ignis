@@ -16,15 +16,17 @@ Pipeline::Pipeline(CreateInfo info) : m_device(*info.device) {
 
 	m_pipelineLayout = std::make_unique<PipelineLayout>(m_device, shaders);
 
-	std::vector<VkPipelineShaderStageCreateInfo> shaderStages(info.shaders.size());
+	std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
+	shaderStages.reserve(info.shaders.size());
 
-	for (const auto& shader : shaders)
+	for (const auto& shader : shaders) {
 		shaderStages.push_back({
 			.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
 			.stage = shader->getStage(),
 			.module = shader->getModule(),
 			.pName = "main",
 		});
+	}
 
 	VkPipelineVertexInputStateCreateInfo vertexInput{
 		.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
