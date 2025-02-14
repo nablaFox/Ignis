@@ -1,4 +1,5 @@
 #include "vk_utils.hpp"
+#include "exceptions.hpp"
 
 bool ignis::checkExtensionsCompatibility(
 	VkPhysicalDevice device,
@@ -30,6 +31,68 @@ bool ignis::checkExtensionsCompatibility(
 ignis::TransitionInfo ignis::getTransitionInfo(VkImageLayout oldLayout,
 											   VkImageLayout newLayout) {
 	TransitionInfo info{};
+
+	// UNDEFINED -> ANY
+	if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED) {
+		info.srcAccessMask = 0;
+		info.dstAccessMask = 0;
+		info.srcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+		info.dstStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+	}
+
+	// GENERIC -> ANY
+	else if (oldLayout == VK_IMAGE_LAYOUT_GENERAL) {
+		info.srcAccessMask = 0;
+		info.dstAccessMask = 0;
+		info.srcStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+		info.dstStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+	}
+
+	// TRANSFER_DST_OPTIMAL -> COLOR_ATTACHMENT_OPTIMAL
+	else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL &&
+			 newLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL) {
+		info.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+		info.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		info.srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+		info.dstStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	}
+
+	// COLOR_ATTACHMENT_OPTIMAL -> TRANSFER_DST_OPTIMAL
+	else if (oldLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL &&
+			 newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
+		info.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		info.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+		info.srcStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		info.dstStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+	}
+
+	// COLOR_ATTACHMENT_OPTIMAL -> TRANSFER_SRC_OPTIMAL
+	else if (oldLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL &&
+			 newLayout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL) {
+		info.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		info.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+		info.srcStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		info.dstStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+	}
+	// TRANSFER_DST_OPTIMAL -> DEPTH_STENCIL_ATTACHMENT_OPTIMAL
+	else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL &&
+			 newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL) {
+		info.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+		info.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+		info.srcStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+		info.dstStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+	}
+	// DEPTH_STENCIL_ATTACHMENT_OPTIMAL -> TRANSFER_SRC_OPTIMAL
+	else if (oldLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL &&
+			 newLayout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL) {
+		info.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+		info.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+		info.srcStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+		info.dstStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+	} else {
+		throw Exception("Unsupported layout transition");
+	}
+
 	return info;
 }
 
