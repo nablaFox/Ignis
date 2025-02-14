@@ -5,6 +5,7 @@
 #include "exceptions.hpp"
 #include "features.hpp"
 #include "fence.hpp"
+#include "semaphore.hpp"
 #include "vk_utils.hpp"
 
 #define VMA_IMPLEMENTATION
@@ -261,7 +262,7 @@ void Device::submitCommands(std::vector<SubmitInfo> submits,
 	for (uint32_t i = 0; i < submits.size(); i++) {
 		waitSemaphoresInfos[i] = {
 			.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
-			// .semaphore = submits[i].waitSemaphore->getHandle(),
+			.semaphore = submits[i].waitSemaphore->getHandle(),
 		};
 	}
 
@@ -269,7 +270,7 @@ void Device::submitCommands(std::vector<SubmitInfo> submits,
 	for (uint32_t i = 0; i < submits.size(); i++) {
 		signalSeamphoresInfos[i] = {
 			.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
-			// .semaphore = submits[i].signalSemaphore->getHandle(),
+			.semaphore = submits[i].signalSemaphore->getHandle(),
 		};
 	}
 
