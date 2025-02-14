@@ -8,12 +8,21 @@
 
 using namespace ignis;
 
+static void clearStagingBuffers(std::vector<Buffer*>& buffers) {
+	for (auto& buffer : buffers) {
+		delete buffer;
+	}
+
+	buffers.clear();
+}
+
 Command::Command(const Device& device, uint32_t queueIndex)
 	: m_device(device), m_queueIndex(queueIndex) {
 	THROW_ERROR(m_device.getCommandPool(queueIndex, &m_commandPool),
 				"Failed to get the command pool");
 
 	VkCommandBufferAllocateInfo allocInfo{
+		.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
 		.commandPool = m_commandPool,
 		.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
 		.commandBufferCount = 1,
@@ -25,17 +34,12 @@ Command::Command(const Device& device, uint32_t queueIndex)
 }
 
 Command::~Command() {
-	for (auto& buffer : m_stagingBuffers) {
-		delete buffer;
-	}
-
+	clearStagingBuffers(m_stagingBuffers);
 	vkFreeCommandBuffers(m_device.getDevice(), m_commandPool, 1, &m_commandBuffer);
 }
 
 void Command::begin(VkCommandBufferUsageFlags flags) {
-	for (auto& buffer : m_stagingBuffers) {
-		delete buffer;
-	}
+	clearStagingBuffers(m_stagingBuffers);
 
 	// TODO add warning if the command buffer is already recording
 
@@ -94,10 +98,14 @@ void Command::updateImage(Image& image,
 	Buffer* staging = new Buffer({
 		.device = &m_device,
 		.bufferUsage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+		.memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+							VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
 		.elementCount = pixelsCount,
 		.elementSize = image.m_pixelSize,
 		.initialData = nullptr,
 	});
+
+	m_stagingBuffers.push_back(staging);
 
 	staging->writeData(pixels, pixelsCount * image.m_pixelSize);
 
@@ -107,13 +115,9 @@ void Command::updateImage(Image& image,
 		.bufferOffset = 0,
 		.imageSubresource = {image.m_viewAspect, 0, 0, 1},
 		.imageOffset = {imageOffset.x, imageOffset.y, 0},
-		.imageExtent = {imageSize.width, imageSize.height, 1},
+		.imageExtent = {size.width, size.height, 1},
 	};
 
 	vkCmdCopyBufferToImage(m_commandBuffer, staging->getHandle(), image.m_image,
 						   VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copyRegion);
-
-	transitionImageLayout(image, image.m_optimalLayout);
-
-	m_stagingBuffers.push_back(staging);
 }

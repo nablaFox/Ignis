@@ -10,15 +10,13 @@ using namespace ignis;
 Image::Image(const Device& device,
 			 VkExtent2D extent,
 			 VkFormat format,
-			 VkImageUsageFlagBits usage,
+			 VkImageUsageFlags usage,
 			 VkImageLayout optimalLayout,
 			 VkImageAspectFlags viewAspect,
 			 const void* initialPixels)
 	: m_device(device),
 	  m_extent(extent),
-	  m_usage(usage),
 	  m_optimalLayout(optimalLayout),
-	  m_currentLayout(optimalLayout),
 	  m_format(format),
 	  m_viewAspect(viewAspect),
 	  m_pixelSize(::getPixelSize(format)) {
@@ -68,7 +66,12 @@ Image::Image(const Device& device,
 
 	cmd.begin();
 
-	cmd.updateImage(*this, initialPixels);
+	if (initialPixels) {
+		cmd.updateImage(*this, initialPixels);
+	}
+
+	// will set current layout to optimal layout
+	cmd.transitionImageLayout(*this, m_optimalLayout);
 
 	cmd.end();
 

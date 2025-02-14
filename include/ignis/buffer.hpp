@@ -4,16 +4,14 @@
 
 namespace ignis {
 
-// Note 1: for now we don't provide an explicit memory usage flag
-// instead we rely on VMA to automatically choose it for us
-
 class Device;
 
 class Buffer {
 public:
 	struct CreateInfo {
 		const Device* device;
-		VkBufferUsageFlagBits bufferUsage;
+		VkBufferUsageFlags bufferUsage;
+		VkMemoryPropertyFlags memoryProperties;
 		uint32_t elementCount;
 		VkDeviceSize elementSize;
 		const void* initialData;

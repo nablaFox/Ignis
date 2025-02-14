@@ -16,7 +16,7 @@ public:
 		const Device* device;
 		ColorFormat format;
 		VkExtent2D extent;
-		VkImageUsageFlagBits usage;
+		VkImageUsageFlags usage;
 		VkImageLayout optimalLayout;
 		const void* initialPixels;
 	};

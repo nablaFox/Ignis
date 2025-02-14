@@ -13,6 +13,8 @@ Fence::Fence(const Device& device) : m_device(device) {
 	THROW_VULKAN_ERROR(
 		vkCreateFence(m_device.getDevice(), &fenceInfo, nullptr, &m_fence),
 		"Failed to create fence");
+
+	vkResetFences(m_device.getDevice(), 1, &m_fence);
 }
 
 Fence::~Fence() {
@@ -23,4 +25,9 @@ void Fence::wait() const {
 	THROW_VULKAN_ERROR(
 		vkWaitForFences(m_device.getDevice(), 1, &m_fence, VK_TRUE, UINT64_MAX),
 		"Failed to wait for fence");
+}
+
+void Fence::reset() const {
+	THROW_VULKAN_ERROR(vkResetFences(m_device.getDevice(), 1, &m_fence),
+					   "Failed to reset fence");
 }

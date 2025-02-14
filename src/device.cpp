@@ -187,6 +187,7 @@ static void createAllocator(VkDevice device,
 							VkInstance instance,
 							VmaAllocator* allocator) {
 	VmaAllocatorCreateInfo allocatorInfo{
+		.flags = VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT,
 		.physicalDevice = physicalDevice,
 		.device = device,
 		.instance = instance,
@@ -258,20 +259,24 @@ void Device::submitCommands(std::vector<SubmitInfo> submits,
 		};
 	}
 
-	std::vector<VkSemaphoreSubmitInfo> waitSemaphoresInfos(submits.size());
+	std::vector<VkSemaphoreSubmitInfo> waitSemaphoresInfos;
 	for (uint32_t i = 0; i < submits.size(); i++) {
-		waitSemaphoresInfos[i] = {
-			.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
-			.semaphore = submits[i].waitSemaphore->getHandle(),
-		};
+		if (submits[i].waitSemaphore != nullptr) {
+			waitSemaphoresInfos.push_back({
+				.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
+				.semaphore = submits[i].waitSemaphore->getHandle(),
+			});
+		}
 	}
 
-	std::vector<VkSemaphoreSubmitInfo> signalSeamphoresInfos(submits.size());
+	std::vector<VkSemaphoreSubmitInfo> signalSeamphoresInfos;
 	for (uint32_t i = 0; i < submits.size(); i++) {
-		signalSeamphoresInfos[i] = {
-			.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
-			.semaphore = submits[i].signalSemaphore->getHandle(),
-		};
+		if (submits[i].signalSemaphore != nullptr) {
+			signalSeamphoresInfos.push_back({
+				.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
+				.semaphore = submits[i].signalSemaphore->getHandle(),
+			});
+		}
 	}
 
 	VkSubmitInfo2 submitInfo = {
@@ -306,8 +311,13 @@ bool Device::getQueue(uint32_t index, VkQueue* queue) const {
 }
 
 Device::~Device() {
+	for (auto queue : m_queues)
+		vkQueueWaitIdle(queue);
+
 	for (auto commandPool : m_commandPools)
 		vkDestroyCommandPool(m_device, commandPool, nullptr);
+
+	vmaDestroyAllocator(m_allocator);
 
 	vkDestroyDevice(m_device, nullptr);
 

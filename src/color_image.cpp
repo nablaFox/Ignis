@@ -1,5 +1,3 @@
-#pragma once
-
 #include "color_image.hpp"
 
 using namespace ignis;
@@ -18,7 +16,9 @@ ColorImage* ColorImage::createDrawImage(const Device* device, VkExtent2D extent)
 		.device = device,
 		.format = ColorFormat::RGBA16,
 		.extent = extent,
-		.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+		.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
+				 VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
+				 VK_IMAGE_USAGE_STORAGE_BIT,
 		.optimalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
 		.initialPixels = nullptr,
 	});

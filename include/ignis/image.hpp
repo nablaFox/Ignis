@@ -21,7 +21,7 @@ protected:
 	Image(const Device&,
 		  VkExtent2D,
 		  VkFormat,
-		  VkImageUsageFlagBits,
+		  VkImageUsageFlags,
 		  VkImageLayout optimalLayout,
 		  VkImageAspectFlags viewAspect,
 		  const void* initialPixels);
@@ -43,8 +43,6 @@ public:
 
 	VkFormat getFormat() const { return m_format; }
 
-	VkImageUsageFlagBits getUsage() const { return m_usage; }
-
 private:
 	const Device& m_device;
 	VmaAllocation m_allocation{nullptr};
@@ -54,9 +52,8 @@ private:
 	VkDeviceSize m_pixelSize;
 	VkExtent2D m_extent;
 	VkFormat m_format;
-	VkImageUsageFlagBits m_usage;
 	VkImageLayout m_optimalLayout;
-	VkImageLayout m_currentLayout;
+	VkImageLayout m_currentLayout{VK_IMAGE_LAYOUT_UNDEFINED};
 
 public:
 	Image(const Image&) = delete;

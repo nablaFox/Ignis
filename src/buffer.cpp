@@ -13,12 +13,12 @@ Buffer::Buffer(CreateInfo info)
 	VkBufferCreateInfo bufferInfo{
 		.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
 		.size = m_size,
-		.usage = info.bufferUsage,
+		.usage = info.bufferUsage | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
 		.sharingMode = VK_SHARING_MODE_EXCLUSIVE,
 	};
 
 	VmaAllocationCreateInfo allocationInfo{
-		.usage = VMA_MEMORY_USAGE_AUTO_PREFER_HOST,
+		.requiredFlags = info.memoryProperties,
 	};
 
 	THROW_VULKAN_ERROR(
