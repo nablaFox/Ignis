@@ -15,7 +15,7 @@ public:
 		const Device* device;
 		VkBufferUsageFlagBits bufferUsage;
 		uint32_t elementCount;
-		uint32_t elementSize;
+		VkDeviceSize elementSize;
 		const void* initialData;
 	};
 
@@ -28,11 +28,10 @@ public:
 	VkBuffer getHandle() const { return m_buffer; }
 
 	// this only works for host visible memory
-	void writeData(const void* data, uint32_t size = 0, uint32_t offset = 0);
+	void writeData(const void* data, uint32_t offset = 0, uint32_t size = 0);
 
-	// - usage = TRANSFER_SRC_BIT | TRANSFER_DST_BIT
 	template <typename T>
-	static Buffer* createStagingBuffer(const Device*,
+	static Buffer* createStagingBuffer(const Device* device,
 									   uint32_t elementCount,
 									   const T* data = nullptr);
 
@@ -55,13 +54,11 @@ public:
 
 private:
 	const Device& m_device;
-	VkBufferUsageFlagBits m_bufferUsage;
-	VmaAllocation m_allocation;
-	VmaAllocationInfo m_allocationInfo;
+	VmaAllocation m_allocation{nullptr};
 	VkDeviceSize m_stride;
-	uint32_t m_size;
-	VkDeviceAddress m_deviceAddress;
-	VkBuffer m_buffer;
+	VkDeviceSize m_size;
+	VkDeviceAddress m_deviceAddress{0};
+	VkBuffer m_buffer{nullptr};
 
 public:
 	Buffer(const Buffer&) = delete;

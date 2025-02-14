@@ -90,7 +90,13 @@ void Command::updateImage(Image& image,
 
 	uint32_t pixelsCount = size.width * size.height;
 
-	Buffer* staging = Buffer::createStagingBuffer(&m_device, pixelsCount, pixels);
+	Buffer* staging = new Buffer({
+		.device = &m_device,
+		.bufferUsage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+		.elementCount = pixelsCount,
+		.elementSize = image.m_pixelSize,
+		.initialData = nullptr,
+	});
 
 	staging->writeData(pixels, pixelsCount * image.m_pixelSize);
 
