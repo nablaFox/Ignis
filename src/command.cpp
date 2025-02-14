@@ -100,14 +100,14 @@ void Command::updateImage(Image& image,
 		.bufferUsage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
 		.memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
 							VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-		.elementCount = pixelsCount,
 		.elementSize = image.m_pixelSize,
+		.elementCount = pixelsCount,
 		.initialData = nullptr,
 	});
 
 	m_stagingBuffers.push_back(staging);
 
-	staging->writeData(pixels, pixelsCount * image.m_pixelSize);
+	staging->writeData(pixels);
 
 	transitionImageLayout(image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 

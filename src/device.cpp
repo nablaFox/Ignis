@@ -95,8 +95,9 @@ static void createInstance(VkInstance* instance, std::string appName) {
 }
 
 static void getPhysicalDevice(VkInstance instance,
+							  const std::vector<std::string>& requiredExtensions,
 							  VkPhysicalDevice* device,
-							  const std::vector<std::string>& requiredExtensions) {
+							  VkPhysicalDeviceProperties* features) {
 	uint32_t deviceCount = 0;
 	vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
 
@@ -125,6 +126,8 @@ static void getPhysicalDevice(VkInstance instance,
 	// TODO: show what are the incompatibilies
 	if (*device == VK_NULL_HANDLE)
 		throw Exception("Failed to find a suitable GPU");
+
+	vkGetPhysicalDeviceProperties(*device, features);
 }
 
 static void getGraphicsFamily(VkPhysicalDevice device,
@@ -223,7 +226,8 @@ Device::Device(CreateInfo createInfo) : m_shadersFolder(createInfo.shadersFolder
 	createDebugUtilsMessenger(m_instance, &m_debugMessenger);
 #endif
 
-	getPhysicalDevice(m_instance, &m_phyiscalDevice, createInfo.extensions);
+	getPhysicalDevice(m_instance, createInfo.extensions, &m_phyiscalDevice,
+					  &m_physicalDeviceProperties);
 
 	getGraphicsFamily(m_phyiscalDevice, &m_graphicsQueuesCount,
 					  &m_graphicsFamilyIndex);

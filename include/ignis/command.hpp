@@ -10,8 +10,6 @@ class Pipeline;
 class Buffer;
 class Image;
 class Sampler;
-class VertexBuffer;
-class IndexBuffer;
 class ColorImage;
 class DepthImage;
 
@@ -98,7 +96,7 @@ public:
 						  uint32_t binding,
 						  uint32_t arrayElement = 1);
 
-	void bindIndexBuffer(const IndexBuffer&);
+	void bindIndexBuffer(const Buffer&);
 
 	void draw(uint32_t vertexCount, uint32_t firstVertex = 0);
 

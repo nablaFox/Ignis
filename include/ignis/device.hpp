@@ -46,6 +46,8 @@ public:
 
 	VkDevice getDevice() const { return m_device; }
 
+	VkDeviceSize getUboAlignment() const;
+
 	VmaAllocator getAllocator() const { return m_allocator; }
 
 	// will return the full shaderPath only if shaderPath is not an absolute path
@@ -55,6 +57,7 @@ private:
 	VkInstance m_instance{nullptr};
 	VkDebugUtilsMessengerEXT m_debugMessenger{nullptr};
 	VkPhysicalDevice m_phyiscalDevice{nullptr};
+	VkPhysicalDeviceProperties m_physicalDeviceProperties{};
 	VkDevice m_device{nullptr};
 	VmaAllocator m_allocator{nullptr};
 

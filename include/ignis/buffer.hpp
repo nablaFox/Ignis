@@ -1,6 +1,10 @@
 #pragma once
 
 #include <vk_mem_alloc.h>
+#include "device.hpp"
+
+// Note 1: updates are relative to whole elements; if a buffer is created with the
+// type T we can't update partially a single element T
 
 namespace ignis {
 
@@ -12,8 +16,9 @@ public:
 		const Device* device;
 		VkBufferUsageFlags bufferUsage;
 		VkMemoryPropertyFlags memoryProperties;
-		uint32_t elementCount;
 		VkDeviceSize elementSize;
+		uint32_t elementCount;
+		VkDeviceSize stride;
 		const void* initialData;
 	};
 
@@ -25,8 +30,9 @@ public:
 
 	VkBuffer getHandle() const { return m_buffer; }
 
-	// this only works for host visible memory
-	void writeData(const void* data, uint32_t offset = 0, uint32_t size = 0);
+	void writeData(const void* data,
+				   VkDeviceSize firstElement = 0,
+				   VkDeviceSize lastElement = 0);
 
 	template <typename T>
 	static Buffer* createStagingBuffer(const Device* device,
@@ -40,23 +46,46 @@ public:
 									   uint32_t elementCount,
 									   uint32_t* data = nullptr);
 
-	// - stride = (elementSize + alignment - 1) & ~(alignment - 1);
-	// - usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT
 	template <typename T>
-	static Buffer* createUBO(const Device*,
+	static Buffer* createUBO(const Device* device,
 							 uint32_t elementCount,
-							 const T* data = nullptr);
+							 const T* data = nullptr) {
+		VkDeviceSize alignment = device->getUboAlignment();
+		VkDeviceSize stride = (sizeof(T) + alignment - 1) & ~(alignment - 1);
+
+		Buffer::CreateInfo info{
+			.device = device,
+			.bufferUsage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+			.memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+								VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+			.elementSize = sizeof(T),
+			.stride = stride,
+			.elementCount = elementCount,
+			.initialData = data,
+		};
+
+		return new Buffer(info);
+	}
 
 	// TODO add vertex buffer creation
+	template <typename T>
+	static Buffer* createVertexBuffer(const Device*,
+									  uint32_t elementCount,
+									  const T* data = nullptr);
+
 	// TODO add storage buffer creation
+
+	VkDeviceAddress getDeviceAddress() const { return m_deviceAddress; }
 
 private:
 	const Device& m_device;
 	VmaAllocation m_allocation{nullptr};
 	VkDeviceSize m_stride;
 	VkDeviceSize m_size;
+	VkDeviceSize m_elementSize;
 	VkDeviceAddress m_deviceAddress{0};
 	VkBuffer m_buffer{nullptr};
+	VkMemoryPropertyFlags m_memoryProperties;
 
 public:
 	Buffer(const Buffer&) = delete;
