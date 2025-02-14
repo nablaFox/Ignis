@@ -79,17 +79,20 @@ void Command::transitionImageLayout(Image& image, VkImageLayout newLayout) {
 	image.m_currentLayout = newLayout;
 }
 
+// the user must provide the correct data type for pixels
+// as to match image format
 void Command::updateImage(Image& image,
 						  const void* pixels,
 						  VkOffset2D imageOffset,
 						  VkExtent2D imageSize) {
-	VkDeviceSize dataSize = 0;
+	VkExtent2D size =
+		(!imageSize.width && !imageSize.height) ? image.m_extent : imageSize;
 
-	// calculate dataSize based on format, imageOffset and imageSize
+	uint32_t pixelsCount = size.width * size.height;
 
-	Buffer* staging = Buffer::createStagingBuffer(&m_device, dataSize, pixels);
+	Buffer* staging = Buffer::createStagingBuffer(&m_device, pixelsCount, pixels);
 
-	staging->writeData(pixels, dataSize);
+	staging->writeData(pixels, pixelsCount * image.m_pixelSize);
 
 	transitionImageLayout(image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 

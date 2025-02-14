@@ -19,4 +19,6 @@ struct TransitionInfo {
 
 TransitionInfo getTransitionInfo(VkImageLayout oldLayout, VkImageLayout newLayout);
 
+VkDeviceSize getPixelSize(VkFormat);
+
 }  // namespace ignis

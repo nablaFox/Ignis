@@ -33,6 +33,8 @@ public:
 
 	VkImage getImage() const { return m_image; }
 
+	VkDeviceSize getPixelSize() const { return m_pixelSize; }
+
 	VkExtent2D getExtent() const { return m_extent; }
 
 	VkImageLayout getOptimalLayout() const { return m_optimalLayout; }
@@ -49,6 +51,7 @@ private:
 	VkImage m_image{nullptr};
 	VkImageView m_view{nullptr};
 	VkImageAspectFlags m_viewAspect;
+	VkDeviceSize m_pixelSize;
 	VkExtent2D m_extent;
 	VkFormat m_format;
 	VkImageUsageFlagBits m_usage;

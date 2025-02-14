@@ -3,6 +3,7 @@
 #include "device.hpp"
 #include "exceptions.hpp"
 #include "fence.hpp"
+#include "vk_utils.hpp"
 
 using namespace ignis;
 
@@ -19,7 +20,8 @@ Image::Image(const Device& device,
 	  m_optimalLayout(optimalLayout),
 	  m_currentLayout(optimalLayout),
 	  m_format(format),
-	  m_viewAspect(viewAspect) {
+	  m_viewAspect(viewAspect),
+	  m_pixelSize(::getPixelSize(format)) {
 	VkImageCreateInfo imageInfo = {
 		.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
 		.imageType = VK_IMAGE_TYPE_2D,
