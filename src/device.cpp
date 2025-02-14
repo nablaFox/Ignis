@@ -123,35 +123,37 @@ static void getPhysicalDevice(VkInstance instance,
 		throw Exception("Failed to find a suitable GPU");
 }
 
-static void createLogicalDevice(VkPhysicalDevice physicalDevice,
-								VkDevice* device,
-								std::vector<VkQueue>* queues) {
+static void getGraphicsFamily(VkPhysicalDevice device,
+							  uint32_t* graphicsQueuesCount,
+							  uint32_t* graphicsFamilyIndex) {
 	uint32_t queueFamilyCount = 0;
-	vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount,
-											 nullptr);
+	vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
 
 	std::vector<VkQueueFamilyProperties> queueFamilyProperties(queueFamilyCount);
 
-	vkGetPhysicalDeviceQueueFamilyProperties(physicalDevice, &queueFamilyCount,
+	vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount,
 											 queueFamilyProperties.data());
-
-	uint32_t graphicsFamilyIndex = 0;
-	uint32_t graphicsQueueCount = 0;
 
 	for (uint32_t i = 0; i < queueFamilyCount; i++) {
 		if (queueFamilyProperties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
-			graphicsFamilyIndex = i;
-			graphicsQueueCount = queueFamilyProperties[i].queueCount;
-			break;
+			*graphicsFamilyIndex = i;
+			*graphicsQueuesCount = queueFamilyProperties[i].queueCount;
+			return;
 		}
 	}
+}
 
-	std::vector<float> priorities(graphicsQueueCount, 1.0f);
+static void createLogicalDevice(VkPhysicalDevice physicalDevice,
+								uint32_t graphicsQueuesCount,
+								uint32_t graphicsFamilyIndex,
+								std::vector<VkQueue>* queues,
+								VkDevice* device) {
+	std::vector<float> priorities(graphicsQueuesCount, 1.0f);
 
 	VkDeviceQueueCreateInfo queueCreateInfo{
 		.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
 		.queueFamilyIndex = graphicsFamilyIndex,
-		.queueCount = graphicsQueueCount,
+		.queueCount = graphicsQueuesCount,
 		.pQueuePriorities = priorities.data(),
 	};
 
@@ -169,11 +171,25 @@ static void createLogicalDevice(VkPhysicalDevice physicalDevice,
 	THROW_VULKAN_ERROR(vkCreateDevice(physicalDevice, &createInfo, nullptr, device),
 					   "Failed to create logical device");
 
-	for (uint32_t i = 0; i < graphicsQueueCount; i++) {
+	for (uint32_t i = 0; i < graphicsQueuesCount; i++) {
 		VkQueue queue = nullptr;
 		vkGetDeviceQueue(*device, graphicsFamilyIndex, i, &queue);
 		queues->push_back(queue);
 	}
+}
+
+static void createAllocator(VkDevice device,
+							VkPhysicalDevice physicalDevice,
+							VkInstance instance,
+							VmaAllocator* allocator) {
+	VmaAllocatorCreateInfo allocatorInfo{
+		.physicalDevice = physicalDevice,
+		.device = device,
+		.instance = instance,
+	};
+
+	THROW_VULKAN_ERROR(vmaCreateAllocator(&allocatorInfo, allocator),
+					   "Failed to create allocator");
 }
 
 Device::Device(CreateInfo createInfo) : m_shadersFolder(createInfo.shadersFolder) {
@@ -185,17 +201,13 @@ Device::Device(CreateInfo createInfo) : m_shadersFolder(createInfo.shadersFolder
 
 	getPhysicalDevice(m_instance, &m_phyiscalDevice, createInfo.extensions);
 
-	createLogicalDevice(m_phyiscalDevice, &m_device, &m_queues);
+	getGraphicsFamily(m_phyiscalDevice, &m_graphicsQueuesCount,
+					  &m_graphicsFamilyIndex);
 
-	VmaAllocatorCreateInfo allocatorInfo = {
-		.flags = VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT,
-		.physicalDevice = m_phyiscalDevice,
-		.device = m_device,
-		.instance = m_instance,
-	};
+	createLogicalDevice(m_phyiscalDevice, m_graphicsQueuesCount,
+						m_graphicsFamilyIndex, &m_queues, &m_device);
 
-	THROW_VULKAN_ERROR(vmaCreateAllocator(&allocatorInfo, &m_allocator),
-					   "Failed to create VMA");
+	createAllocator(m_device, m_phyiscalDevice, m_instance, &m_allocator);
 }
 
 Device::~Device() {

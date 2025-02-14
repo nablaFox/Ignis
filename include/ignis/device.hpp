@@ -56,6 +56,8 @@ private:
 	VkDevice m_device{nullptr};
 	VmaAllocator m_allocator{nullptr};
 
+	uint32_t m_graphicsFamilyIndex{0};
+	uint32_t m_graphicsQueuesCount{0};
 	std::vector<VkQueue> m_queues;
 	std::vector<VkCommandPool> m_pools;
 
