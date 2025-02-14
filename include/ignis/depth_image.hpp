@@ -5,9 +5,9 @@
 namespace ignis {
 
 enum class DepthFormat {
-	LOW = VK_FORMAT_D16_UNORM,
-	DEPTH_STENCIL = VK_FORMAT_D24_UNORM_S8_UINT,
-	HIGH = VK_FORMAT_D32_SFLOAT
+	D16_UNORM = VK_FORMAT_D16_UNORM,
+	D24_UNORM_S8_UINT = VK_FORMAT_D24_UNORM_S8_UINT,
+	D32_SFLOAT = VK_FORMAT_D32_SFLOAT
 };
 
 class DepthImage : public Image {
@@ -16,7 +16,7 @@ public:
 		const Device* device;
 		DepthFormat format;
 		VkExtent2D extent;
-		VkImageUsageFlagBits usage;
+		VkImageUsageFlags usage;
 		VkImageLayout optimalLayout;
 		const void* initialPixels;
 	};
