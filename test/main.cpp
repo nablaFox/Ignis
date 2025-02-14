@@ -1,3 +1,5 @@
+#include "buffer.hpp"
+#include "depth_image.hpp"
 #include "device.hpp"
 #include "color_image.hpp"
 #include "command.hpp"
@@ -40,6 +42,16 @@ int main(int argc, char* argv[]) {
 	fence.wait();
 
 	delete drawImage;
+
+	auto depthImage = DepthImage::createDepthStencilImage(&device, {800, 600});
+
+	delete depthImage;
+
+	Buffer* ubo = Buffer::createUBO<Color>(&device, 2);
+
+	ubo->writeData(pixels);
+
+	delete ubo;
 
 	return 0;
 }

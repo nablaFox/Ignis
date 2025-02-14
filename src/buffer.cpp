@@ -54,7 +54,7 @@ void Buffer::writeData(const void* data, VkDeviceSize offset, VkDeviceSize size)
 	THROW_ERROR(size % m_elementSize != 0,
 				"Buffer::writeData: size must be a multiple of element size");
 
-	VkDeviceSize elementCount = size / m_elementSize;
+	VkDeviceSize elementCount = size / m_stride;
 	VkDeviceSize requiredSpace = (elementCount - 1) * m_stride + m_elementSize;
 
 	THROW_ERROR(offset + requiredSpace > m_size, "Buffer::writeData: out of bounds");

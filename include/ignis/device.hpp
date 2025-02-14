@@ -46,7 +46,9 @@ public:
 
 	VkDevice getDevice() const { return m_device; }
 
-	VkDeviceSize getUboAlignment() const;
+	VkDeviceSize getUboAlignment() const {
+		return m_physicalDeviceProperties.limits.minUniformBufferOffsetAlignment;
+	}
 
 	VmaAllocator getAllocator() const { return m_allocator; }
 
