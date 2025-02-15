@@ -101,6 +101,12 @@ void Command::transitionImageLayout(ImageData& image, VkImageLayout newLayout) {
 	image.m_currentLayout = newLayout;
 }
 
+void Command::transitionToOptimalLayout(ImageData& image) {
+	CHECK_IS_RECORDING;
+
+	transitionImageLayout(image, image.m_optimalLayout);
+}
+
 void Command::copyImage(const ImageData& src,
 						const ImageData& dst,
 						VkOffset2D srcOffset,

@@ -57,6 +57,8 @@ public:
 		return m_physicalDeviceProperties.limits.minStorageBufferOffsetAlignment;
 	}
 
+	VkInstance getInstance() const { return m_instance; }
+
 	VmaAllocator getAllocator() const { return m_allocator; }
 
 	// will return the full shaderPath only if shaderPath is not an absolute path
