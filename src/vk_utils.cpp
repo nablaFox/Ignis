@@ -1,9 +1,10 @@
 #include "vk_utils.hpp"
+#include <cstring>
 #include "exceptions.hpp"
 
 bool ignis::checkExtensionsCompatibility(
 	VkPhysicalDevice device,
-	const std::vector<std::string>& requiredExtensions) {
+	const std::vector<const char*>& requiredExtensions) {
 	uint32_t extensionCount = 0;
 	vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
 
@@ -14,7 +15,7 @@ bool ignis::checkExtensionsCompatibility(
 	for (const auto& requiredExt : requiredExtensions) {
 		bool found = false;
 		for (const auto& availableExt : availableExtensions) {
-			if (requiredExt == availableExt.extensionName) {
+			if (strcmp(requiredExt, availableExt.extensionName) == 0) {
 				found = true;
 				break;
 			}

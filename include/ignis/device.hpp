@@ -25,7 +25,7 @@ public:
 	struct CreateInfo {
 		std::string appName{"Ignis App"};
 		std::string shadersFolder{"shaders"};
-		std::vector<std::string> extensions{};
+		std::vector<const char*> extensions{};
 	};
 
 	Device(CreateInfo);
@@ -55,6 +55,10 @@ public:
 	// will return the full shaderPath only if shaderPath is not an absolute path
 	std::string getFullShaderPath(std::string shaderPath) const;
 
+	PFN_vkCmdPushDescriptorSetKHR getPushDescriptorFunc() const {
+		return m_vkCmdPushDescriptorSetKHR;
+	}
+
 private:
 	VkInstance m_instance{nullptr};
 	VkDebugUtilsMessengerEXT m_debugMessenger{nullptr};
@@ -62,6 +66,7 @@ private:
 	VkPhysicalDeviceProperties m_physicalDeviceProperties{};
 	VkDevice m_device{nullptr};
 	VmaAllocator m_allocator{nullptr};
+	PFN_vkCmdPushDescriptorSetKHR m_vkCmdPushDescriptorSetKHR{nullptr};
 
 	uint32_t m_graphicsFamilyIndex{0};
 	uint32_t m_graphicsQueuesCount{0};

@@ -94,8 +94,12 @@ static void createInstance(VkInstance* instance, std::string appName) {
 					   "Failed to create instance");
 }
 
+static void setRequiredExtensions(std::vector<const char*>* extensions) {
+	extensions->push_back(VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME);
+}
+
 static void getPhysicalDevice(VkInstance instance,
-							  const std::vector<std::string>& requiredExtensions,
+							  const std::vector<const char*>& requiredExtensions,
 							  VkPhysicalDevice* device,
 							  VkPhysicalDeviceProperties* features) {
 	uint32_t deviceCount = 0;
@@ -153,6 +157,7 @@ static void getGraphicsFamily(VkPhysicalDevice device,
 static void createLogicalDevice(VkPhysicalDevice physicalDevice,
 								uint32_t graphicsQueuesCount,
 								uint32_t graphicsFamilyIndex,
+								const std::vector<const char*>& extensions,
 								std::vector<VkQueue>* queues,
 								VkDevice* device) {
 	std::vector<float> priorities(graphicsQueuesCount, 1.0f);
@@ -172,6 +177,8 @@ static void createLogicalDevice(VkPhysicalDevice physicalDevice,
 		.pNext = &featuresChain,
 		.queueCreateInfoCount = 1,
 		.pQueueCreateInfos = &queueCreateInfo,
+		.enabledExtensionCount = static_cast<uint32_t>(extensions.size()),
+		.ppEnabledExtensionNames = extensions.data(),
 		.pEnabledFeatures = nullptr,
 	};
 
@@ -226,6 +233,8 @@ Device::Device(CreateInfo createInfo) : m_shadersFolder(createInfo.shadersFolder
 	createDebugUtilsMessenger(m_instance, &m_debugMessenger);
 #endif
 
+	setRequiredExtensions(&createInfo.extensions);
+
 	getPhysicalDevice(m_instance, createInfo.extensions, &m_phyiscalDevice,
 					  &m_physicalDeviceProperties);
 
@@ -233,12 +242,19 @@ Device::Device(CreateInfo createInfo) : m_shadersFolder(createInfo.shadersFolder
 					  &m_graphicsFamilyIndex);
 
 	createLogicalDevice(m_phyiscalDevice, m_graphicsQueuesCount,
-						m_graphicsFamilyIndex, &m_queues, &m_device);
+						m_graphicsFamilyIndex, createInfo.extensions, &m_queues,
+						&m_device);
 
 	createAllocator(m_device, m_phyiscalDevice, m_instance, &m_allocator);
 
 	allocateCommandPools(m_device, m_graphicsQueuesCount, m_graphicsFamilyIndex,
 						 &m_commandPools);
+
+	m_vkCmdPushDescriptorSetKHR = (PFN_vkCmdPushDescriptorSetKHR)vkGetDeviceProcAddr(
+		m_device, "vkCmdPushDescriptorSetKHR");
+
+	THROW_ERROR(m_vkCmdPushDescriptorSetKHR == nullptr,
+				"Failed to load vkCmdPushDescriptorSetKHR");
 }
 
 void Device::submitCommands(std::vector<SubmitInfo> submits,

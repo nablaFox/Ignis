@@ -22,6 +22,7 @@ DescriptorSetLayout::DescriptorSetLayout(const Device& device,
 
 	VkDescriptorSetLayoutCreateInfo layoutInfo = {
 		.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,
+		.flags = VK_DESCRIPTOR_SET_LAYOUT_CREATE_PUSH_DESCRIPTOR_BIT_KHR,
 		.bindingCount = static_cast<uint32_t>(vkBindings.size()),
 		.pBindings = vkBindings.data(),
 	};

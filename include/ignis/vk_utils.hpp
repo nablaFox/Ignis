@@ -1,14 +1,13 @@
 #pragma once
 
 #include <vulkan/vulkan_core.h>
-#include <string>
 #include <vector>
 
 namespace ignis {
 
 bool checkExtensionsCompatibility(
 	VkPhysicalDevice device,
-	const std::vector<std::string>& requiredExtensions);
+	const std::vector<const char*>& requiredExtensions);
 
 struct TransitionInfo {
 	VkAccessFlags srcAccessMask;
