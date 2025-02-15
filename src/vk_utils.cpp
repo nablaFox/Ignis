@@ -91,7 +91,11 @@ ignis::TransitionInfo ignis::getTransitionInfo(VkImageLayout oldLayout,
 		info.srcStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
 		info.dstStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
 	} else {
-		throw Exception("Unsupported layout transition");
+		const char* oldLayoutStr = string_VkImageLayout(oldLayout);
+		const char* newLayoutStr = string_VkImageLayout(newLayout);
+
+		throw Exception("Unsupported layout transition: " +
+						std::string(oldLayoutStr) + " -> " + newLayoutStr);
 	}
 
 	return info;

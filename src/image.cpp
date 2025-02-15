@@ -68,10 +68,9 @@ Image::Image(const Device& device,
 
 	if (initialPixels) {
 		cmd.updateImage(*this, initialPixels);
+	} else {
+		cmd.transitionImageLayout(*this, m_optimalLayout);
 	}
-
-	// will set current layout to optimal layout
-	cmd.transitionImageLayout(*this, m_optimalLayout);
 
 	cmd.end();
 

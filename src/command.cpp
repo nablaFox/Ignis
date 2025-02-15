@@ -127,6 +127,8 @@ void Command::updateImage(Image& image,
 
 	vkCmdCopyBufferToImage(m_commandBuffer, staging->getHandle(), image.m_image,
 						   VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copyRegion);
+
+	transitionImageLayout(image, image.getOptimalLayout());
 }
 
 void Command::updateBuffer(const Buffer& buffer,

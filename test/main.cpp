@@ -75,8 +75,6 @@ int main(int argc, char* argv[]) {
 
 	cmd.updateImage(*drawImage, pixels);
 
-	cmd.transitionImageLayout(*drawImage, drawImage->getOptimalLayout());
-
 	cmd.updateBuffer(testBuffer, pixels);
 
 	cmd.bindPipeline(pipeline);

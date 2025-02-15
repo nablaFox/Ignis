@@ -24,6 +24,8 @@ private:
 	VkResult m_result;
 };
 
+// TODO add info about __FILE__, __LINE__ and __func__
+
 #define THROW_VULKAN_ERROR(result, message) \
 	if ((result) != VK_SUCCESS)             \
 	throw VulkanException(message, result)
