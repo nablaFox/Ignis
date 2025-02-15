@@ -62,12 +62,36 @@ public:
 
 	void transitionImageLayout(Image&, VkImageLayout);
 
-	void copyImage(const Image& src, const Image& dst);
+	// TEMP idem as below
+	void transitionImageLayout(VkImage,
+							   VkImageAspectFlags,
+							   VkImageLayout oldLayout,
+							   VkImageLayout newLayout);
+
+	// TEMP this is horrible; probably the key is composition;
+	// image should become gpuImage and have an image member struct
+	// wrapping all of these infos (srcApsect, image, view, currentLayout, etc.)
+	// then in the swapchain we create these images
+	void copyImage(VkImage src,
+				   VkImage dst,
+				   VkImageLayout srcLayout,
+				   VkImageLayout dstLayout,
+				   VkImageAspectFlags srcAspect,
+				   VkImageAspectFlags dstAspect,
+				   VkExtent2D srcExtent,
+				   VkExtent2D dstExtent,
+				   VkOffset2D srcOffset = {0, 0},
+				   VkOffset2D dstOffset = {0, 0});
+
+	void copyImage(const Image& src,
+				   const Image& dst,
+				   VkOffset2D srcOffset = {0, 0},
+				   VkOffset2D dstOffset = {0, 0});
 
 	void updateImage(Image&,
 					 const void* pixels,
 					 VkOffset2D imageOffset = {0, 0},
-					 VkExtent2D imageSize = {});
+					 VkExtent2D imageSize = {0, 0});
 
 	void updateBuffer(const Buffer&,
 					  const void* data,

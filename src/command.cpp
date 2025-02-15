@@ -1,4 +1,5 @@
 #include "command.hpp"
+#include <vulkan/vulkan_core.h>
 #include "buffer.hpp"
 #include "color_image.hpp"
 #include "depth_image.hpp"
@@ -79,24 +80,92 @@ void Command::end() {
 void Command::transitionImageLayout(Image& image, VkImageLayout newLayout) {
 	CHECK_IS_RECORDING;
 
+	transitionImageLayout(image.getImage(), image.getAspect(),
+						  image.getCurrentLayout(), newLayout);
+
+	image.m_currentLayout = newLayout;
+}
+
+void Command::transitionImageLayout(VkImage image,
+									VkImageAspectFlags viewAspect,
+									VkImageLayout oldLayout,
+									VkImageLayout newLayout) {
+	CHECK_IS_RECORDING;
+
+	TransitionInfo transitionInfo = getTransitionInfo(oldLayout, newLayout);
+
 	VkImageMemoryBarrier barrier{
 		.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-		.oldLayout = image.m_currentLayout,
+		.srcAccessMask = transitionInfo.srcAccessMask,
+		.dstAccessMask = transitionInfo.dstAccessMask,
+		.oldLayout = oldLayout,
 		.newLayout = newLayout,
 		.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
 		.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-		.image = image.m_image,
-		.subresourceRange = {image.m_viewAspect, 0, 1, 0, 1},
+		.image = image,
+		.subresourceRange = {viewAspect, 0, 1, 0, 1},
 	};
 
-	TransitionInfo info = getTransitionInfo(image.m_currentLayout, newLayout);
-	barrier.srcAccessMask = info.srcAccessMask;
-	barrier.dstAccessMask = info.dstAccessMask;
+	vkCmdPipelineBarrier(m_commandBuffer, transitionInfo.srcStage,
+						 transitionInfo.dstStage, 0, 0, nullptr, 0, nullptr, 1,
+						 &barrier);
+}
 
-	vkCmdPipelineBarrier(m_commandBuffer, info.srcStage, info.dstStage, 0, 0,
-						 nullptr, 0, nullptr, 1, &barrier);
+void Command::copyImage(VkImage src,
+						VkImage dst,
+						VkImageLayout srcLayout,
+						VkImageLayout dstLayout,
+						VkImageAspectFlags srcAspect,
+						VkImageAspectFlags dstAspect,
+						VkExtent2D srcExtent,
+						VkExtent2D dstExtent,
+						VkOffset2D srcOffset,
+						VkOffset2D dstOffset) {
+	transitionImageLayout(src, srcAspect, srcLayout,
+						  VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 
-	image.m_currentLayout = newLayout;
+	transitionImageLayout(dst, dstAspect, dstLayout,
+						  VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+
+	VkImageSubresourceLayers srcSubresource{
+		.aspectMask = srcAspect,
+		.mipLevel = 0,
+		.baseArrayLayer = 0,
+		.layerCount = 1,
+	};
+
+	VkImageSubresourceLayers dstSubresource{
+		.aspectMask = dstAspect,
+		.mipLevel = 0,
+		.baseArrayLayer = 0,
+		.layerCount = 1,
+	};
+
+	VkImageCopy copyRegion{
+		.srcSubresource = srcSubresource,
+		.srcOffset = {srcOffset.x, srcOffset.y, 0},
+		.dstSubresource = dstSubresource,
+		.dstOffset = {dstOffset.x, dstOffset.y, 0},
+		.extent = {srcExtent.width, srcExtent.height, 1},
+	};
+
+	vkCmdCopyImage(m_commandBuffer, src, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, dst,
+				   VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copyRegion);
+
+	transitionImageLayout(src, srcAspect, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+						  srcLayout);
+
+	transitionImageLayout(dst, dstAspect, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+						  dstLayout);
+}
+
+void Command::copyImage(const Image& src,
+						const Image& dst,
+						VkOffset2D srcOffset,
+						VkOffset2D dstOffset) {
+	copyImage(src.getImage(), dst.getImage(), src.getCurrentLayout(),
+			  dst.getCurrentLayout(), src.getAspect(), dst.getAspect(),
+			  src.getExtent(), dst.getExtent(), srcOffset, dstOffset);
 }
 
 void Command::updateImage(Image& image,

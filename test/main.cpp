@@ -30,6 +30,8 @@ void printShaderResources(const ShaderResources& resources) {
 int main(int argc, char* argv[]) {
 	Device device({
 		.shadersFolder = "test/shaders",
+		.extensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME},
+		.instanceExtensions = {VK_KHR_SURFACE_EXTENSION_NAME},
 	});
 
 	struct Color {

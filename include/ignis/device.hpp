@@ -11,6 +11,13 @@ class Semaphore;
 class Fence;
 class Command;
 
+// each command should be relative to the same queue
+struct SubmitCmdInfo {
+	const Command* command;
+	std::vector<const Semaphore*> waitSemaphores;
+	std::vector<const Semaphore*> signalSemaphore;
+};
+
 // Note 1: the library supports just 1 instance, physical and logical device
 // Note 2: we handle only graphics queues
 // Note 3: the library works only in vulkan 1.3 with dynamic rendering and other
@@ -32,14 +39,7 @@ public:
 	Device(CreateInfo);
 	~Device();
 
-	// each command should be relative to the same queue
-	struct SubmitInfo {
-		const Command* command;
-		std::vector<const Semaphore*> waitSemaphores;
-		std::vector<const Semaphore*> signalSemaphore;
-	};
-
-	void submitCommands(std::vector<SubmitInfo>, const Fence& fence) const;
+	void submitCommands(std::vector<SubmitCmdInfo>, const Fence& fence) const;
 
 	VkPhysicalDevice getPhysicalDevice() const { return m_phyiscalDevice; }
 

@@ -62,6 +62,7 @@ Image::Image(const Device& device,
 		vkCreateImageView(m_device.getDevice(), &viewInfo, nullptr, &m_view),
 		"Failed to create image view");
 
+	// PONDER do we really want this?
 	Command cmd(m_device);
 
 	cmd.begin();

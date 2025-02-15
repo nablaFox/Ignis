@@ -35,6 +35,8 @@ public:
 
 	VkImageUsageFlags getUsage() const { return m_usage; }
 
+	VkImageAspectFlags getAspect() const { return m_viewAspect; }
+
 	VkDeviceSize getPixelSize() const { return m_pixelSize; }
 
 	VkExtent2D getExtent() const { return m_extent; }

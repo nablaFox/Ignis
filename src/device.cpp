@@ -260,7 +260,7 @@ Device::Device(CreateInfo createInfo) : m_shadersFolder(createInfo.shadersFolder
 				"Failed to load vkCmdPushDescriptorSetKHR");
 }
 
-void Device::submitCommands(std::vector<SubmitInfo> submits,
+void Device::submitCommands(std::vector<SubmitCmdInfo> submits,
 							const Fence& fence) const {
 	uint32_t queueIndex = submits[0].command->getQueueIndex();
 
