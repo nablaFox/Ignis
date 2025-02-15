@@ -87,11 +87,11 @@ static void createInstance(std::string appName,
 
 		extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 	}
+#endif
 
 	createInstanceInfo.enabledExtensionCount =
 		static_cast<uint32_t>(extensions.size());
 	createInstanceInfo.ppEnabledExtensionNames = extensions.data();
-#endif
 
 	THROW_VULKAN_ERROR(vkCreateInstance(&createInstanceInfo, nullptr, instance),
 					   "Failed to create instance");
@@ -274,51 +274,63 @@ void Device::submitCommands(std::vector<SubmitCmdInfo> submits,
 	}
 #endif
 
+	struct SubmissionData {
+		VkSubmitInfo2 submitInfo;
+		std::vector<VkSemaphoreSubmitInfo> waitInfos;
+		std::vector<VkSemaphoreSubmitInfo> signalInfos;
+		VkCommandBufferSubmitInfo commandInfo;
+	};
+
+	std::vector<SubmissionData> submissionsData;
+	submissionsData.reserve(submits.size());
+
 	std::vector<VkSubmitInfo2> submitInfos;
+	submitInfos.reserve(submits.size());
 
 	for (const auto& submit : submits) {
-		std::vector<VkSemaphoreSubmitInfo> waitSemaphoreInfos(
-			submit.waitSemaphores.size());
+		SubmissionData data;
 
-		for (const auto& waitSeamphore : submit.waitSemaphores) {
-			waitSemaphoreInfos.push_back({
+		data.waitInfos.reserve(submit.waitSemaphores.size());
+		for (const auto& waitSemaphore : submit.waitSemaphores) {
+			data.waitInfos.push_back({
 				.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
-				.semaphore = waitSeamphore->getHandle(),
+				.semaphore = waitSemaphore->getHandle(),
 			});
 		}
 
-		std::vector<VkSemaphoreSubmitInfo> signalSemaphoreInfos(
-			submit.signalSemaphore.size());
-
+		data.signalInfos.reserve(submit.signalSemaphore.size());
 		for (const auto& signalSemaphore : submit.signalSemaphore) {
-			waitSemaphoreInfos.push_back({
+			data.signalInfos.push_back({
 				.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
 				.semaphore = signalSemaphore->getHandle(),
 			});
 		}
 
-		VkCommandBufferSubmitInfo commandSubmitInfo{
+		data.commandInfo = {
 			.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO,
 			.commandBuffer = submit.command->getHandle(),
 		};
 
-		VkSubmitInfo2 submitInfo = {
+		data.submitInfo = {
 			.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO_2,
-			.waitSemaphoreInfoCount =
-				static_cast<uint32_t>(waitSemaphoreInfos.size()),
-			.pWaitSemaphoreInfos = waitSemaphoreInfos.data(),
+			.waitSemaphoreInfoCount = static_cast<uint32_t>(data.waitInfos.size()),
+			.pWaitSemaphoreInfos = data.waitInfos.data(),
 			.commandBufferInfoCount = 1,
-			.pCommandBufferInfos = &commandSubmitInfo,
+			.pCommandBufferInfos = &data.commandInfo,
 			.signalSemaphoreInfoCount =
-				static_cast<uint32_t>(signalSemaphoreInfos.size()),
-			.pSignalSemaphoreInfos = signalSemaphoreInfos.data(),
+				static_cast<uint32_t>(data.signalInfos.size()),
+			.pSignalSemaphoreInfos = data.signalInfos.data(),
 		};
 
-		submitInfos.push_back(std::move(submitInfo));
-	};
+		submissionsData.push_back(std::move(data));
+	}
 
-	vkQueueSubmit2(m_queues[queueIndex], submitInfos.size(), submitInfos.data(),
-				   fence.getHandle());
+	for (const auto& data : submissionsData) {
+		submitInfos.push_back(data.submitInfo);
+	}
+
+	vkQueueSubmit2(m_queues[queueIndex], static_cast<uint32_t>(submitInfos.size()),
+				   submitInfos.data(), fence.getHandle());
 }
 
 bool Device::getCommandPool(uint32_t index, VkCommandPool* pool) const {
