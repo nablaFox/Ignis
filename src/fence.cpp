@@ -4,17 +4,18 @@
 
 using namespace ignis;
 
-Fence::Fence(const Device& device) : m_device(device) {
+Fence::Fence(const Device& device, bool signaled) : m_device(device) {
 	VkFenceCreateInfo fenceInfo{
 		.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
-		.flags = VK_FENCE_CREATE_SIGNALED_BIT,
 	};
+
+	if (signaled) {
+		fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+	}
 
 	THROW_VULKAN_ERROR(
 		vkCreateFence(m_device.getDevice(), &fenceInfo, nullptr, &m_fence),
 		"Failed to create fence");
-
-	vkResetFences(m_device.getDevice(), 1, &m_fence);
 }
 
 Fence::~Fence() {

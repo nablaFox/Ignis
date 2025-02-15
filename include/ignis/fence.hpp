@@ -11,7 +11,7 @@ class Device;
 
 class Fence {
 public:
-	Fence(const Device& device);
+	Fence(const Device& device, bool signaled = false);
 	~Fence();
 
 	VkFence getHandle() const { return m_fence; }
