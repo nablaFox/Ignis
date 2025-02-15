@@ -26,22 +26,30 @@ public:
 
 	~Buffer();
 
+	VkDeviceSize getElementsCount() const { return m_size / m_stride; }
+
 	VkDeviceSize getStride() const { return m_stride; }
+
+	VkDeviceSize getElementSize() const { return m_elementSize; }
+
+	VkDeviceSize getSize() const { return m_size; }
 
 	VkBuffer getHandle() const { return m_buffer; }
 
+	VkBufferUsageFlags getUsage() const { return m_bufferUsage; }
+
+	VkDeviceAddress getDeviceAddress() const { return m_deviceAddress; }
+
 	void writeData(const void* data,
-				   VkDeviceSize firstElement = 0,
-				   VkDeviceSize lastElement = 0);
+				   uint32_t firstElement = 0,
+				   uint32_t lastElement = 0);
 
-	template <typename T>
 	static Buffer* createStagingBuffer(const Device* device,
+									   VkDeviceSize elementSize,
 									   uint32_t elementCount,
-									   const T* data = nullptr);
+									   const void* data = nullptr,
+									   VkDeviceSize stride = 0);
 
-	// - stride = sizeof(uint32_t)
-	// - elementCount = span.size() / sizeof(uint32_t)
-	// - usage = INDEX_BUFFER_BIT
 	static Buffer* createIndexBuffer32(const Device*,
 									   uint32_t elementCount,
 									   uint32_t* data = nullptr);
@@ -67,15 +75,12 @@ public:
 		return new Buffer(info);
 	}
 
-	// TODO add vertex buffer creation
 	template <typename T>
 	static Buffer* createVertexBuffer(const Device*,
 									  uint32_t elementCount,
 									  const T* data = nullptr);
 
 	// TODO add storage buffer creation
-
-	VkDeviceAddress getDeviceAddress() const { return m_deviceAddress; }
 
 private:
 	const Device& m_device;
@@ -84,6 +89,7 @@ private:
 	VkDeviceSize m_size;
 	VkDeviceSize m_elementSize;
 	VkDeviceAddress m_deviceAddress{0};
+	VkBufferUsageFlags m_bufferUsage;
 	VkBuffer m_buffer{nullptr};
 	VkMemoryPropertyFlags m_memoryProperties;
 

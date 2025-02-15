@@ -20,6 +20,14 @@ layout(set = 0, binding = 0) uniform SceneData {
     DirectionalLight sun;
 } sceneData;
 
+struct Color {
+	vec4 color;
+};
+
+layout(set = 0, binding = 1) uniform TestData {   
+	Color color;
+} testData;
+
 // declares a pointer to a vertex buffer
 layout(buffer_reference, std430) readonly buffer VertexBuffer { 
     Vertex vertices[];

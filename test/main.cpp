@@ -9,16 +9,34 @@
 
 using namespace ignis;
 
+void printBindingInfo(const BindingInfo& info) {
+	printf("Binding %d: type %d, stages %d, access %d, array size %d, size %d\n",
+		   info.binding, info.bindingType, info.stages, info.access, info.arraySize,
+		   info.size);
+}
+
+void printShaderResources(const ShaderResources& resources) {
+	printf("Push constants: stages %d, offset %d, size %d\n",
+		   resources.pushConstants.stageFlags, resources.pushConstants.offset,
+		   resources.pushConstants.size);
+	for (const auto& [set, bindings] : resources.bindings) {
+		printf("Set %d:\n", set);
+		for (const auto& binding : bindings) {
+			printBindingInfo(binding);
+		}
+	}
+}
+
 int main(int argc, char* argv[]) {
 	Device device({
 		.shadersFolder = "test/shaders",
 	});
 
 	struct Color {
-		uint16_t r;
-		uint16_t g;
-		uint16_t b;
-		uint16_t a;
+		uint32_t r;
+		uint32_t g;
+		uint32_t b;
+		uint32_t a;
 	};
 
 	Color* pixels = new Color[800 * 600];
@@ -28,6 +46,28 @@ int main(int argc, char* argv[]) {
 	}
 
 	auto drawImage = ColorImage::createDrawImage(&device, {800, 600});
+	auto depthImage = DepthImage::createDepthStencilImage(&device, {800, 600});
+
+	Buffer* ubo = Buffer::createUBO<Color>(&device, 1, pixels);
+
+	Buffer testBuffer({
+		.device = &device,
+		.bufferUsage = VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+		.elementSize = sizeof(Color),
+		.elementCount = 800 * 600,
+		.stride = sizeof(Color),
+	});
+
+	Shader shader(device, "vertex.spv");
+
+	printShaderResources(shader.getResources());
+
+	Pipeline pipeline({
+		.device = &device,
+		.shaders = {"vertex.spv"},
+		.colorFormat = drawImage->getFormat(),
+		.depthFormat = depthImage->getFormat(),
+	});
 
 	Command cmd(device);
 
@@ -36,6 +76,12 @@ int main(int argc, char* argv[]) {
 	cmd.updateImage(*drawImage, pixels);
 
 	cmd.transitionImageLayout(*drawImage, drawImage->getOptimalLayout());
+
+	cmd.updateBuffer(testBuffer, pixels);
+
+	cmd.bindPipeline(pipeline);
+
+	cmd.bindUBO(*ubo, 0, 1);
 
 	cmd.end();
 
@@ -46,23 +92,8 @@ int main(int argc, char* argv[]) {
 	fence.wait();
 
 	delete drawImage;
-
-	auto depthImage = DepthImage::createDepthStencilImage(&device, {800, 600});
-
 	delete depthImage;
-
-	Buffer* ubo = Buffer::createUBO<Color>(&device, 2);
-
-	ubo->writeData(pixels);
-
 	delete ubo;
-
-	Shader shader(device, "vertex.spv");
-
-	Pipeline pipeline({
-		.device = &device,
-		.shaders = {"vertex.spv"},
-	});
 
 	return 0;
 }

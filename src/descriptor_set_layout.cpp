@@ -7,7 +7,7 @@ using namespace ignis;
 
 DescriptorSetLayout::DescriptorSetLayout(const Device& device,
 										 const std::vector<BindingInfo>& bindings)
-	: m_device(device) {
+	: m_device(device), m_bindings(bindings) {
 	std::vector<VkDescriptorSetLayoutBinding> vkBindings(bindings.size());
 
 	for (size_t i = 0; i < bindings.size(); i++) {
@@ -35,4 +35,13 @@ DescriptorSetLayout::DescriptorSetLayout(const Device& device,
 DescriptorSetLayout::~DescriptorSetLayout() {
 	vkDestroyDescriptorSetLayout(m_device.getDevice(), m_descriptorSetLayout,
 								 nullptr);
+}
+
+const BindingInfo& DescriptorSetLayout::getBindingInfo(uint32_t binding) const {
+	for (const auto& info : m_bindings) {
+		if (info.binding == binding)
+			return info;
+	}
+
+	THROW_ERROR(true, "Binding not found " + std::to_string(binding));
 }

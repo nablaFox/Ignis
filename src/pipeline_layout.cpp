@@ -45,3 +45,13 @@ PipelineLayout::PipelineLayout(const Device& device,
 PipelineLayout::~PipelineLayout() {
 	vkDestroyPipelineLayout(m_device.getDevice(), m_layout, nullptr);
 }
+
+const BindingInfo& PipelineLayout::getBindingInfo(uint32_t slot,
+												  uint32_t binding) const {
+	auto it = m_descriptorSetLayouts.find(slot);
+
+	THROW_ERROR(it == m_descriptorSetLayouts.end(),
+				"Slot not found" + std::to_string(slot));
+
+	return it->second.getBindingInfo(binding);
+}

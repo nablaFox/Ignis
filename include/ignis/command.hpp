@@ -35,6 +35,7 @@ struct DepthAttachment {
 // Note 7: the render area is fixed
 // Note 8: we can only render to 1 draw attachment
 // Note 9: we can only bind 1 buffer/image at a time
+// Note 10: we rely on push descriptors for binding buffers and images
 
 class Command {
 public:
@@ -70,33 +71,45 @@ public:
 
 	void updateBuffer(const Buffer&,
 					  const void* data,
-					  uint32_t start = 0,
-					  uint32_t end = 0);
+					  uint32_t firstElement = 0,
+					  uint32_t lastElement = 0);
 
-	void bindBuffer(const Buffer&,
+	void bindUBO(const Buffer&,
+				 uint32_t set,
+				 uint32_t binding,
+				 uint32_t arrayElement = 0);
+
+	void bindSSBO(const Buffer&,
+				  uint32_t set,
+				  uint32_t binding,
+				  uint32_t arrayElement = 0);
+
+	void bindSubSSBO(const Buffer&,
+					 uint32_t firstElement,
+					 uint32_t lastElement,
+					 uint32_t set,
+					 uint32_t binding,
+					 uint32_t arrayElement = 0);
+
+	void bindSubUBO(const Buffer&,
+					uint32_t firstElement,
+					uint32_t lastElement,
 					uint32_t set,
 					uint32_t binding,
-					uint32_t arrayElement = 1);
-
-	void bindSubBuffer(const Buffer&,
-					   uint32_t firstElement,
-					   uint32_t lastElement,
-					   uint32_t set,
-					   uint32_t binding,
-					   uint32_t arrayElement = 1);
+					uint32_t arrayElement = 0);
 
 	void bindImge(const Image&,
 				  uint32_t set,
 				  uint32_t binding,
-				  uint32_t arrayElement = 1);
+				  uint32_t arrayElement = 0);
 
 	void bindSampledImage(const Image&,
 						  const Sampler&,
 						  uint32_t set,
 						  uint32_t binding,
-						  uint32_t arrayElement = 1);
+						  uint32_t arrayElement = 0);
 
-	void bindIndexBuffer(const Buffer&);
+	void bindIndexBuffer(const Buffer&, VkDeviceSize offset = 0);
 
 	void draw(uint32_t vertexCount, uint32_t firstVertex = 0);
 

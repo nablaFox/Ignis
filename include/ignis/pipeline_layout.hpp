@@ -10,6 +10,7 @@ namespace ignis {
 class Device;
 class DescriptorSetLayout;
 class Shader;
+struct BindingInfo;
 
 class PipelineLayout {
 public:
@@ -17,7 +18,9 @@ public:
 				   const std::vector<std::unique_ptr<Shader>>& /* (sus) */);
 	~PipelineLayout();
 
-	VkPipelineLayout getHandle() { return m_layout; }
+	VkPipelineLayout getHandle() const { return m_layout; }
+
+	const BindingInfo& getBindingInfo(uint32_t slot, uint32_t binding) const;
 
 private:
 	const Device& m_device;
