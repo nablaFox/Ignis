@@ -7,6 +7,7 @@
 #include "image.hpp"
 #include "pipeline.hpp"
 #include "pipeline_layout.hpp"
+#include "sampler.hpp"
 #include "shader.hpp"
 #include "vk_utils.hpp"
 
@@ -288,6 +289,74 @@ void Command::bindIndexBuffer(const Buffer& indexBuffer, VkDeviceSize offset) {
 
 	vkCmdBindIndexBuffer(m_commandBuffer, indexBuffer.getHandle(), offset,
 						 indexType);
+}
+
+void Command::bindSampledImage(const Image& image,
+							   const Sampler& sampler,
+							   uint32_t set,
+							   uint32_t binding,
+							   uint32_t arrayElement) {
+	CHECK_IS_RECORDING;
+	CHECK_PIPELINE_BOUND;
+
+	assert(image.getUsage() == VK_IMAGE_USAGE_SAMPLED_BIT &&
+		   "Image is not a sampled image");
+
+	VkDescriptorImageInfo imageInfo{
+		.sampler = sampler.getHandle(),
+		.imageView = image.getView(),
+		.imageLayout = image.getCurrentLayout(),
+	};
+
+	const BindingInfo& bindingInfo =
+		m_currentPipeline->getLayout().getBindingInfo(set, binding);
+
+	VkWriteDescriptorSet descriptorWrite{
+		.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+		.dstSet = VK_NULL_HANDLE,
+		.dstBinding = binding,
+		.dstArrayElement = arrayElement,
+		.descriptorCount = bindingInfo.arraySize,
+		.descriptorType = bindingInfo.bindingType,
+		.pImageInfo = &imageInfo,
+	};
+
+	m_device.getPushDescriptorFunc()(
+		m_commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+		m_currentPipeline->getLayout().getHandle(), set, 1, &descriptorWrite);
+}
+
+void Command::bindStorageImage(const Image& image,
+							   uint32_t set,
+							   uint32_t binding,
+							   uint32_t arrayElement) {
+	CHECK_IS_RECORDING;
+	CHECK_PIPELINE_BOUND;
+
+	assert(image.getUsage() == VK_IMAGE_USAGE_STORAGE_BIT &&
+		   "Image is not a storage image");
+
+	VkDescriptorImageInfo imageInfo{
+		.imageView = image.getView(),
+		.imageLayout = image.getCurrentLayout(),
+	};
+
+	const BindingInfo& bindingInfo =
+		m_currentPipeline->getLayout().getBindingInfo(set, binding);
+
+	VkWriteDescriptorSet descriptorWrite{
+		.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+		.dstSet = VK_NULL_HANDLE,
+		.dstBinding = binding,
+		.dstArrayElement = arrayElement,
+		.descriptorCount = bindingInfo.arraySize,
+		.descriptorType = bindingInfo.bindingType,
+		.pImageInfo = &imageInfo,
+	};
+
+	m_device.getPushDescriptorFunc()(
+		m_commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+		m_currentPipeline->getLayout().getHandle(), set, 1, &descriptorWrite);
 }
 
 void Command::beginRender(DrawAttachment drawAttachment,

@@ -98,10 +98,10 @@ public:
 					uint32_t binding,
 					uint32_t arrayElement = 0);
 
-	void bindImge(const Image&,
-				  uint32_t set,
-				  uint32_t binding,
-				  uint32_t arrayElement = 0);
+	void bindStorageImage(const Image&,
+						  uint32_t set,
+						  uint32_t binding,
+						  uint32_t arrayElement = 0);
 
 	void bindSampledImage(const Image&,
 						  const Sampler&,
