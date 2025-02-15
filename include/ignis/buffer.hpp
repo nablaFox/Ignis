@@ -44,16 +44,6 @@ public:
 				   uint32_t firstElement = 0,
 				   uint32_t lastElement = 0);
 
-	static Buffer* createStagingBuffer(const Device* device,
-									   VkDeviceSize elementSize,
-									   uint32_t elementCount,
-									   const void* data = nullptr,
-									   VkDeviceSize stride = 0);
-
-	static Buffer* createIndexBuffer32(const Device*,
-									   uint32_t elementCount,
-									   uint32_t* data = nullptr);
-
 	template <typename T>
 	static Buffer* createUBO(const Device* device,
 							 uint32_t elementCount,
@@ -61,7 +51,7 @@ public:
 		VkDeviceSize alignment = device->getUboAlignment();
 		VkDeviceSize stride = (sizeof(T) + alignment - 1) & ~(alignment - 1);
 
-		Buffer::CreateInfo info{
+		return new Buffer({
 			.device = device,
 			.bufferUsage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
 			.memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
@@ -70,17 +60,52 @@ public:
 			.elementCount = elementCount,
 			.stride = stride,
 			.initialData = data,
-		};
 
-		return new Buffer(info);
+		});
 	}
 
 	template <typename T>
-	static Buffer* createVertexBuffer(const Device*,
-									  uint32_t elementCount,
-									  const T* data = nullptr);
+	static Buffer* createSSBO(const Device* device,
+							  uint32_t elementCount,
+							  const T* data = nullptr) {
+		VkDeviceSize alignment = device->getSsboAlignment();
+		VkDeviceSize stride = (sizeof(T) + alignment - 1) & ~(alignment - 1);
 
-	// TODO add storage buffer creation
+		return new Buffer({
+			.device = device,
+			.bufferUsage = VK_BUFFER_USAGE_STORAGE_BUFFER_BIT,
+			.memoryProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+			.elementSize = sizeof(T),
+			.elementCount = elementCount,
+			.stride = stride,
+			.initialData = data,
+		});
+	}
+
+	template <typename T>
+	static Buffer* createVertexBuffer(const Device* device,
+									  uint32_t elementCount,
+									  const T* data = nullptr) {
+		return new Buffer({
+			.device = device,
+			.bufferUsage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+			.memoryProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+			.elementSize = sizeof(T),
+			.elementCount = elementCount,
+			.stride = sizeof(T),
+			.initialData = data,
+		});
+	}
+
+	static Buffer* createIndexBuffer32(const Device*,
+									   uint32_t elementCount,
+									   uint32_t* data = nullptr);
+
+	static Buffer* createStagingBuffer(const Device* device,
+									   VkDeviceSize elementSize,
+									   uint32_t elementCount,
+									   const void* data = nullptr,
+									   VkDeviceSize stride = 0);
 
 private:
 	const Device& m_device;
