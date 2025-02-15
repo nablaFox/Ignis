@@ -26,6 +26,7 @@ public:
 		std::string appName{"Ignis App"};
 		std::string shadersFolder{"shaders"};
 		std::vector<const char*> extensions{};
+		std::vector<const char*> instanceExtensions{};
 	};
 
 	Device(CreateInfo);
@@ -34,11 +35,13 @@ public:
 	// each command should be relative to the same queue
 	struct SubmitInfo {
 		const Command* command;
-		const Semaphore* waitSemaphore;
-		const Semaphore* signalSemaphore;
+		std::vector<const Semaphore*> waitSemaphores;
+		std::vector<const Semaphore*> signalSemaphore;
 	};
 
 	void submitCommands(std::vector<SubmitInfo>, const Fence& fence) const;
+
+	VkPhysicalDevice getPhysicalDevice() const { return m_phyiscalDevice; }
 
 	bool getQueue(uint32_t index, VkQueue*) const;
 

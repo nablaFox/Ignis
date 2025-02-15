@@ -60,7 +60,9 @@ static void createDebugUtilsMessenger(VkInstance instance,
 }
 #endif
 
-static void createInstance(VkInstance* instance, std::string appName) {
+static void createInstance(std::string appName,
+						   std::vector<const char*> extensions,
+						   VkInstance* instance) {
 	VkApplicationInfo appInfo{
 		.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
 		.pApplicationName = appName.c_str(),
@@ -77,17 +79,18 @@ static void createInstance(VkInstance* instance, std::string appName) {
 
 #ifndef NDEBUG
 	std::vector<const char*> enabledLayers;
-	std::vector<const char*> enabledExtensions;
 
 	if (checkValidationLayerSupport()) {
 		enabledLayers.push_back("VK_LAYER_KHRONOS_validation");
 		createInstanceInfo.enabledLayerCount = 1;
 		createInstanceInfo.ppEnabledLayerNames = enabledLayers.data();
 
-		enabledExtensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-		createInstanceInfo.enabledExtensionCount = 1;
-		createInstanceInfo.ppEnabledExtensionNames = enabledExtensions.data();
+		extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 	}
+
+	createInstanceInfo.enabledExtensionCount =
+		static_cast<uint32_t>(extensions.size());
+	createInstanceInfo.ppEnabledExtensionNames = extensions.data();
 #endif
 
 	THROW_VULKAN_ERROR(vkCreateInstance(&createInstanceInfo, nullptr, instance),
@@ -227,7 +230,7 @@ static void allocateCommandPools(VkDevice device,
 }
 
 Device::Device(CreateInfo createInfo) : m_shadersFolder(createInfo.shadersFolder) {
-	createInstance(&m_instance, createInfo.appName);
+	createInstance(createInfo.appName, createInfo.instanceExtensions, &m_instance);
 
 #ifndef NDEBUG
 	createDebugUtilsMessenger(m_instance, &m_debugMessenger);
@@ -235,8 +238,8 @@ Device::Device(CreateInfo createInfo) : m_shadersFolder(createInfo.shadersFolder
 
 	setRequiredExtensions(&createInfo.extensions);
 
-	getPhysicalDevice(m_instance, createInfo.extensions, &m_phyiscalDevice,
-					  &m_physicalDeviceProperties);
+	::getPhysicalDevice(m_instance, createInfo.extensions, &m_phyiscalDevice,
+						&m_physicalDeviceProperties);
 
 	getGraphicsFamily(m_phyiscalDevice, &m_graphicsQueuesCount,
 					  &m_graphicsFamilyIndex);
@@ -271,46 +274,50 @@ void Device::submitCommands(std::vector<SubmitInfo> submits,
 	}
 #endif
 
-	std::vector<VkCommandBufferSubmitInfo> commandsInfos(submits.size());
-	for (uint32_t i = 0; i < submits.size(); i++) {
-		commandsInfos[i] = {
+	std::vector<VkSubmitInfo2> submitInfos;
+
+	for (const auto& submit : submits) {
+		std::vector<VkSemaphoreSubmitInfo> waitSemaphoreInfos(
+			submit.waitSemaphores.size());
+
+		for (const auto& waitSeamphore : submit.waitSemaphores) {
+			waitSemaphoreInfos.push_back({
+				.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
+				.semaphore = waitSeamphore->getHandle(),
+			});
+		}
+
+		std::vector<VkSemaphoreSubmitInfo> signalSemaphoreInfos(
+			submit.signalSemaphore.size());
+
+		for (const auto& signalSemaphore : submit.signalSemaphore) {
+			waitSemaphoreInfos.push_back({
+				.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
+				.semaphore = signalSemaphore->getHandle(),
+			});
+		}
+
+		VkCommandBufferSubmitInfo commandSubmitInfo{
 			.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO,
-			.commandBuffer = submits[i].command->getHandle(),
+			.commandBuffer = submit.command->getHandle(),
 		};
-	}
 
-	std::vector<VkSemaphoreSubmitInfo> waitSemaphoresInfos;
-	for (uint32_t i = 0; i < submits.size(); i++) {
-		if (submits[i].waitSemaphore != nullptr) {
-			waitSemaphoresInfos.push_back({
-				.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
-				.semaphore = submits[i].waitSemaphore->getHandle(),
-			});
-		}
-	}
+		VkSubmitInfo2 submitInfo = {
+			.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO_2,
+			.waitSemaphoreInfoCount =
+				static_cast<uint32_t>(waitSemaphoreInfos.size()),
+			.pWaitSemaphoreInfos = waitSemaphoreInfos.data(),
+			.commandBufferInfoCount = 1,
+			.pCommandBufferInfos = &commandSubmitInfo,
+			.signalSemaphoreInfoCount =
+				static_cast<uint32_t>(signalSemaphoreInfos.size()),
+			.pSignalSemaphoreInfos = signalSemaphoreInfos.data(),
+		};
 
-	std::vector<VkSemaphoreSubmitInfo> signalSeamphoresInfos;
-	for (uint32_t i = 0; i < submits.size(); i++) {
-		if (submits[i].signalSemaphore != nullptr) {
-			signalSeamphoresInfos.push_back({
-				.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
-				.semaphore = submits[i].signalSemaphore->getHandle(),
-			});
-		}
-	}
-
-	VkSubmitInfo2 submitInfo = {
-		.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO_2,
-		.waitSemaphoreInfoCount = static_cast<uint32_t>(waitSemaphoresInfos.size()),
-		.pWaitSemaphoreInfos = waitSemaphoresInfos.data(),
-		.commandBufferInfoCount = static_cast<uint32_t>(commandsInfos.size()),
-		.pCommandBufferInfos = commandsInfos.data(),
-		.signalSemaphoreInfoCount =
-			static_cast<uint32_t>(signalSeamphoresInfos.size()),
-		.pSignalSemaphoreInfos = signalSeamphoresInfos.data(),
+		submitInfos.push_back(std::move(submitInfo));
 	};
 
-	vkQueueSubmit2(m_queues[queueIndex], submits.size(), &submitInfo,
+	vkQueueSubmit2(m_queues[queueIndex], submitInfos.size(), submitInfos.data(),
 				   fence.getHandle());
 }
 
