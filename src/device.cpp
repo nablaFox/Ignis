@@ -333,20 +333,14 @@ void Device::submitCommands(std::vector<SubmitCmdInfo> submits,
 				   submitInfos.data(), fence.getHandle());
 }
 
-bool Device::getCommandPool(uint32_t index, VkCommandPool* pool) const {
-	if (index >= m_commandPools.size())
-		return false;
-
-	*pool = m_commandPools[index];
-	return true;
+VkCommandPool Device::getCommandPool(uint32_t index) const {
+	THROW_ERROR(index >= m_commandPools.size(), "Invalid command pool index");
+	return m_commandPools[index];
 }
 
-bool Device::getQueue(uint32_t index, VkQueue* queue) const {
-	if (index >= m_queues.size())
-		return false;
-
-	*queue = m_queues[index];
-	return true;
+VkQueue Device::getQueue(uint32_t index) const {
+	THROW_ERROR(index >= m_queues.size(), "Invalid queue index");
+	return m_queues[index];
 }
 
 std::string Device::getFullShaderPath(std::string shaderPath) const {

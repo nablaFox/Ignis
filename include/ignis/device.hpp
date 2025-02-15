@@ -43,9 +43,9 @@ public:
 
 	VkPhysicalDevice getPhysicalDevice() const { return m_phyiscalDevice; }
 
-	bool getQueue(uint32_t index, VkQueue*) const;
+	VkQueue getQueue(uint32_t index) const;
 
-	bool getCommandPool(uint32_t index, VkCommandPool*) const;
+	VkCommandPool getCommandPool(uint32_t index) const;
 
 	VkDevice getDevice() const { return m_device; }
 
