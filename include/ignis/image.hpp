@@ -2,6 +2,7 @@
 
 #include <vulkan/vulkan_core.h>
 #include <vk_mem_alloc.h>
+#include "image_data.hpp"
 
 namespace ignis {
 
@@ -14,9 +15,7 @@ class Device;
 // Note 5: we don't allow for custom image creation flags
 // Note 6: images are never host visible
 
-class Image {
-	friend class Command;
-
+class Image : public ImageData {
 protected:
 	Image(const Device&,
 		  VkExtent2D,
@@ -29,33 +28,15 @@ protected:
 	~Image();
 
 public:
-	VkImageView getView() const { return m_view; }
-
-	VkImage getImage() const { return m_image; }
-
-	VkImageUsageFlags getUsage() const { return m_usage; }
-
-	VkImageAspectFlags getAspect() const { return m_viewAspect; }
+	VkImageView getViewHandle() const { return m_view; }
 
 	VkDeviceSize getPixelSize() const { return m_pixelSize; }
-
-	VkExtent2D getExtent() const { return m_extent; }
-
-	VkImageLayout getOptimalLayout() const { return m_optimalLayout; }
-
-	VkImageLayout getCurrentLayout() const { return m_currentLayout; }
 
 private:
 	const Device& m_device;
 	VmaAllocation m_allocation{nullptr};
-	VkImage m_image{nullptr};
 	VkImageView m_view{nullptr};
-	VkImageAspectFlags m_viewAspect;
 	VkDeviceSize m_pixelSize;
-	VkImageUsageFlags m_usage;
-	VkExtent2D m_extent;
-	VkImageLayout m_optimalLayout;
-	VkImageLayout m_currentLayout{VK_IMAGE_LAYOUT_UNDEFINED};
 
 public:
 	Image(const Image&) = delete;

@@ -9,18 +9,19 @@ class Device;
 class Pipeline;
 class Buffer;
 class Image;
+struct ImageData;
 class Sampler;
 class ColorImage;
 class DepthImage;
 
 struct DrawAttachment {
-	ColorImage* drawImage;	// enforced to contain RENDER usage
+	ColorImage* drawImage;
 	VkAttachmentLoadOp loadAction;
 	VkAttachmentStoreOp storeAction;
 };
 
 struct DepthAttachment {
-	DepthImage* depthImage;	 // enforced to contain DEPTH_STENCIL usage
+	DepthImage* depthImage;
 	VkAttachmentLoadOp loadAction;
 	VkAttachmentStoreOp storeAction;
 };
@@ -42,7 +43,6 @@ public:
 	Command(const Device&, uint32_t queueIndex = 0);
 	~Command();
 
-	// will clear the staging buffers
 	void begin(VkCommandBufferUsageFlags flags =
 				   VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
 
@@ -56,39 +56,18 @@ public:
 
 	void endRendering();
 
-	// will write sizeof(T) bytes starting at offset
 	template <typename T>
 	void pushConstants(const T& data, uint32_t offset = 0);
 
-	void transitionImageLayout(Image&, VkImageLayout);
+	void transitionImageLayout(ImageData&, VkImageLayout);
+	void transitionToOptimalLayout(ImageData&);
 
-	// TEMP idem as below
-	void transitionImageLayout(VkImage,
-							   VkImageAspectFlags,
-							   VkImageLayout oldLayout,
-							   VkImageLayout newLayout);
-
-	// TEMP this is horrible; probably the key is composition;
-	// image should become gpuImage and have an image member struct
-	// wrapping all of these infos (srcApsect, image, view, currentLayout, etc.)
-	// then in the swapchain we create these images
-	void copyImage(VkImage src,
-				   VkImage dst,
-				   VkImageLayout srcLayout,
-				   VkImageLayout dstLayout,
-				   VkImageAspectFlags srcAspect,
-				   VkImageAspectFlags dstAspect,
-				   VkExtent2D srcExtent,
-				   VkExtent2D dstExtent,
+	void copyImage(const ImageData& src,
+				   const ImageData& dst,
 				   VkOffset2D srcOffset = {0, 0},
 				   VkOffset2D dstOffset = {0, 0});
 
-	void copyImage(const Image& src,
-				   const Image& dst,
-				   VkOffset2D srcOffset = {0, 0},
-				   VkOffset2D dstOffset = {0, 0});
-
-	void updateImage(Image&,
+	void updateImage(const Image&,
 					 const void* pixels,
 					 VkOffset2D imageOffset = {0, 0},
 					 VkExtent2D imageSize = {0, 0});
@@ -153,7 +132,6 @@ private:
 	VkCommandBuffer m_commandBuffer{nullptr};
 	bool m_isRecording{false};
 	std::vector<Buffer*> m_stagingBuffers;
-
 	const Pipeline* m_currentPipeline{nullptr};
 
 public:

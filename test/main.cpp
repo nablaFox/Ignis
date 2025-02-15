@@ -75,6 +75,8 @@ int main(int argc, char* argv[]) {
 
 	cmd.begin();
 
+	cmd.transitionImageLayout(*drawImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+
 	cmd.updateImage(*drawImage, pixels);
 
 	cmd.updateBuffer(testBuffer, pixels);

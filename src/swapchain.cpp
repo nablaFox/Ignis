@@ -5,6 +5,7 @@
 #include "device.hpp"
 #include "exceptions.hpp"
 #include "image.hpp"
+#include "image_data.hpp"
 #include "semaphore.hpp"
 #include "fence.hpp"
 
@@ -131,23 +132,26 @@ Swapchain::Swapchain(CreateInfo info) : m_device(*info.device) {
 	vkGetSwapchainImagesKHR(m_device.getDevice(), m_swapchain, &actualImageCount,
 							nullptr);
 
-	m_images.resize(actualImageCount);
+	std::vector<VkImage> imageHandles(actualImageCount);
 	vkGetSwapchainImagesKHR(m_device.getDevice(), m_swapchain, &actualImageCount,
-							m_images.data());
+							imageHandles.data());
 
-	acquiredImageSem = std::make_unique<Semaphore>(m_device);
-	blittedImageSem = std::make_unique<Semaphore>(m_device);
-	blitFence = std::make_unique<Fence>(m_device);
+	m_images.reserve(actualImageCount);
 
-	// transition all the images to transfer dst
+	for (const auto& handle : imageHandles) {
+		m_images.push_back({handle, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+							VK_IMAGE_ASPECT_COLOR_BIT, swapExtent,
+							chosenFormat.format, VK_IMAGE_LAYOUT_UNDEFINED,
+							VK_IMAGE_LAYOUT_PRESENT_SRC_KHR});
+	}
+
+	// 10. transition all the images to transfer dst
 	Command cmd(m_device, 0);
 
 	cmd.begin();
 
 	for (auto& image : m_images) {
-		cmd.transitionImageLayout(image, VK_IMAGE_ASPECT_COLOR_BIT,
-								  VK_IMAGE_LAYOUT_UNDEFINED,
-								  VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+		cmd.transitionImageLayout(image, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 	}
 
 	cmd.end();
@@ -157,17 +161,24 @@ Swapchain::Swapchain(CreateInfo info) : m_device(*info.device) {
 	m_device.submitCommands({{&cmd}}, fence);
 
 	fence.wait();
+
+	// 11. init sync structures
+	acquiredImageSem = std::make_unique<Semaphore>(m_device);
+	blittedImageSem = std::make_unique<Semaphore>(m_device);
+	blitFence = std::make_unique<Fence>(m_device);
 }
 
 Swapchain::~Swapchain() {
 	vkDestroySwapchainKHR(m_device.getDevice(), m_swapchain, nullptr);
 }
 
-void Swapchain::acquireNextImage(const Semaphore* signalSemaphore) {
+ImageData& Swapchain::acquireNextImage(const Semaphore* signalSemaphore) {
 	THROW_ERROR(vkAcquireNextImageKHR(m_device.getDevice(), m_swapchain, UINT64_MAX,
 									  signalSemaphore->getHandle(), VK_NULL_HANDLE,
 									  &m_currentImageIndex) != VK_SUCCESS,
 				"Failed to acquire next image");
+
+	return m_images[m_currentImageIndex];
 }
 
 void Swapchain::present(PresentInfo info) {
@@ -178,17 +189,21 @@ void Swapchain::present(PresentInfo info) {
 	blitFence->wait();
 	blitFence->reset();
 
-	acquireNextImage(acquiredImageSem.get());
+	auto& currentSwapchainImage = acquireNextImage(acquiredImageSem.get());
 
 	// PONDER is okay to create the command every time we call this function?
 	Command blitCmd(m_device, info.queueIndex);
 
 	blitCmd.begin(VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT);
 
-	blitCmd.copyImage(info.image->getImage(), m_images[m_currentImageIndex],
-					  VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-					  VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, VK_IMAGE_ASPECT_COLOR_BIT,
-					  VK_IMAGE_ASPECT_COLOR_BIT, info.image->getExtent(), m_extent);
+	blitCmd.transitionImageLayout(*info.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+	blitCmd.transitionImageLayout(currentSwapchainImage,
+								  VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+
+	blitCmd.copyImage(*info.image, currentSwapchainImage);
+
+	blitCmd.transitionToOptimalLayout(*info.image);
+	blitCmd.transitionToOptimalLayout(currentSwapchainImage);
 
 	blitCmd.end();
 

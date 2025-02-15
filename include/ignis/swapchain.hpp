@@ -3,6 +3,7 @@
 #include <vulkan/vulkan_core.h>
 #include <memory>
 #include <vector>
+#include "image_data.hpp"
 
 namespace ignis {
 
@@ -10,6 +11,7 @@ class Device;
 class Image;
 class Semaphore;
 class Fence;
+struct ImageData;
 
 class Swapchain {
 public:
@@ -32,9 +34,9 @@ public:
 			signalSemaphores;  // they are relative to the presenting
 	};
 
-	VkImage getCurrentImage() const { return m_images[m_currentImageIndex]; }
+	ImageData& getCurrentImage() { return m_images[m_currentImageIndex]; }
 
-	void acquireNextImage(const Semaphore* signalSemaphore);
+	ImageData& acquireNextImage(const Semaphore* signalSemaphore);
 
 	uint32_t getImagesCount() const { return m_images.size(); }
 
@@ -43,7 +45,7 @@ public:
 private:
 	const Device& m_device;
 	VkSwapchainKHR m_swapchain{nullptr};
-	std::vector<VkImage> m_images;
+	std::vector<ImageData> m_images;
 	uint32_t m_currentImageIndex{0};
 	VkExtent2D m_extent{0, 0};
 

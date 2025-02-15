@@ -14,11 +14,10 @@ Image::Image(const Device& device,
 			 VkImageLayout optimalLayout,
 			 VkImageAspectFlags viewAspect,
 			 const void* initialPixels)
-	: m_device(device),
-	  m_extent(extent),
-	  m_optimalLayout(optimalLayout),
-	  m_viewAspect(viewAspect),
-	  m_usage(usage),
+	: ImageData{VK_NULL_HANDLE, usage,	viewAspect,
+				extent,			format, VK_IMAGE_LAYOUT_UNDEFINED,
+				optimalLayout},
+	  m_device(device),
 	  m_pixelSize(::getPixelSize(format)) {
 	VkImageCreateInfo imageInfo = {
 		.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
@@ -40,12 +39,12 @@ Image::Image(const Device& device,
 
 	THROW_VULKAN_ERROR(
 		vmaCreateImage(m_device.getAllocator(), &imageInfo, &allocationInfo,
-					   &m_image, &m_allocation, nullptr),
+					   &m_handle, &m_allocation, nullptr),
 		"Failed to create image");
 
 	VkImageViewCreateInfo viewInfo = {
 		.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-		.image = m_image,
+		.image = m_handle,
 		.viewType = VK_IMAGE_VIEW_TYPE_2D,
 		.format = format,
 		.subresourceRange =
@@ -62,16 +61,15 @@ Image::Image(const Device& device,
 		vkCreateImageView(m_device.getDevice(), &viewInfo, nullptr, &m_view),
 		"Failed to create image view");
 
-	// PONDER do we really want this?
 	Command cmd(m_device);
 
 	cmd.begin();
 
 	if (initialPixels) {
 		cmd.updateImage(*this, initialPixels);
-	} else {
-		cmd.transitionImageLayout(*this, m_optimalLayout);
 	}
+
+	cmd.transitionImageLayout(*this, m_optimalLayout);
 
 	cmd.end();
 
@@ -84,5 +82,5 @@ Image::Image(const Device& device,
 
 Image::~Image() {
 	vkDestroyImageView(m_device.getDevice(), m_view, nullptr);
-	vmaDestroyImage(m_device.getAllocator(), m_image, m_allocation);
+	vmaDestroyImage(m_device.getAllocator(), m_handle, m_allocation);
 }
