@@ -67,6 +67,11 @@ public:
 				   VkOffset2D srcOffset = {0, 0},
 				   VkOffset2D dstOffset = {0, 0});
 
+	void blitImage(const ImageData& src,
+				   const ImageData& dst,
+				   VkOffset2D srcOffset = {0, 0},
+				   VkOffset2D dstOffset = {0, 0});
+
 	void updateImage(const Image&,
 					 const void* pixels,
 					 VkOffset2D imageOffset = {0, 0},

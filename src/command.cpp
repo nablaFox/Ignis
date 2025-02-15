@@ -144,6 +144,35 @@ void Command::copyImage(const ImageData& src,
 				   VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copyRegion);
 }
 
+void Command::blitImage(const ImageData& src,
+						const ImageData& dst,
+						VkOffset2D srcOffset,
+						VkOffset2D dstOffset) {
+	assert(src.m_currentLayout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL &&
+		   "Source image is not in the correct layout");
+	assert(dst.m_currentLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL &&
+		   "Destination image is not in the correct layout");
+
+	VkOffset3D srcOffset3D{srcOffset.x, srcOffset.y, 0};
+	VkOffset3D dstOffset3D{dstOffset.x, dstOffset.y, 0};
+	VkOffset3D extent3D{static_cast<int32_t>(src.m_extent.width),
+						static_cast<int32_t>(src.m_extent.height), 1};
+	VkOffset3D dstExtent3D{static_cast<int32_t>(dst.m_extent.width),
+						   static_cast<int32_t>(dst.m_extent.height), 1};
+
+	VkImageBlit blitRegion{
+		.srcSubresource = {src.m_aspect, 0, 0, 1},
+		.srcOffsets = {srcOffset3D, extent3D},
+		.dstSubresource = {dst.m_aspect, 0, 0, 1},
+		.dstOffsets = {dstOffset3D, dstExtent3D},
+	};
+
+	vkCmdBlitImage(m_commandBuffer, src.m_handle,
+				   VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, dst.m_handle,
+				   VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &blitRegion,
+				   VK_FILTER_LINEAR);
+}
+
 void Command::updateImage(const Image& image,
 						  const void* pixels,
 						  VkOffset2D imageOffset,
