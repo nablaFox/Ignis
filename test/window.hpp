@@ -17,12 +17,13 @@ public:
 		return glfwWindowShouldClose(handle);
 	}
 
-	double getFrameTime() {
-		static double lastTime = glfwGetTime();
-		double currentTime = glfwGetTime();
-		double deltaTime = currentTime - lastTime;
+	float getFrameTime() {
+		float currentTime = (float)glfwGetTime();
+		static float lastTime = 0;
+
+		float frameTime = currentTime - lastTime;
 		lastTime = currentTime;
 
-		return deltaTime;
+		return frameTime;
 	}
 };

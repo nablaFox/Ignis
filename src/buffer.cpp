@@ -8,13 +8,13 @@ using namespace ignis;
 Buffer::Buffer(CreateInfo info)
 	: m_device(*info.device),
 	  m_stride(info.stride ? info.stride : info.elementSize),
-	  m_size(info.elementCount * m_stride),
 	  m_elementSize(info.elementSize),
 	  m_memoryProperties(info.memoryProperties),
-	  m_bufferUsage(info.bufferUsage) {
+	  m_bufferUsage(info.bufferUsage),
+	  m_elementCount(info.elementCount) {
 	VkBufferCreateInfo bufferInfo{
 		.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-		.size = m_size,
+		.size = getSize(),
 		.usage = info.bufferUsage | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
 		.sharingMode = VK_SHARING_MODE_EXCLUSIVE,
 	};
@@ -45,37 +45,37 @@ Buffer::~Buffer() {
 }
 
 void Buffer::writeData(const void* data,
-					   uint32_t firstElement,
-					   uint32_t lastElement) {
+					   uint32_t startElement,
+					   uint32_t elementCount) {
 	THROW_ERROR(!(m_memoryProperties & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT),
 				"Writing to non-host visible buffer");
 
-	if (lastElement == 0) {
-		lastElement = m_size - firstElement;
+	if (!elementCount) {
+		elementCount = m_elementCount - startElement;
 	}
 
-	THROW_ERROR(lastElement % m_elementSize != 0,
-				"Size must be a multiple of element size");
+	THROW_ERROR(startElement + elementCount > m_elementCount, "Out of bounds");
 
-	VkDeviceSize requiredSpace = (getElementsCount() - 1) * m_stride + m_elementSize;
+	THROW_ERROR(getSize() != m_stride * m_elementCount, "Buffer size mismatch");
 
-	THROW_ERROR(firstElement + requiredSpace > m_size, "Out of bounds");
+	VkDeviceSize startByte = startElement * m_stride;
+	VkDeviceSize bufferSizeNeeded = elementCount * m_stride;
 
 	void* mappedData;
 	vmaMapMemory(m_device.getAllocator(), m_allocation, &mappedData);
 
 	const uint8_t* src = static_cast<const uint8_t*>(data);
-	uint8_t* dst = static_cast<uint8_t*>(mappedData) + firstElement;
+	uint8_t* dst = static_cast<uint8_t*>(mappedData) + startByte;
 
-	for (VkDeviceSize i = 0; i < getElementsCount(); ++i) {
+	for (uint32_t i = 0; i < elementCount; ++i) {
 		std::memcpy(dst + i * m_stride, src + i * m_elementSize, m_elementSize);
 	}
 
 	vmaUnmapMemory(m_device.getAllocator(), m_allocation);
 
 	if (!(m_memoryProperties & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)) {
-		vmaFlushAllocation(m_device.getAllocator(), m_allocation, firstElement,
-						   requiredSpace);
+		vmaFlushAllocation(m_device.getAllocator(), m_allocation, startByte,
+						   bufferSizeNeeded);
 	}
 }
 

@@ -1,6 +1,12 @@
 #include "shader.hpp"
+#include <iostream>
 
 using namespace ignis;
+
+template <typename T>
+constexpr inline void print(T&& t) {
+	std::cout << t << std::endl;
+}
 
 inline void printBindingInfo(const BindingInfo& info) {
 	printf("Binding %d: type %d, stages %d, access %d, array size %d, size %d\n",

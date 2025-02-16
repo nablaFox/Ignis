@@ -242,18 +242,15 @@ void Command::updateImage(const Image& image,
 
 void Command::updateBuffer(const Buffer& buffer,
 						   const void* data,
-						   uint32_t firstElement,
-						   uint32_t lastElement) {
+						   uint32_t startElement,
+						   uint32_t elementCount) {
 	CHECK_IS_RECORDING;
 
-	if (lastElement == 0) {
-		lastElement = buffer.getElementsCount();
+	if (!elementCount) {
+		elementCount = buffer.getElementCount() - startElement;
 	}
 
-	uint32_t elementCount = lastElement - firstElement;
-	uint32_t maxElementCount = buffer.getSize() / buffer.getStride();
-
-	THROW_ERROR(elementCount > maxElementCount,
+	THROW_ERROR(startElement + elementCount > buffer.getElementCount(),
 				"Buffer::updateBuffer: out of bounds");
 
 	Buffer* staging = Buffer::createStagingBuffer(
@@ -261,12 +258,10 @@ void Command::updateBuffer(const Buffer& buffer,
 
 	m_stagingBuffers.push_back(staging);
 
-	const VkDeviceSize dstOffset = firstElement * buffer.getStride();
-
 	VkBufferCopy copyRegion = {
 		.srcOffset = 0,
-		.dstOffset = dstOffset,
-		.size = staging->getSize(),
+		.dstOffset = startElement * buffer.getStride(),
+		.size = elementCount * buffer.getStride(),
 	};
 
 	vkCmdCopyBuffer(m_commandBuffer, staging->getHandle(), buffer.getHandle(), 1,
@@ -289,17 +284,17 @@ static void bindBuffer(const Device& device,
 					   uint32_t binding,
 					   uint32_t arrayElement,
 					   const PipelineLayout& pipelineLayout,
-					   uint32_t firstElement = 0,
-					   uint32_t lastElement = 0) {
-	if (lastElement == 0) {
-		lastElement = buffer.getElementsCount();
+					   uint32_t startElement = 0,
+					   uint32_t elementCount = 0) {
+	if (elementCount == 0) {
+		elementCount = buffer.getElementCount() - startElement;
 	}
 
-	THROW_ERROR(lastElement > buffer.getElementsCount(),
-				"Buffer::bindBuffer: out of bounds");
+	THROW_ERROR(elementCount + startElement > buffer.getElementCount(),
+				"Out of bounds");
 
-	VkDeviceSize range = buffer.getStride() * (lastElement - firstElement);
-	VkDeviceSize offset = buffer.getStride() * firstElement;
+	VkDeviceSize range = buffer.getStride() * elementCount;
+	VkDeviceSize offset = buffer.getStride() * startElement;
 
 	VkDescriptorBufferInfo bufferInfo{
 		.buffer = buffer.getHandle(),
@@ -314,7 +309,7 @@ static void bindBuffer(const Device& device,
 		.dstSet = VK_NULL_HANDLE,
 		.dstBinding = binding,
 		.dstArrayElement = arrayElement,
-		.descriptorCount = bindingInfo.arraySize,
+		.descriptorCount = 1,
 		.descriptorType = bindingInfo.bindingType,
 		.pBufferInfo = &bufferInfo,
 	};

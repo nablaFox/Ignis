@@ -26,13 +26,13 @@ public:
 
 	~Buffer();
 
-	VkDeviceSize getElementsCount() const { return m_size / m_stride; }
+	uint32_t getElementCount() const { return m_elementCount; }
 
 	VkDeviceSize getStride() const { return m_stride; }
 
 	VkDeviceSize getElementSize() const { return m_elementSize; }
 
-	VkDeviceSize getSize() const { return m_size; }
+	VkDeviceSize getSize() const { return m_stride * m_elementCount; }
 
 	VkBuffer getHandle() const { return m_buffer; }
 
@@ -41,8 +41,8 @@ public:
 	VkDeviceAddress getDeviceAddress() const { return m_deviceAddress; }
 
 	void writeData(const void* data,
-				   uint32_t firstElement = 0,
-				   uint32_t lastElement = 0);
+				   uint32_t startElement = 0,
+				   uint32_t elementCount = 0);
 
 	template <typename T>
 	static Buffer* createUBO(const Device* device,
@@ -111,8 +111,8 @@ private:
 	const Device& m_device;
 	VmaAllocation m_allocation{nullptr};
 	VkDeviceSize m_stride;
-	VkDeviceSize m_size;
 	VkDeviceSize m_elementSize;
+	uint32_t m_elementCount;
 	VkDeviceAddress m_deviceAddress{0};
 	VkBufferUsageFlags m_bufferUsage;
 	VkBuffer m_buffer{nullptr};
