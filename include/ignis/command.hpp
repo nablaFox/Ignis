@@ -50,7 +50,7 @@ public:
 
 	void bindPipeline(const Pipeline&);
 
-	void beginRender(DrawAttachment, DepthAttachment);
+	void beginRender(const DrawAttachment*, const DepthAttachment*);
 
 	void beginRender(DepthAttachment);
 

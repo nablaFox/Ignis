@@ -462,84 +462,61 @@ void Command::bindStorageImage(const Image& image,
 		m_currentPipeline->getLayout().getHandle(), set, 1, &descriptorWrite);
 }
 
-void Command::beginRender(DrawAttachment drawAttachment,
-						  DepthAttachment depthAttachment) {
+void Command::beginRender(const DrawAttachment* drawAttachment,
+						  const DepthAttachment* depthAttachment) {
 	CHECK_IS_RECORDING;
 
-	THROW_ERROR(
-		drawAttachment.drawImage->getUsage() != VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
-		"Draw image must have COLOR_ATTACHMENT usage");
-
-	THROW_ERROR(depthAttachment.depthImage->getUsage() !=
-					VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
-				"Depth image must have DEPTH_STENCIL_ATTACHMENT usage");
-
-	assert(drawAttachment.drawImage->getCurrentLayout() ==
-		   VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+	assert(drawAttachment != nullptr ||
+		   depthAttachment != nullptr && "Both attachments are nullptr");
 
 	VkRenderingAttachmentInfo colorAttachment{
 		.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
-		.imageView = drawAttachment.drawImage->getViewHandle(),
 		.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-		.loadOp = drawAttachment.loadAction,
-		.storeOp = drawAttachment.storeAction,
 		.clearValue = {.color = {0.0f, 0.0f, 0.0f, 1.0f}},
 	};
 
-	assert(depthAttachment.depthImage->getCurrentLayout() ==
-		   VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+	if (drawAttachment != nullptr) {
+		THROW_ERROR((drawAttachment->drawImage->getUsage() &
+					 VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT) == 0,
+					"Draw image must have COLOR_ATTACHMENT usage");
+
+		assert(drawAttachment->drawImage->getCurrentLayout() ==
+			   VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+
+		colorAttachment.imageView = drawAttachment->drawImage->getViewHandle();
+		colorAttachment.loadOp = drawAttachment->loadAction;
+		colorAttachment.storeOp = drawAttachment->storeAction;
+	}
 
 	VkRenderingAttachmentInfo depthAttachmentInfo{
 		.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
-		.imageView = depthAttachment.depthImage->getViewHandle(),
 		.imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
-		.loadOp = depthAttachment.loadAction,
-		.storeOp = depthAttachment.storeAction,
 		.clearValue = {.depthStencil = {1.0f, 0}},
 	};
 
-	VkExtent2D extent = drawAttachment.drawImage->getExtent();
+	if (depthAttachment != nullptr) {
+		THROW_ERROR((depthAttachment->depthImage->getUsage() &
+					 VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT) == 0,
+					"Depth image must have DEPTH_STENCIL_ATTACHMENT usage");
+
+		assert(depthAttachment->depthImage->getCurrentLayout() ==
+			   VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+
+		depthAttachmentInfo.imageView = depthAttachment->depthImage->getViewHandle();
+		depthAttachmentInfo.loadOp = depthAttachment->loadAction;
+		depthAttachmentInfo.storeOp = depthAttachment->storeAction;
+	}
+
+	VkExtent2D extent = drawAttachment ? drawAttachment->drawImage->getExtent()
+									   : depthAttachment->depthImage->getExtent();
 
 	VkRenderingInfo renderingInfo{
 		.sType = VK_STRUCTURE_TYPE_RENDERING_INFO,
 		.renderArea = {{0, 0}, extent},
 		.layerCount = 1,
 		.colorAttachmentCount = 1,
-		.pColorAttachments = &colorAttachment,
-		.pDepthAttachment = &depthAttachmentInfo,
-	};
-
-	vkCmdBeginRendering(m_commandBuffer, &renderingInfo);
-}
-
-void Command::beginRender(DepthAttachment depthAttachment) {
-	CHECK_IS_RECORDING;
-
-	THROW_ERROR(depthAttachment.depthImage->getUsage() !=
-					VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
-				"Depth image in depth attachment has not the correct usage");
-
-	assert(depthAttachment.depthImage->getCurrentLayout() ==
-		   VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
-
-	VkRenderingAttachmentInfo depthAttachmentInfo{
-		.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
-		.imageView = depthAttachment.depthImage->getViewHandle(),
-		.imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
-		.loadOp = depthAttachment.loadAction,
-		.storeOp = depthAttachment.storeAction,
-		.clearValue = {.depthStencil = {1.0f, 0}},
-	};
-
-	VkExtent2D extent = depthAttachment.depthImage->getExtent();
-
-	VkRenderingInfo renderingInfo{
-		.sType = VK_STRUCTURE_TYPE_RENDERING_INFO,
-		.renderArea = {{0, 0}, extent},
-		.layerCount = 1,
-		.colorAttachmentCount = 0,
-		.pColorAttachments = nullptr,
-		.pDepthAttachment = &depthAttachmentInfo,
+		.pColorAttachments = drawAttachment ? &colorAttachment : nullptr,
+		.pDepthAttachment = depthAttachment ? &depthAttachmentInfo : nullptr,
 	};
 
 	vkCmdBeginRendering(m_commandBuffer, &renderingInfo);
