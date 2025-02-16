@@ -16,4 +16,13 @@ public:
 		glfwPollEvents();
 		return glfwWindowShouldClose(handle);
 	}
+
+	double getFrameTime() {
+		static double lastTime = glfwGetTime();
+		double currentTime = glfwGetTime();
+		double deltaTime = currentTime - lastTime;
+		lastTime = currentTime;
+
+		return deltaTime;
+	}
 };
