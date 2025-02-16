@@ -121,8 +121,8 @@ ignis::TransitionInfo ignis::getTransitionInfo(VkImageLayout oldLayout,
 		const char* oldLayoutStr = string_VkImageLayout(oldLayout);
 		const char* newLayoutStr = string_VkImageLayout(newLayout);
 
-		throw Exception("Unsupported layout transition: " +
-						std::string(oldLayoutStr) + " -> " + newLayoutStr);
+		THROW_ERROR(true, "Unsupported layout transition: " +
+							  std::string(oldLayoutStr) + " -> " + newLayoutStr);
 	}
 
 	return info;

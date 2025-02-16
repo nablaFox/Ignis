@@ -52,7 +52,7 @@ Shader::Shader(const Device& device, std::string shaderPath) : m_device(device) 
 			m_stage = VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
 			break;
 		default:
-			throw Exception("Unsupported shader stage in shader: " + shaderPath);
+			THROW_ERROR(true, "Unsupported shader stage in shader: " + shaderPath);
 	}
 
 	spirv_cross::ShaderResources resources = compiler.get_shader_resources();

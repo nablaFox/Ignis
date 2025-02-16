@@ -251,7 +251,7 @@ void Command::updateBuffer(const Buffer& buffer,
 	}
 
 	THROW_ERROR(startElement + elementCount > buffer.getElementCount(),
-				"Buffer::updateBuffer: out of bounds");
+				"Out of bounds");
 
 	Buffer* staging = Buffer::createStagingBuffer(
 		&m_device, buffer.getElementSize(), elementCount, data, buffer.getStride());

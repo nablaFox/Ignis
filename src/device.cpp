@@ -52,8 +52,7 @@ static void createDebugUtilsMessenger(VkInstance instance,
 	auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(
 		instance, "vkCreateDebugUtilsMessengerEXT");
 
-	if (func == nullptr)
-		throw Exception("Failed to load vkCreateDebugUtilsMessengerEXT");
+	THROW_ERROR(func == nullptr, "Failed to load vkCreateDebugUtilsMessengerEXT");
 
 	THROW_VULKAN_ERROR(func(instance, &createInfo, nullptr, debugMessenger),
 					   "Failed to allocate debug messenger");
@@ -108,8 +107,7 @@ static void getPhysicalDevice(VkInstance instance,
 	uint32_t deviceCount = 0;
 	vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
 
-	if (!deviceCount)
-		throw Exception("Failed to find GPUs with Vulkan support");
+	THROW_ERROR(!deviceCount, "Failed to find a GPU with Vulkan support");
 
 	std::vector<VkPhysicalDevice> physicalDevices(deviceCount);
 	vkEnumeratePhysicalDevices(instance, &deviceCount, physicalDevices.data());
@@ -131,8 +129,7 @@ static void getPhysicalDevice(VkInstance instance,
 	}
 
 	// TODO: show what are the incompatibilies
-	if (*device == VK_NULL_HANDLE)
-		throw Exception("Failed to find a suitable GPU");
+	THROW_ERROR(*device == VK_NULL_HANDLE, "Failed to find a suitable GPU");
 
 	vkGetPhysicalDeviceProperties(*device, features);
 }
