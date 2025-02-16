@@ -14,7 +14,8 @@ using namespace ignis;
 // the user should provide the correct instance & device extensions
 // when creating the device so here we don't do any check
 // (if it throws, it's the user's fault)
-Swapchain::Swapchain(CreateInfo info) : m_device(*info.device) {
+Swapchain::Swapchain(CreateInfo info)
+	: m_device(*info.device), m_surface(info.surface) {
 	VkPhysicalDevice physicalDevice = m_device.getPhysicalDevice();
 	VkSurfaceKHR surface = info.surface;
 
@@ -165,11 +166,12 @@ Swapchain::Swapchain(CreateInfo info) : m_device(*info.device) {
 	// 11. init sync structures
 	acquiredImageSem = std::make_unique<Semaphore>(m_device);
 	blittedImageSem = std::make_unique<Semaphore>(m_device);
-	blitFence = std::make_unique<Fence>(m_device);
+	blitFence = std::make_unique<Fence>(m_device, true);
 }
 
 Swapchain::~Swapchain() {
 	vkDestroySwapchainKHR(m_device.getDevice(), m_swapchain, nullptr);
+	vkDestroySurfaceKHR(m_device.getInstance(), m_surface, nullptr);
 }
 
 ImageData& Swapchain::acquireNextImage(const Semaphore* signalSemaphore) {
@@ -186,7 +188,6 @@ void Swapchain::present(PresentInfo info) {
 			   VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL &&
 		   "Image is not in the correct layout");
 
-	blitFence->wait();
 	blitFence->reset();
 
 	auto& currentSwapchainImage = acquireNextImage(acquiredImageSem.get());
@@ -196,11 +197,15 @@ void Swapchain::present(PresentInfo info) {
 
 	blitCmd.begin(VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT);
 
-	blitCmd.transitionImageLayout(*info.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 	blitCmd.transitionImageLayout(currentSwapchainImage,
-								  VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+								  VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+	blitCmd.transitionImageLayout(*info.image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 
-	blitCmd.copyImage(*info.image, currentSwapchainImage);
+	if (info.image->getFormat() == currentSwapchainImage.getFormat()) {
+		blitCmd.copyImage(*info.image, currentSwapchainImage);
+	} else {
+		blitCmd.blitImage(*info.image, currentSwapchainImage);
+	}
 
 	blitCmd.transitionToOptimalLayout(*info.image);
 	blitCmd.transitionToOptimalLayout(currentSwapchainImage);
@@ -212,7 +217,7 @@ void Swapchain::present(PresentInfo info) {
 	SubmitCmdInfo copyCmdInfo{
 		.command = &blitCmd,
 		.waitSemaphores = std::move(info.waitSemaphores),
-		.signalSemaphore = {blittedImageSem.get()},
+		.signalSemaphores = {blittedImageSem.get()},
 	};
 
 	m_device.submitCommands({std::move(copyCmdInfo)}, *blitFence);
@@ -229,12 +234,10 @@ void Swapchain::present(PresentInfo info) {
 		.pImageIndices = &m_currentImageIndex,
 	};
 
-	VkQueue presentQueue = VK_NULL_HANDLE;
-
-	// TODO use exceptions instead of returning a bool in m_device.getQueue
-	THROW_ERROR(m_device.getQueue(info.queueIndex, &presentQueue),
-				"Failed to fetch present queue");
+	VkQueue presentQueue = m_device.getQueue(info.queueIndex);
 
 	THROW_VULKAN_ERROR(vkQueuePresentKHR(presentQueue, &presentInfo),
 					   "Failed to present swapchain image");
+
+	blitFence->wait();
 }

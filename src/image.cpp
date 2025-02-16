@@ -66,6 +66,7 @@ Image::Image(const Device& device,
 	cmd.begin();
 
 	if (initialPixels) {
+		cmd.transitionImageLayout(*this, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 		cmd.updateImage(*this, initialPixels);
 	}
 

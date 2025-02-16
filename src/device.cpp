@@ -217,6 +217,7 @@ static void allocateCommandPools(VkDevice device,
 	for (uint32_t i = 0; i < graphicsQueuesCount; i++) {
 		VkCommandPoolCreateInfo poolInfo{
 			.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+			.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,  // PONDER
 			.queueFamilyIndex = graphicsFamilyIndex,
 		};
 
@@ -298,8 +299,8 @@ void Device::submitCommands(std::vector<SubmitCmdInfo> submits,
 			});
 		}
 
-		data.signalInfos.reserve(submit.signalSemaphore.size());
-		for (const auto& signalSemaphore : submit.signalSemaphore) {
+		data.signalInfos.reserve(submit.signalSemaphores.size());
+		for (const auto& signalSemaphore : submit.signalSemaphores) {
 			data.signalInfos.push_back({
 				.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
 				.semaphore = signalSemaphore->getHandle(),

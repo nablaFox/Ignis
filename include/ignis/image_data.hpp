@@ -35,6 +35,8 @@ public:
 
 	VkExtent2D getExtent() const { return m_extent; }
 
+	VkFormat getFormat() const { return m_format; }
+
 protected:
 	VkImage m_handle;
 	VkImageUsageFlags m_usage;

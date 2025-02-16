@@ -5,6 +5,9 @@
 #include <vector>
 #include "image_data.hpp"
 
+// Note 1: we don't have multi layered swapchains
+// Note 2: each swapchain is relative to a single surface
+
 namespace ignis {
 
 class Device;
@@ -45,6 +48,7 @@ public:
 private:
 	const Device& m_device;
 	VkSwapchainKHR m_swapchain{nullptr};
+	VkSurfaceKHR m_surface;
 	std::vector<ImageData> m_images;
 	uint32_t m_currentImageIndex{0};
 	VkExtent2D m_extent{0, 0};

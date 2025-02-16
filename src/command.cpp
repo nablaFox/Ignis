@@ -152,24 +152,60 @@ void Command::blitImage(const ImageData& src,
 	assert(dst.m_currentLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL &&
 		   "Destination image is not in the correct layout");
 
-	VkOffset3D srcOffset3D{srcOffset.x, srcOffset.y, 0};
-	VkOffset3D dstOffset3D{dstOffset.x, dstOffset.y, 0};
-	VkOffset3D extent3D{static_cast<int32_t>(src.m_extent.width),
-						static_cast<int32_t>(src.m_extent.height), 1};
-	VkOffset3D dstExtent3D{static_cast<int32_t>(dst.m_extent.width),
-						   static_cast<int32_t>(dst.m_extent.height), 1};
+	uint32_t srcAvailableWidth =
+		src.m_extent.width - static_cast<uint32_t>(srcOffset.x);
+	uint32_t srcAvailableHeight =
+		src.m_extent.height - static_cast<uint32_t>(srcOffset.y);
+	uint32_t dstAvailableWidth =
+		dst.m_extent.width - static_cast<uint32_t>(dstOffset.x);
+	uint32_t dstAvailableHeight =
+		dst.m_extent.height - static_cast<uint32_t>(dstOffset.y);
 
-	VkImageBlit blitRegion{
-		.srcSubresource = {src.m_aspect, 0, 0, 1},
-		.srcOffsets = {srcOffset3D, extent3D},
-		.dstSubresource = {dst.m_aspect, 0, 0, 1},
-		.dstOffsets = {dstOffset3D, dstExtent3D},
+	uint32_t regionWidth = std::min(srcAvailableWidth, dstAvailableWidth);
+	uint32_t regionHeight = std::min(srcAvailableHeight, dstAvailableHeight);
+
+	VkOffset3D srcStart{srcOffset.x, srcOffset.y, 0};
+	VkOffset3D srcEnd{srcOffset.x + static_cast<int32_t>(regionWidth),
+					  srcOffset.y + static_cast<int32_t>(regionHeight), 1};
+
+	VkOffset3D dstStart{dstOffset.x, dstOffset.y, 0};
+	VkOffset3D dstEnd{dstOffset.x + static_cast<int32_t>(regionWidth),
+					  dstOffset.y + static_cast<int32_t>(regionHeight), 1};
+
+	VkImageBlit2 blitRegion{
+		.sType = VK_STRUCTURE_TYPE_IMAGE_BLIT_2,
+		.pNext = nullptr,
+		.srcSubresource =
+			{
+				.aspectMask = src.m_aspect,
+				.mipLevel = 0,
+				.baseArrayLayer = 0,
+				.layerCount = 1,
+			},
+		.srcOffsets = {srcStart, srcEnd},
+		.dstSubresource =
+			{
+				.aspectMask = dst.m_aspect,
+				.mipLevel = 0,
+				.baseArrayLayer = 0,
+				.layerCount = 1,
+			},
+		.dstOffsets = {dstStart, dstEnd},
 	};
 
-	vkCmdBlitImage(m_commandBuffer, src.m_handle,
-				   VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, dst.m_handle,
-				   VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &blitRegion,
-				   VK_FILTER_LINEAR);
+	VkBlitImageInfo2 blitInfo{
+		.sType = VK_STRUCTURE_TYPE_BLIT_IMAGE_INFO_2,
+		.pNext = nullptr,
+		.srcImage = src.m_handle,
+		.srcImageLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+		.dstImage = dst.m_handle,
+		.dstImageLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+		.regionCount = 1,
+		.pRegions = &blitRegion,
+		.filter = VK_FILTER_LINEAR,
+	};
+
+	vkCmdBlitImage2(m_commandBuffer, &blitInfo);
 }
 
 void Command::updateImage(const Image& image,

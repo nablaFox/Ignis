@@ -45,5 +45,7 @@ if(NOT IGNIS_BUILD_TESTS)
   return()
 endif()
 
+find_package(glfw3 REQUIRED)
+
 add_executable(ignis_test test/main.cpp)
-target_link_libraries(ignis_test PRIVATE Ignis::Ignis)
+target_link_libraries(ignis_test PRIVATE Ignis::Ignis glfw)

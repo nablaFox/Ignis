@@ -15,7 +15,7 @@ class Command;
 struct SubmitCmdInfo {
 	const Command* command;
 	std::vector<const Semaphore*> waitSemaphores;
-	std::vector<const Semaphore*> signalSemaphore;
+	std::vector<const Semaphore*> signalSemaphores;
 };
 
 // Note 1: the library supports just 1 instance, physical and logical device
