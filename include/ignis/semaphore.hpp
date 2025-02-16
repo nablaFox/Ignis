@@ -13,8 +13,6 @@ public:
 
 	VkSemaphore getHandle() const { return m_semaphore; }
 
-	void wait() const;
-
 private:
 	const Device& m_device;
 	VkSemaphore m_semaphore{nullptr};

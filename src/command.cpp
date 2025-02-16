@@ -528,6 +528,20 @@ void Command::endRendering() {
 	vkCmdEndRendering(m_commandBuffer);
 }
 
+void Command::setViewport(VkViewport viewport) {
+	CHECK_IS_RECORDING;
+	CHECK_PIPELINE_BOUND;
+
+	vkCmdSetViewport(m_commandBuffer, 0, 1, &viewport);
+}
+
+void Command::setScissor(VkRect2D scissor) {
+	CHECK_IS_RECORDING;
+	CHECK_PIPELINE_BOUND;
+
+	vkCmdSetScissor(m_commandBuffer, 0, 1, &scissor);
+}
+
 void Command::draw(uint32_t vertexCount, uint32_t firstVertex) {
 	CHECK_IS_RECORDING;
 	CHECK_PIPELINE_BOUND;

@@ -119,6 +119,9 @@ public:
 
 	void bindIndexBuffer(const Buffer&, VkDeviceSize offset = 0);
 
+	void setViewport(VkViewport);
+	void setScissor(VkRect2D);
+
 	void draw(uint32_t vertexCount, uint32_t firstVertex = 0);
 
 	void drawInstanced(uint32_t vertexCount,
