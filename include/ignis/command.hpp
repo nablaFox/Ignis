@@ -1,7 +1,11 @@
 #pragma once
 
 #include <vulkan/vulkan_core.h>
+#include <cassert>
 #include <vector>
+#include "exceptions.hpp"
+#include "pipeline.hpp"
+#include "pipeline_layout.hpp"
 
 namespace ignis {
 
@@ -25,6 +29,12 @@ struct DepthAttachment {
 	VkAttachmentLoadOp loadAction;
 	VkAttachmentStoreOp storeAction;
 };
+
+#define CHECK_IS_RECORDING \
+	assert(m_isRecording && "Command buffer is not recording!");
+
+#define CHECK_PIPELINE_BOUND \
+	THROW_ERROR(m_currentPipeline == nullptr, "No pipeline bound");
 
 // Note 1: every command is a graphics command
 // Note 2: every command is primary
@@ -57,7 +67,16 @@ public:
 	void endRendering();
 
 	template <typename T>
-	void pushConstants(const T& data, uint32_t offset = 0);
+	void pushConstants(const T& data, uint32_t offset = 0) {
+		CHECK_IS_RECORDING;
+		CHECK_PIPELINE_BOUND;
+
+		auto& pipelineLayout = m_currentPipeline->getLayout();
+
+		vkCmdPushConstants(m_commandBuffer, pipelineLayout.getHandle(),
+						   pipelineLayout.getPushConstantsRange().stageFlags, offset,
+						   sizeof(T), &data);
+	}
 
 	void transitionImageLayout(ImageData&, VkImageLayout);
 	void transitionToOptimalLayout(ImageData&);

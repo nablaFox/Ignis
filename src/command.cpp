@@ -3,21 +3,12 @@
 #include "color_image.hpp"
 #include "depth_image.hpp"
 #include "device.hpp"
-#include "exceptions.hpp"
 #include "image.hpp"
 #include "pipeline.hpp"
 #include "pipeline_layout.hpp"
 #include "sampler.hpp"
 #include "shader.hpp"
 #include "vk_utils.hpp"
-
-#include <cassert>
-
-#define CHECK_IS_RECORDING \
-	assert(m_isRecording && "Command buffer is not recording!");
-
-#define CHECK_PIPELINE_BOUND \
-	THROW_ERROR(m_currentPipeline == nullptr, "No pipeline bound");
 
 using namespace ignis;
 
@@ -373,7 +364,7 @@ void Command::bindSubUBO(const Buffer& buffer,
 	CHECK_PIPELINE_BOUND;
 
 	assert(buffer.getUsage() == VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT &&
-		   "bindSubUBO: Buffer is not a UBO");
+		   "Buffer is not a UBO");
 
 	bindBuffer(m_device, m_commandBuffer, buffer, set, binding, arrayElement,
 			   m_currentPipeline->getLayout(), firstElement, lastElement);
@@ -382,7 +373,9 @@ void Command::bindSubUBO(const Buffer& buffer,
 void Command::bindIndexBuffer(const Buffer& indexBuffer, VkDeviceSize offset) {
 	CHECK_IS_RECORDING;
 
-	assert(indexBuffer.getUsage() == VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
+	assert((indexBuffer.getUsage() & VK_BUFFER_USAGE_INDEX_BUFFER_BIT) != 0 &&
+		   "Buffer is not an index buffer");
+
 	assert(indexBuffer.getStride() == sizeof(uint32_t) ||
 		   indexBuffer.getStride() == sizeof(uint16_t));
 

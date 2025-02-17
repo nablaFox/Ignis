@@ -22,9 +22,14 @@ public:
 
 	const BindingInfo& getBindingInfo(uint32_t slot, uint32_t binding) const;
 
+	VkPushConstantRange getPushConstantsRange() const {
+		return m_pushConstantsRange;
+	}
+
 private:
 	const Device& m_device;
 	std::unordered_map<uint32_t, DescriptorSetLayout> m_descriptorSetLayouts;
+	VkPushConstantRange m_pushConstantsRange{};
 	VkPipelineLayout m_layout{VK_NULL_HANDLE};
 
 public:

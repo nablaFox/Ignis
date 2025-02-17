@@ -14,6 +14,8 @@ PipelineLayout::PipelineLayout(const Device& device,
 	for (const auto& shader : shaders)
 		Shader::getMergedResources(shader->getResources(), &shaderResources);
 
+	m_pushConstantsRange = shaderResources.pushConstants;
+
 	std::vector<VkDescriptorSetLayout> vkDescriptorSetLayouts;
 	vkDescriptorSetLayouts.reserve(shaderResources.bindings.size());
 

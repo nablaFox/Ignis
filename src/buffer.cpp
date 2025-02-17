@@ -101,9 +101,9 @@ Buffer* Buffer::createIndexBuffer32(const Device* device,
 									uint32_t* data) {
 	return new Buffer({
 		.device = device,
-		.bufferUsage = VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-		.memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-							VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+		.bufferUsage =
+			VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+		.memoryProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
 		.elementSize = sizeof(uint32_t),
 		.elementCount = elementCount,
 		.stride = sizeof(uint32_t),
