@@ -535,11 +535,11 @@ void Command::setScissor(VkRect2D scissor) {
 	vkCmdSetScissor(m_commandBuffer, 0, 1, &scissor);
 }
 
-void Command::draw(uint32_t vertexCount, uint32_t firstVertex) {
+void Command::draw(uint32_t indexCount, uint32_t firstVertex) {
 	CHECK_IS_RECORDING;
 	CHECK_PIPELINE_BOUND;
 
-	vkCmdDrawIndexed(m_commandBuffer, vertexCount, 1, firstVertex, 0, 0);
+	vkCmdDrawIndexed(m_commandBuffer, indexCount, 1, firstVertex, 0, 0);
 }
 
 void Command::drawInstanced(uint32_t vertexCount,

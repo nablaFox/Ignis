@@ -44,6 +44,8 @@ public:
 				   uint32_t startElement = 0,
 				   uint32_t elementCount = 0);
 
+	void readData(void* data, uint32_t startElement = 0, uint32_t elementCount = 0);
+
 	template <typename T>
 	static Buffer* createUBO(const Device* device,
 							 uint32_t elementCount,

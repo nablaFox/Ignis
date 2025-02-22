@@ -79,6 +79,36 @@ void Buffer::writeData(const void* data,
 	}
 }
 
+void Buffer::readData(void* data, uint32_t startElement, uint32_t elementCount) {
+	THROW_ERROR(!(m_memoryProperties & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT),
+				"Reading from non-host visible buffer");
+
+	if (!elementCount) {
+		elementCount = m_elementCount - startElement;
+	}
+
+	THROW_ERROR(startElement + elementCount > m_elementCount, "Out of bounds");
+
+	VkDeviceSize startByte = startElement * m_stride;
+	VkDeviceSize readSize = elementCount * m_stride;
+
+	void* mappedData;
+	vmaMapMemory(m_device.getAllocator(), m_allocation, &mappedData);
+
+	if (!(m_memoryProperties & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)) {
+		vmaInvalidateAllocation(m_device.getAllocator(), m_allocation, startByte,
+								readSize);
+	}
+
+	const uint8_t* src = static_cast<const uint8_t*>(mappedData) + startByte;
+	uint8_t* dst = static_cast<uint8_t*>(data);
+	for (uint32_t i = 0; i < elementCount; ++i) {
+		std::memcpy(dst + i * m_elementSize, src + i * m_stride, m_elementSize);
+	}
+
+	vmaUnmapMemory(m_device.getAllocator(), m_allocation);
+}
+
 Buffer* Buffer::createStagingBuffer(const Device* device,
 									VkDeviceSize elementSize,
 									uint32_t elementCount,

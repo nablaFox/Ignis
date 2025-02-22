@@ -141,7 +141,7 @@ public:
 	void setViewport(VkViewport);
 	void setScissor(VkRect2D);
 
-	void draw(uint32_t vertexCount, uint32_t firstVertex = 0);
+	void draw(uint32_t indexCount, uint32_t firstIndex = 0);
 
 	void drawInstanced(uint32_t vertexCount,
 					   uint32_t instanceCount,
