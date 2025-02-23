@@ -4,8 +4,6 @@
 #include "depth_image.hpp"
 #include "device.hpp"
 #include "image.hpp"
-#include "pipeline.hpp"
-#include "pipeline_layout.hpp"
 #include "sampler.hpp"
 #include "shader.hpp"
 #include "vk_utils.hpp"
@@ -268,193 +266,6 @@ void Command::bindPipeline(const Pipeline& pipeline) {
 	m_currentPipeline = &pipeline;
 }
 
-static void bindBuffer(const Device& device,
-					   VkCommandBuffer commandBuffer,
-					   const Buffer& buffer,
-					   uint32_t set,
-					   uint32_t binding,
-					   uint32_t arrayElement,
-					   const PipelineLayout& pipelineLayout,
-					   uint32_t startElement = 0,
-					   uint32_t elementCount = 0) {
-	if (elementCount == 0) {
-		elementCount = buffer.getElementCount() - startElement;
-	}
-
-	THROW_ERROR(elementCount + startElement > buffer.getElementCount(),
-				"Out of bounds");
-
-	VkDeviceSize range = buffer.getStride() * elementCount;
-	VkDeviceSize offset = buffer.getStride() * startElement;
-
-	VkDescriptorBufferInfo bufferInfo{
-		.buffer = buffer.getHandle(),
-		.offset = offset,
-		.range = range,
-	};
-
-	const BindingInfo& bindingInfo = pipelineLayout.getBindingInfo(set, binding);
-
-	VkWriteDescriptorSet descriptorWrite{
-		.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-		.dstSet = VK_NULL_HANDLE,
-		.dstBinding = binding,
-		.dstArrayElement = arrayElement,
-		.descriptorCount = 1,
-		.descriptorType = bindingInfo.bindingType,
-		.pBufferInfo = &bufferInfo,
-	};
-
-	device.getPushDescriptorFunc()(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-								   pipelineLayout.getHandle(), set, 1,
-								   &descriptorWrite);
-}
-
-void Command::bindUBO(const Buffer& buffer,
-					  uint32_t set,
-					  uint32_t binding,
-					  uint32_t arrayElement) {
-	CHECK_IS_RECORDING;
-	CHECK_PIPELINE_BOUND;
-
-	assert(buffer.getUsage() == VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT &&
-		   "Buffer is not a UBO");
-
-	bindBuffer(m_device, m_commandBuffer, buffer, set, binding, arrayElement,
-			   m_currentPipeline->getLayout());
-}
-
-void Command::bindSSBO(const Buffer& buffer,
-					   uint32_t set,
-					   uint32_t binding,
-					   uint32_t arrayElement) {
-	CHECK_IS_RECORDING;
-	CHECK_PIPELINE_BOUND;
-
-	assert(buffer.getUsage() == VK_BUFFER_USAGE_STORAGE_BUFFER_BIT &&
-		   "Buffer is not a SSBO");
-
-	bindBuffer(m_device, m_commandBuffer, buffer, set, binding, arrayElement,
-			   m_currentPipeline->getLayout());
-}
-
-void Command::bindSubSSBO(const Buffer& buffer,
-						  uint32_t firstElement,
-						  uint32_t lastElement,
-						  uint32_t set,
-						  uint32_t binding,
-						  uint32_t arrayElement) {
-	CHECK_IS_RECORDING;
-	CHECK_PIPELINE_BOUND;
-
-	assert(buffer.getUsage() == VK_BUFFER_USAGE_STORAGE_BUFFER_BIT &&
-		   "bindSubSSBO: Buffer is not a SSBO");
-
-	bindBuffer(m_device, m_commandBuffer, buffer, set, binding, arrayElement,
-			   m_currentPipeline->getLayout(), firstElement, lastElement);
-}
-
-void Command::bindSubUBO(const Buffer& buffer,
-						 uint32_t firstElement,
-						 uint32_t lastElement,
-						 uint32_t set,
-						 uint32_t binding,
-						 uint32_t arrayElement) {
-	CHECK_IS_RECORDING;
-	CHECK_PIPELINE_BOUND;
-
-	assert(buffer.getUsage() == VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT &&
-		   "Buffer is not a UBO");
-
-	bindBuffer(m_device, m_commandBuffer, buffer, set, binding, arrayElement,
-			   m_currentPipeline->getLayout(), firstElement, lastElement);
-}
-
-void Command::bindIndexBuffer(const Buffer& indexBuffer, VkDeviceSize offset) {
-	CHECK_IS_RECORDING;
-
-	assert((indexBuffer.getUsage() & VK_BUFFER_USAGE_INDEX_BUFFER_BIT) != 0 &&
-		   "Buffer is not an index buffer");
-
-	assert(indexBuffer.getStride() == sizeof(uint32_t) ||
-		   indexBuffer.getStride() == sizeof(uint16_t));
-
-	VkIndexType indexType = indexBuffer.getStride() == sizeof(uint32_t)
-								? VK_INDEX_TYPE_UINT32
-								: VK_INDEX_TYPE_UINT16;
-
-	vkCmdBindIndexBuffer(m_commandBuffer, indexBuffer.getHandle(), offset,
-						 indexType);
-}
-
-void Command::bindSampledImage(const Image& image,
-							   const Sampler& sampler,
-							   uint32_t set,
-							   uint32_t binding,
-							   uint32_t arrayElement) {
-	CHECK_IS_RECORDING;
-	CHECK_PIPELINE_BOUND;
-
-	assert(image.getUsage() == VK_IMAGE_USAGE_SAMPLED_BIT &&
-		   "Image is not a sampled image");
-
-	VkDescriptorImageInfo imageInfo{
-		.sampler = sampler.getHandle(),
-		.imageView = image.getViewHandle(),
-		.imageLayout = image.getCurrentLayout(),
-	};
-
-	const BindingInfo& bindingInfo =
-		m_currentPipeline->getLayout().getBindingInfo(set, binding);
-
-	VkWriteDescriptorSet descriptorWrite{
-		.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-		.dstSet = VK_NULL_HANDLE,
-		.dstBinding = binding,
-		.dstArrayElement = arrayElement,
-		.descriptorCount = bindingInfo.arraySize,
-		.descriptorType = bindingInfo.bindingType,
-		.pImageInfo = &imageInfo,
-	};
-
-	m_device.getPushDescriptorFunc()(
-		m_commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-		m_currentPipeline->getLayout().getHandle(), set, 1, &descriptorWrite);
-}
-
-void Command::bindStorageImage(const Image& image,
-							   uint32_t set,
-							   uint32_t binding,
-							   uint32_t arrayElement) {
-	CHECK_IS_RECORDING;
-	CHECK_PIPELINE_BOUND;
-
-	assert(image.getUsage() == VK_IMAGE_USAGE_STORAGE_BIT &&
-		   "Image is not a storage image");
-
-	VkDescriptorImageInfo imageInfo{
-		.imageView = image.getViewHandle(),
-		.imageLayout = image.getCurrentLayout(),
-	};
-
-	const BindingInfo& bindingInfo =
-		m_currentPipeline->getLayout().getBindingInfo(set, binding);
-
-	VkWriteDescriptorSet descriptorWrite{
-		.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-		.dstSet = VK_NULL_HANDLE,
-		.dstBinding = binding,
-		.dstArrayElement = arrayElement,
-		.descriptorCount = bindingInfo.arraySize,
-		.descriptorType = bindingInfo.bindingType,
-		.pImageInfo = &imageInfo,
-	};
-
-	m_device.getPushDescriptorFunc()(
-		m_commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-		m_currentPipeline->getLayout().getHandle(), set, 1, &descriptorWrite);
-}
-
 void Command::beginRender(const DrawAttachment* drawAttachment,
 						  const DepthAttachment* depthAttachment) {
 	CHECK_IS_RECORDING;
@@ -533,6 +344,24 @@ void Command::setScissor(VkRect2D scissor) {
 	CHECK_PIPELINE_BOUND;
 
 	vkCmdSetScissor(m_commandBuffer, 0, 1, &scissor);
+}
+
+void Command::bindIndexBuffer(const Buffer& indexBuffer, VkDeviceSize offset) {
+	CHECK_IS_RECORDING;
+	CHECK_PIPELINE_BOUND;
+
+	assert((indexBuffer.getUsage() & VK_BUFFER_USAGE_INDEX_BUFFER_BIT) != 0 &&
+		   "Buffer is not an index buffer");
+
+	assert(indexBuffer.getStride() == sizeof(uint32_t) ||
+		   indexBuffer.getStride() == sizeof(uint16_t));
+
+	VkIndexType indexType = indexBuffer.getStride() == sizeof(uint32_t)
+								? VK_INDEX_TYPE_UINT32
+								: VK_INDEX_TYPE_UINT16;
+
+	vkCmdBindIndexBuffer(m_commandBuffer, indexBuffer.getHandle(), offset,
+						 indexType);
 }
 
 void Command::draw(uint32_t indexCount, uint32_t firstVertex) {

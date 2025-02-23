@@ -96,10 +96,6 @@ static void createInstance(std::string appName,
 					   "Failed to create instance");
 }
 
-static void setRequiredExtensions(std::vector<const char*>* extensions) {
-	extensions->push_back(VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME);
-}
-
 static void getPhysicalDevice(VkInstance instance,
 							  const std::vector<const char*>& requiredExtensions,
 							  VkPhysicalDevice* device,
@@ -119,10 +115,7 @@ static void getPhysicalDevice(VkInstance instance,
 		if (!featuresCompatible)
 			continue;
 
-		bool extensionsCompatible =
-			checkExtensionsCompatibility(physicalDevice, requiredExtensions);
-
-		if (!extensionsCompatible)
+		if (!checkExtensionsCompatibility(physicalDevice, requiredExtensions))
 			continue;
 
 		*device = physicalDevice;
@@ -234,8 +227,6 @@ Device::Device(CreateInfo createInfo) : m_shadersFolder(createInfo.shadersFolder
 	createDebugUtilsMessenger(m_instance, &m_debugMessenger);
 #endif
 
-	setRequiredExtensions(&createInfo.extensions);
-
 	::getPhysicalDevice(m_instance, createInfo.extensions, &m_phyiscalDevice,
 						&m_physicalDeviceProperties);
 
@@ -251,11 +242,7 @@ Device::Device(CreateInfo createInfo) : m_shadersFolder(createInfo.shadersFolder
 	allocateCommandPools(m_device, m_graphicsQueuesCount, m_graphicsFamilyIndex,
 						 &m_commandPools);
 
-	m_vkCmdPushDescriptorSetKHR = (PFN_vkCmdPushDescriptorSetKHR)vkGetDeviceProcAddr(
-		m_device, "vkCmdPushDescriptorSetKHR");
-
-	THROW_ERROR(m_vkCmdPushDescriptorSetKHR == nullptr,
-				"Failed to load vkCmdPushDescriptorSetKHR");
+	m_bindlessResources.initialize(m_device);
 }
 
 void Device::submitCommands(std::vector<SubmitCmdInfo> submits,
@@ -273,10 +260,10 @@ void Device::submitCommands(std::vector<SubmitCmdInfo> submits,
 #endif
 
 	struct SubmissionData {
-		VkSubmitInfo2 submitInfo;
+		VkSubmitInfo2 submitInfo{};
 		std::vector<VkSemaphoreSubmitInfo> waitInfos;
 		std::vector<VkSemaphoreSubmitInfo> signalInfos;
-		VkCommandBufferSubmitInfo commandInfo;
+		VkCommandBufferSubmitInfo commandInfo{};
 	};
 
 	std::vector<SubmissionData> submissionsData;
@@ -349,6 +336,10 @@ std::string Device::getFullShaderPath(std::string shaderPath) const {
 }
 
 Device::~Device() {
+	vkDeviceWaitIdle(m_device);
+
+	m_bindlessResources.cleanup(m_device);
+
 	for (auto queue : m_queues)
 		vkQueueWaitIdle(queue);
 

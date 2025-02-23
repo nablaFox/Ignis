@@ -21,9 +21,18 @@ RequiredFeatures::RequiredFeatures() {
 		.synchronization2 = VK_TRUE,
 	};
 
+	descriptorIndexing = {
+		.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES,
+		.pNext = &syncrhonization2,
+		.descriptorBindingUniformBufferUpdateAfterBind = VK_TRUE,
+		.descriptorBindingSampledImageUpdateAfterBind = VK_TRUE,
+		.descriptorBindingStorageBufferUpdateAfterBind = VK_TRUE,
+		.descriptorBindingPartiallyBound = VK_TRUE,
+	};
+
 	physicalDeviceFeatures2 = {
 		.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
-		.pNext = &syncrhonization2,
+		.pNext = &descriptorIndexing,
 	};
 }
 

@@ -1,7 +1,6 @@
+#include <memory>
 #include "pipeline.hpp"
 #include "shader.hpp"
-#include "descriptor_set_layout.hpp"
-#include "pipeline_layout.hpp"
 #include "device.hpp"
 #include "exceptions.hpp"
 
@@ -14,7 +13,13 @@ Pipeline::Pipeline(CreateInfo info) : m_device(*info.device) {
 		shaders.emplace_back(std::make_unique<Shader>(m_device, shaderPath));
 	}
 
-	m_pipelineLayout = std::make_unique<PipelineLayout>(m_device, shaders);
+	ShaderResources resources;
+	for (const auto& shader : shaders) {
+		ShaderResources shaderResources = shader->getResources();
+		Shader::getMergedResources(shaderResources, &resources);
+	}
+
+	m_pipelineLayout = m_device.getPipelineLayout(resources.pushConstants.size);
 
 	std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
 	shaderStages.reserve(info.shaders.size());
@@ -122,7 +127,7 @@ Pipeline::Pipeline(CreateInfo info) : m_device(*info.device) {
 		.pDepthStencilState = &depthStencil,
 		.pColorBlendState = &colorBlending,
 		.pDynamicState = &dynamicState,
-		.layout = m_pipelineLayout->getHandle(),
+		.layout = m_pipelineLayout,
 		.basePipelineHandle = VK_NULL_HANDLE,
 	};
 

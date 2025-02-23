@@ -5,7 +5,6 @@
 #include <vector>
 #include "exceptions.hpp"
 #include "pipeline.hpp"
-#include "pipeline_layout.hpp"
 
 namespace ignis {
 
@@ -71,11 +70,10 @@ public:
 		CHECK_IS_RECORDING;
 		CHECK_PIPELINE_BOUND;
 
-		auto& pipelineLayout = m_currentPipeline->getLayout();
+		auto pipelineLayout = m_currentPipeline->getLayout();
 
-		vkCmdPushConstants(m_commandBuffer, pipelineLayout.getHandle(),
-						   pipelineLayout.getPushConstantsRange().stageFlags, offset,
-						   sizeof(T), &data);
+		vkCmdPushConstants(m_commandBuffer, pipelineLayout, VK_SHADER_STAGE_ALL,
+						   offset, sizeof(T), &data);
 	}
 
 	void transitionImageLayout(ImageData&, VkImageLayout);
@@ -101,45 +99,10 @@ public:
 					  uint32_t firstElement = 0,
 					  uint32_t lastElement = 0);
 
-	void bindUBO(const Buffer&,
-				 uint32_t set,
-				 uint32_t binding,
-				 uint32_t arrayElement = 0);
-
-	void bindSSBO(const Buffer&,
-				  uint32_t set,
-				  uint32_t binding,
-				  uint32_t arrayElement = 0);
-
-	void bindSubSSBO(const Buffer&,
-					 uint32_t firstElement,
-					 uint32_t lastElement,
-					 uint32_t set,
-					 uint32_t binding,
-					 uint32_t arrayElement = 0);
-
-	void bindSubUBO(const Buffer&,
-					uint32_t firstElement,
-					uint32_t lastElement,
-					uint32_t set,
-					uint32_t binding,
-					uint32_t arrayElement = 0);
-
-	void bindStorageImage(const Image&,
-						  uint32_t set,
-						  uint32_t binding,
-						  uint32_t arrayElement = 0);
-
-	void bindSampledImage(const Image&,
-						  const Sampler&,
-						  uint32_t set,
-						  uint32_t binding,
-						  uint32_t arrayElement = 0);
-
-	void bindIndexBuffer(const Buffer&, VkDeviceSize offset = 0);
-
 	void setViewport(VkViewport);
 	void setScissor(VkRect2D);
+
+	void bindIndexBuffer(const Buffer&, VkDeviceSize offset = 0);
 
 	void draw(uint32_t indexCount, uint32_t firstIndex = 0);
 

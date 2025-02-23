@@ -8,6 +8,7 @@ struct RequiredFeatures {
 	VkPhysicalDeviceBufferDeviceAddressFeatures bufferDeviceAddress{};
 	VkPhysicalDeviceDynamicRenderingFeatures dynamicRendering{};
 	VkPhysicalDeviceSynchronization2FeaturesKHR syncrhonization2{};
+	VkPhysicalDeviceDescriptorIndexingFeatures descriptorIndexing{};
 
 	VkPhysicalDeviceFeatures2 physicalDeviceFeatures2{};
 

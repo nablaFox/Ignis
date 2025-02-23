@@ -1,6 +1,5 @@
 #include "shader.hpp"
 #include "device.hpp"
-#include "descriptor_set_layout.hpp"
 #include "exceptions.hpp"
 
 #include <fstream>

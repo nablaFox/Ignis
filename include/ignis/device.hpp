@@ -4,6 +4,7 @@
 #include <vulkan/vulkan_core.h>
 #include <string>
 #include <vector>
+#include "bindless_resources.hpp"
 
 namespace ignis {
 
@@ -43,11 +44,13 @@ public:
 
 	VkPhysicalDevice getPhysicalDevice() const { return m_phyiscalDevice; }
 
+	VkInstance getInstance() const { return m_instance; }
+
+	VkDevice getDevice() const { return m_device; }
+
 	VkQueue getQueue(uint32_t index) const;
 
 	VkCommandPool getCommandPool(uint32_t index) const;
-
-	VkDevice getDevice() const { return m_device; }
 
 	VkDeviceSize getUboAlignment() const {
 		return m_physicalDeviceProperties.limits.minUniformBufferOffsetAlignment;
@@ -57,16 +60,13 @@ public:
 		return m_physicalDeviceProperties.limits.minStorageBufferOffsetAlignment;
 	}
 
-	VkInstance getInstance() const { return m_instance; }
+	VkPipelineLayout getPipelineLayout(uint32_t pushConstantSize) const {
+		return m_bindlessResources.getPipelinelayout(pushConstantSize);
+	}
 
 	VmaAllocator getAllocator() const { return m_allocator; }
 
-	// will return the full shaderPath only if shaderPath is not an absolute path
 	std::string getFullShaderPath(std::string shaderPath) const;
-
-	PFN_vkCmdPushDescriptorSetKHR getPushDescriptorFunc() const {
-		return m_vkCmdPushDescriptorSetKHR;
-	}
 
 private:
 	VkInstance m_instance{nullptr};
@@ -75,12 +75,13 @@ private:
 	VkPhysicalDeviceProperties m_physicalDeviceProperties{};
 	VkDevice m_device{nullptr};
 	VmaAllocator m_allocator{nullptr};
-	PFN_vkCmdPushDescriptorSetKHR m_vkCmdPushDescriptorSetKHR{nullptr};
 
 	uint32_t m_graphicsFamilyIndex{0};
 	uint32_t m_graphicsQueuesCount{0};
 	std::vector<VkQueue> m_queues;
 	std::vector<VkCommandPool> m_commandPools;
+
+	BindlessResources m_bindlessResources;
 
 	std::string m_shadersFolder;
 

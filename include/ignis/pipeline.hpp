@@ -1,15 +1,13 @@
 #pragma once
 
 #include <vulkan/vulkan_core.h>
-#include <memory>
+#include <string>
 #include <vector>
 
 namespace ignis {
 
 class Device;
 class Shader;
-class DescriptorSetLayout;
-class PipelineLayout;
 enum class ColorFormat;
 enum class DepthFormat;
 
@@ -17,9 +15,6 @@ enum class DepthFormat;
 // Note 2: we can't render to multiple images, just to a single one
 // Note 3: only dynamic rendering is available
 // Note 4: no state is configurable apart from the attachment formats
-// Note 5: if two pipelines have the same layout the implementation will allocate
-// 2 different PipelineLayout objects
-// Note 6: to pass buffers you have to use push constants
 
 class Pipeline {
 public:
@@ -36,11 +31,11 @@ public:
 
 	VkPipeline getPipeline() const { return m_pipeline; }
 
-	const PipelineLayout& getLayout() const { return *m_pipelineLayout; }
+	VkPipelineLayout getLayout() const { return m_pipelineLayout; }
 
 private:
 	const Device& m_device;
-	std::unique_ptr<PipelineLayout> m_pipelineLayout;
+	VkPipelineLayout m_pipelineLayout;
 	VkPipeline m_pipeline{VK_NULL_HANDLE};
 
 public:
