@@ -6,6 +6,9 @@
 #include "features.hpp"
 #include "fence.hpp"
 #include "semaphore.hpp"
+#include "buffer.hpp"
+#include "image.hpp"
+#include "sampler.hpp"
 #include "vk_utils.hpp"
 
 #define VMA_IMPLEMENTATION
@@ -326,6 +329,74 @@ VkCommandPool Device::getCommandPool(uint32_t index) const {
 VkQueue Device::getQueue(uint32_t index) const {
 	THROW_ERROR(index >= m_queues.size(), "Invalid queue index");
 	return m_queues[index];
+}
+
+void Device::registerUBO(const Buffer& buffer, uint32_t index) {
+	assert((buffer.getUsage() & VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT) != 0 &&
+		   "Buffer is not a UBO");
+
+	VkDescriptorBufferInfo bufferInfo{
+		.buffer = buffer.getHandle(),
+		.offset = 0,
+		.range = buffer.getSize(),
+	};
+
+	VkWriteDescriptorSet writeDescriptorSet{
+		.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+		.dstSet = m_bindlessResources.getDescriptorSet(),
+		.dstBinding = index,
+		.dstArrayElement = 0,
+		.descriptorCount = 1,
+		.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+		.pBufferInfo = &bufferInfo,
+	};
+
+	vkUpdateDescriptorSets(m_device, 1, &writeDescriptorSet, 0, nullptr);
+}
+
+void Device::registerSSBO(const Buffer& buffer, uint32_t index) {
+	assert((buffer.getUsage() & VK_BUFFER_USAGE_STORAGE_BUFFER_BIT) != 0 &&
+		   "Buffer is not a SSBO");
+
+	VkDescriptorBufferInfo bufferInfo{
+		.buffer = buffer.getHandle(),
+		.offset = 0,
+		.range = buffer.getSize(),
+	};
+
+	VkWriteDescriptorSet writeDescriptorSet{
+		.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+		.dstSet = m_bindlessResources.getDescriptorSet(),
+		.dstBinding = index,
+		.dstArrayElement = 0,
+		.descriptorCount = 1,
+		.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
+		.pBufferInfo = &bufferInfo,
+	};
+
+	vkUpdateDescriptorSets(m_device, 1, &writeDescriptorSet, 0, nullptr);
+}
+
+void Device::registerSampledImage(const Image& image,
+								  const Sampler& sampler,
+								  uint32_t index) {
+	VkDescriptorImageInfo imageInfo{
+		.sampler = sampler.getHandle(),
+		.imageView = image.getViewHandle(),
+		.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+	};
+
+	VkWriteDescriptorSet writeDescriptorSet{
+		.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+		.dstSet = m_bindlessResources.getDescriptorSet(),
+		.dstBinding = index,
+		.dstArrayElement = 0,
+		.descriptorCount = 1,
+		.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+		.pImageInfo = &imageInfo,
+	};
+
+	vkUpdateDescriptorSets(m_device, 1, &writeDescriptorSet, 0, nullptr);
 }
 
 std::string Device::getFullShaderPath(std::string shaderPath) const {

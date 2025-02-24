@@ -28,5 +28,9 @@ int main(int argc, char* argv[]) {
 
 	delete testUbo;
 
+	Buffer* emptyBuffer = Buffer::createUBO(&device, 0);
+
+	delete emptyBuffer;
+
 	return 0;
 }

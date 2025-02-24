@@ -11,6 +11,9 @@ namespace ignis {
 class Semaphore;
 class Fence;
 class Command;
+class Buffer;
+class Image;
+class Sampler;
 
 // each command should be relative to the same queue
 struct SubmitCmdInfo {
@@ -26,6 +29,7 @@ struct SubmitCmdInfo {
 // Note 4: we don't handle custom features/extensions
 // Note 5: command pools are relative to a single thread
 // Note 6: we allocate a command pool for each queue
+// Note 7: only combined image samplers are supported
 
 // PONDER probaly device should inherit a pointer class
 class Device {
@@ -63,6 +67,14 @@ public:
 	VkPipelineLayout getPipelineLayout(uint32_t pushConstantSize) const {
 		return m_bindlessResources.getPipelinelayout(pushConstantSize);
 	}
+
+	void registerUBO(const Buffer& buffer, uint32_t index);
+
+	void registerSSBO(const Buffer& buffer, uint32_t index);
+
+	void registerSampledImage(const Image& image,
+							  const Sampler& sampler,
+							  uint32_t index);
 
 	VmaAllocator getAllocator() const { return m_allocator; }
 

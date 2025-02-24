@@ -133,14 +133,14 @@ Buffer* Buffer::createVertexBuffer(const Device* device,
 }
 
 Buffer* Buffer::createIndexBuffer32(const Device* device,
-									uint32_t size,
+									uint32_t elementCount,
 									uint32_t* data) {
 	return new Buffer({
 		.device = device,
 		.bufferUsage =
 			VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
 		.memoryProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-		.size = sizeof(uint32_t),
+		.size = sizeof(uint32_t) * elementCount,
 		.initialData = data,
 	});
 }

@@ -20,6 +20,8 @@ struct BindlessResources {
 		return m_pipelineLayouts.at(pushConstantSize);
 	}
 
+	VkDescriptorSet getDescriptorSet() const { return m_descriptorSet; }
+
 private:
 	VkDescriptorSetLayout m_descriptorSetLayout{nullptr};
 	VkDescriptorPool m_descriptorPool{nullptr};

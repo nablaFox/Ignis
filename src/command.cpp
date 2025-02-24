@@ -351,9 +351,6 @@ void Command::bindIndexBuffer(const Buffer& indexBuffer, VkDeviceSize offset) {
 	assert((indexBuffer.getUsage() & VK_BUFFER_USAGE_INDEX_BUFFER_BIT) != 0 &&
 		   "Buffer is not an index buffer");
 
-	assert(indexBuffer.getSize() == sizeof(uint32_t) ||
-		   indexBuffer.getSize() == sizeof(uint16_t));
-
 	VkIndexType indexType = indexBuffer.getSize() == sizeof(uint32_t)
 								? VK_INDEX_TYPE_UINT32
 								: VK_INDEX_TYPE_UINT16;

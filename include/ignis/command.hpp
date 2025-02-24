@@ -13,7 +13,6 @@ class Pipeline;
 class Buffer;
 class Image;
 struct ImageData;
-class Sampler;
 class ColorImage;
 class DepthImage;
 
@@ -39,13 +38,10 @@ struct DepthAttachment {
 // Note 2: every command is primary
 // Note 3: allocation, deallocation and resetting is per-command, not per-pool, i.e.
 // we can't batch those operations for multiple commands
-// Note 4: we can't bind single samplers
-// Note 5: every draw command is indexed
-// Note 6: clear values are fixed
-// Note 7: the render area is fixed
-// Note 8: we can only render to 1 draw attachment
-// Note 9: we can only bind 1 buffer/image at a time
-// Note 10: we rely on push descriptors for binding buffers and images
+// Note 4: every draw command is indexed
+// Note 5: clear values are fixed
+// Note 6: the render area is fixed
+// Note 7: we can only render to 1 draw attachment
 
 class Command {
 public:
