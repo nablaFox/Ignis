@@ -65,7 +65,11 @@ public:
 	}
 
 	VkPipelineLayout getPipelineLayout(uint32_t pushConstantSize) const {
-		return m_bindlessResources.getPipelinelayout(pushConstantSize);
+		return m_bindlessResources.getPipelinelayout(1 + (pushConstantSize / 4));
+	}
+
+	VkDescriptorSet getDescriptorSet() const {
+		return m_bindlessResources.getDescriptorSet();
 	}
 
 	void registerUBO(const Buffer& buffer, uint32_t index);

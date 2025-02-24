@@ -29,13 +29,13 @@ public:
 
 	~Pipeline();
 
-	VkPipeline getPipeline() const { return m_pipeline; }
+	VkPipeline getHandle() const { return m_pipeline; }
 
-	VkPipelineLayout getLayout() const { return m_pipelineLayout; }
+	VkPipelineLayout getLayoutHandle() const { return m_pipelineLayout; }
 
 private:
 	const Device& m_device;
-	VkPipelineLayout m_pipelineLayout;
+	VkPipelineLayout m_pipelineLayout{VK_NULL_HANDLE};
 	VkPipeline m_pipeline{VK_NULL_HANDLE};
 
 public:

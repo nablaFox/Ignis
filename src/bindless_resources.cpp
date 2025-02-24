@@ -149,10 +149,9 @@ void BindlessResources::initialize(VkDevice device) {
 		pipelineLayoutInfo.pushConstantRangeCount = 1;
 		pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
 
-		THROW_VULKAN_ERROR(
-			vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr,
-								   m_pipelineLayouts.data() + i + 1),
-			"Failed to create pipeline layout");
+		THROW_VULKAN_ERROR(vkCreatePipelineLayout(device, &pipelineLayoutInfo,
+												  nullptr, &m_pipelineLayouts.at(i)),
+						   "Failed to create pipeline layout");
 	}
 }
 

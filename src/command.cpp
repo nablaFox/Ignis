@@ -258,8 +258,14 @@ void Command::updateBuffer(const Buffer& buffer,
 void Command::bindPipeline(const Pipeline& pipeline) {
 	CHECK_IS_RECORDING;
 
+	VkDescriptorSet descriptorSet = m_device.getDescriptorSet();
+
+	vkCmdBindDescriptorSets(m_commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+							pipeline.getLayoutHandle(), 0, 1, &descriptorSet, 0,
+							nullptr);
+
 	vkCmdBindPipeline(m_commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-					  pipeline.getPipeline());
+					  pipeline.getHandle());
 
 	m_currentPipeline = &pipeline;
 }
@@ -351,7 +357,7 @@ void Command::bindIndexBuffer(const Buffer& indexBuffer, VkDeviceSize offset) {
 	assert((indexBuffer.getUsage() & VK_BUFFER_USAGE_INDEX_BUFFER_BIT) != 0 &&
 		   "Buffer is not an index buffer");
 
-	VkIndexType indexType = indexBuffer.getSize() == sizeof(uint32_t)
+	VkIndexType indexType = indexBuffer.getSize() % sizeof(uint32_t) == 0
 								? VK_INDEX_TYPE_UINT32
 								: VK_INDEX_TYPE_UINT16;
 

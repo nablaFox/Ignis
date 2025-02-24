@@ -66,7 +66,7 @@ public:
 		CHECK_IS_RECORDING;
 		CHECK_PIPELINE_BOUND;
 
-		auto pipelineLayout = m_currentPipeline->getLayout();
+		auto pipelineLayout = m_currentPipeline->getLayoutHandle();
 
 		vkCmdPushConstants(m_commandBuffer, pipelineLayout, VK_SHADER_STAGE_ALL,
 						   offset, sizeof(T), &data);

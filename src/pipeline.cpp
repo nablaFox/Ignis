@@ -13,10 +13,10 @@ Pipeline::Pipeline(CreateInfo info) : m_device(*info.device) {
 		shaders.emplace_back(std::make_unique<Shader>(m_device, shaderPath));
 	}
 
-	ShaderResources resources;
+	ShaderResources resources{};
+
 	for (const auto& shader : shaders) {
-		ShaderResources shaderResources = shader->getResources();
-		Shader::getMergedResources(shaderResources, &resources);
+		Shader::getMergedResources(shader->getResources(), &resources);
 	}
 
 	m_pipelineLayout = m_device.getPipelineLayout(resources.pushConstants.size);

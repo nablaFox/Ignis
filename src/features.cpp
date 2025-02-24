@@ -28,6 +28,7 @@ RequiredFeatures::RequiredFeatures() {
 		.descriptorBindingSampledImageUpdateAfterBind = VK_TRUE,
 		.descriptorBindingStorageBufferUpdateAfterBind = VK_TRUE,
 		.descriptorBindingPartiallyBound = VK_TRUE,
+		.runtimeDescriptorArray = VK_TRUE,
 	};
 
 	physicalDeviceFeatures2 = {
