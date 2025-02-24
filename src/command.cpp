@@ -211,8 +211,8 @@ void Command::updateImage(const Image& image,
 
 	uint32_t pixelsCount = size.width * size.height;
 
-	Buffer* staging = Buffer::createStagingBuffer(&m_device, image.getPixelSize(),
-												  pixelsCount, pixels);
+	Buffer* staging = Buffer::createStagingBuffer(
+		&m_device, image.getPixelSize() * pixelsCount, pixels);
 
 	m_stagingBuffers.push_back(staging);
 
@@ -231,26 +231,24 @@ void Command::updateImage(const Image& image,
 
 void Command::updateBuffer(const Buffer& buffer,
 						   const void* data,
-						   uint32_t startElement,
-						   uint32_t elementCount) {
+						   uint32_t offset,
+						   uint32_t size) {
 	CHECK_IS_RECORDING;
 
-	if (!elementCount) {
-		elementCount = buffer.getElementCount() - startElement;
+	if (!size) {
+		size = buffer.getSize() - offset;
 	}
 
-	THROW_ERROR(startElement + elementCount > buffer.getElementCount(),
-				"Out of bounds");
+	THROW_ERROR(offset + size > buffer.getSize(), "Out of bounds");
 
-	Buffer* staging = Buffer::createStagingBuffer(
-		&m_device, buffer.getElementSize(), elementCount, data, buffer.getStride());
+	Buffer* staging = Buffer::createStagingBuffer(&m_device, size, data);
 
 	m_stagingBuffers.push_back(staging);
 
 	VkBufferCopy copyRegion = {
 		.srcOffset = 0,
-		.dstOffset = startElement * buffer.getStride(),
-		.size = elementCount * buffer.getStride(),
+		.dstOffset = offset,
+		.size = size,
 	};
 
 	vkCmdCopyBuffer(m_commandBuffer, staging->getHandle(), buffer.getHandle(), 1,
@@ -353,10 +351,10 @@ void Command::bindIndexBuffer(const Buffer& indexBuffer, VkDeviceSize offset) {
 	assert((indexBuffer.getUsage() & VK_BUFFER_USAGE_INDEX_BUFFER_BIT) != 0 &&
 		   "Buffer is not an index buffer");
 
-	assert(indexBuffer.getStride() == sizeof(uint32_t) ||
-		   indexBuffer.getStride() == sizeof(uint16_t));
+	assert(indexBuffer.getSize() == sizeof(uint32_t) ||
+		   indexBuffer.getSize() == sizeof(uint16_t));
 
-	VkIndexType indexType = indexBuffer.getStride() == sizeof(uint32_t)
+	VkIndexType indexType = indexBuffer.getSize() == sizeof(uint32_t)
 								? VK_INDEX_TYPE_UINT32
 								: VK_INDEX_TYPE_UINT16;
 

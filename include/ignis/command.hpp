@@ -96,8 +96,8 @@ public:
 
 	void updateBuffer(const Buffer&,
 					  const void* data,
-					  uint32_t firstElement = 0,
-					  uint32_t lastElement = 0);
+					  uint32_t offset = 0,
+					  uint32_t size = 0);
 
 	void setViewport(VkViewport);
 	void setScissor(VkRect2D);
