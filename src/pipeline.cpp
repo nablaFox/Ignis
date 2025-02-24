@@ -57,27 +57,33 @@ Pipeline::Pipeline(CreateInfo info) : m_device(*info.device) {
 		.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
 		.depthClampEnable = VK_FALSE,
 		.rasterizerDiscardEnable = VK_FALSE,
-		.polygonMode = VK_POLYGON_MODE_FILL,
-		.cullMode = VK_CULL_MODE_BACK_BIT,
-		.frontFace = VK_FRONT_FACE_CLOCKWISE,
+		.polygonMode = info.polygonMode,
+		.cullMode = info.cullMode,
+		.frontFace = info.frontFace,
 		.depthBiasEnable = VK_FALSE,
-		.lineWidth = 1.0f,
+		.lineWidth = info.lineWidth,
 	};
 
 	VkPipelineMultisampleStateCreateInfo multisampling{
 		.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
-		.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT,
-		.sampleShadingEnable = VK_FALSE,
+		.rasterizationSamples = info.sampleCount,
+		.sampleShadingEnable = info.sampleShadingEnable,
+		.minSampleShading = info.minSampleShading,
 	};
 
 	VkPipelineDepthStencilStateCreateInfo depthStencil{
 		.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
 		.depthTestEnable = VK_TRUE,
 		.depthWriteEnable = VK_TRUE,
-		.depthCompareOp = VK_COMPARE_OP_LESS,
+		.depthCompareOp = info.depthCompareOp,
 		.depthBoundsTestEnable = VK_FALSE,
 		.stencilTestEnable = VK_FALSE,
 	};
+
+	if (!info.enableDepthTest) {
+		depthStencil.depthTestEnable = VK_FALSE;
+		depthStencil.depthWriteEnable = VK_FALSE;
+	}
 
 	VkPipelineColorBlendAttachmentState colorBlendAttachment{
 		.blendEnable = VK_FALSE,
@@ -110,9 +116,12 @@ Pipeline::Pipeline(CreateInfo info) : m_device(*info.device) {
 		.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO,
 		.colorAttachmentCount = 1,
 		.pColorAttachmentFormats = &vkColorFormat,
-		.depthAttachmentFormat = vkDepthFormat,
 		.stencilAttachmentFormat = VK_FORMAT_UNDEFINED,
 	};
+
+	if (info.enableDepthTest) {
+		pipelineRenderingInfo.depthAttachmentFormat = vkDepthFormat;
+	}
 
 	VkGraphicsPipelineCreateInfo pipelineInfo{
 		.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
