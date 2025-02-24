@@ -273,8 +273,11 @@ int main(int argc, char* argv[]) {
 		.presentMode = VK_PRESENT_MODE_FIFO_KHR,
 	});
 
-	ColorImage* drawImage =
-		ColorImage::createDrawImage(&device, {WINDOW_WIDTH, WINDOW_HEIGHT});
+	ColorImage* drawImage = ColorImage::createDrawImage({
+		.device = &device,
+		.extent = {WINDOW_WIDTH, WINDOW_HEIGHT},
+		.sampleCount = VK_SAMPLE_COUNT_4_BIT,
+	});
 
 	Screen screen{};
 
@@ -350,7 +353,7 @@ int main(int argc, char* argv[]) {
 		device.submitCommands({std::move(submitUpdatePixelsInfo)}, waitForRendering);
 
 		swapchain.present({
-			.image = drawImage,
+			.srcImage = drawImage,
 			.waitSemaphores = {&finishedRendering},
 		});
 	}

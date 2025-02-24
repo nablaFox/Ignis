@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vulkan/vulkan_core.h>
+#include <cassert>
 
 namespace ignis {
 
@@ -21,7 +22,9 @@ public:
 		  m_extent(extent),
 		  m_format(format),
 		  m_currentLayout(currentLayout),
-		  m_optimalLayout(optimalLayout) {}
+		  m_optimalLayout(optimalLayout) {
+		assert(extent.width > 0 && extent.height > 0 && "Extent is 0");
+	}
 
 	VkImage getHandle() const { return m_handle; }
 

@@ -29,7 +29,7 @@ public:
 	~Swapchain();
 
 	struct PresentInfo {
-		Image* image;
+		Image* srcImage;
 		uint32_t queueIndex;
 		std::vector<const Semaphore*>
 			waitSemaphores;	 // they are relative to the blitting

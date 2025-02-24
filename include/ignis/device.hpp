@@ -80,6 +80,8 @@ public:
 							  const Sampler& sampler,
 							  uint32_t index);
 
+	VkSampleCountFlagBits getMaxSampleCount() const;
+
 	VmaAllocator getAllocator() const { return m_allocator; }
 
 	std::string getFullShaderPath(std::string shaderPath) const;

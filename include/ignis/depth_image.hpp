@@ -13,18 +13,25 @@ enum class DepthFormat {
 class DepthImage : public Image {
 public:
 	struct CreateInfo {
-		const Device* device;
-		DepthFormat format;
-		VkExtent2D extent;
-		VkImageUsageFlags usage;
-		VkImageLayout optimalLayout;
-		const void* initialPixels;
+		const Device* device{nullptr};
+		DepthFormat format{DepthFormat::D32_SFLOAT};
+		VkExtent2D extent{0, 0};
+		VkImageUsageFlags usage{};
+		VkImageLayout optimalLayout{VK_IMAGE_LAYOUT_UNDEFINED};
+		VkSampleCountFlagBits sampleCount{VK_SAMPLE_COUNT_1_BIT};
+		const void* initialPixels{nullptr};
 	};
 
 	DepthImage(CreateInfo);
 
-	static DepthImage* createDepthStencilImage(const Device* device,
-											   VkExtent2D extent);
+	struct DepthStencilCreateInfo {
+		const Device* device{nullptr};
+		VkExtent2D extent{0, 0};
+		DepthFormat format{DepthFormat::D32_SFLOAT};
+		VkSampleCountFlagBits sampleCount{VK_SAMPLE_COUNT_1_BIT};
+	};
+
+	static DepthImage* createDepthImage(DepthStencilCreateInfo);
 
 	DepthFormat getFormat() const { return m_format; }
 

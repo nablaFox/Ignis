@@ -10,10 +10,9 @@ class Device;
 
 // Note 1: we don't support custom views. Every image has a fixed view
 // Note 2: we don't allow for multi layer images
-// Note 3: we don't allow for multisampled images
-// Note 4: we don't allow for 3D images
-// Note 5: we don't allow for custom image creation flags
-// Note 6: images are never host visible
+// Note 3: we don't allow for 3D images
+// Note 4: we don't allow for custom image creation flags
+// Note 5: images are never host visible
 
 class Image : public ImageData {
 protected:
@@ -21,6 +20,7 @@ protected:
 		  VkExtent2D,
 		  VkFormat,
 		  VkImageUsageFlags,
+		  VkSampleCountFlagBits,
 		  VkImageLayout optimalLayout,
 		  VkImageAspectFlags viewAspect,
 		  const void* initialPixels);
@@ -32,11 +32,14 @@ public:
 
 	VkDeviceSize getPixelSize() const { return m_pixelSize; }
 
+	VkSampleCountFlagBits getSampleCount() const { return m_sampleCount; }
+
 private:
 	const Device& m_device;
 	VmaAllocation m_allocation{nullptr};
 	VkImageView m_view{nullptr};
 	VkDeviceSize m_pixelSize;
+	VkSampleCountFlagBits m_sampleCount;
 
 public:
 	Image(const Image&) = delete;

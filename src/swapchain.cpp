@@ -184,7 +184,7 @@ ImageData& Swapchain::acquireNextImage(const Semaphore* signalSemaphore) {
 }
 
 void Swapchain::present(PresentInfo info) {
-	assert(info.image->getCurrentLayout() ==
+	assert(info.srcImage->getCurrentLayout() ==
 			   VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL &&
 		   "Image is not in the correct layout");
 
@@ -199,15 +199,18 @@ void Swapchain::present(PresentInfo info) {
 
 	blitCmd.transitionImageLayout(currentSwapchainImage,
 								  VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-	blitCmd.transitionImageLayout(*info.image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+	blitCmd.transitionImageLayout(*info.srcImage,
+								  VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 
-	if (info.image->getFormat() == currentSwapchainImage.getFormat()) {
-		blitCmd.copyImage(*info.image, currentSwapchainImage);
+	if (info.srcImage->getSampleCount() != VK_SAMPLE_COUNT_1_BIT) {
+		blitCmd.resolveImage(*info.srcImage, currentSwapchainImage);
+	} else if (info.srcImage->getFormat() == currentSwapchainImage.getFormat()) {
+		blitCmd.copyImage(*info.srcImage, currentSwapchainImage);
 	} else {
-		blitCmd.blitImage(*info.image, currentSwapchainImage);
+		blitCmd.blitImage(*info.srcImage, currentSwapchainImage);
 	}
 
-	blitCmd.transitionToOptimalLayout(*info.image);
+	blitCmd.transitionToOptimalLayout(*info.srcImage);
 	blitCmd.transitionToOptimalLayout(currentSwapchainImage);
 
 	blitCmd.end();

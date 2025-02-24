@@ -229,6 +229,28 @@ void Command::updateImage(const Image& image,
 						   VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copyRegion);
 }
 
+void Command::resolveImage(const ImageData& src, const ImageData& dst) {
+	CHECK_IS_RECORDING;
+
+	assert(src.m_currentLayout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL &&
+		   "Source image is not in the correct layout");
+
+	assert(dst.m_currentLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL &&
+		   "Destination image is not in the correct layout");
+
+	VkImageResolve resolveRegion{
+		.srcSubresource = {src.m_aspect, 0, 0, 1},
+		.srcOffset = {0, 0, 0},
+		.dstSubresource = {dst.m_aspect, 0, 0, 1},
+		.dstOffset = {0, 0, 0},
+		.extent = {src.m_extent.width, src.m_extent.height, 1},
+	};
+
+	vkCmdResolveImage(m_commandBuffer, src.m_handle,
+					  VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, dst.m_handle,
+					  VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &resolveRegion);
+}
+
 void Command::updateBuffer(const Buffer& buffer,
 						   const void* data,
 						   uint32_t offset,

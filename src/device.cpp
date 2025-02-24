@@ -406,6 +406,27 @@ std::string Device::getFullShaderPath(std::string shaderPath) const {
 	return m_shadersFolder + "/" + shaderPath;
 }
 
+VkSampleCountFlagBits Device::getMaxSampleCount() const {
+	VkSampleCountFlags counts =
+		m_physicalDeviceProperties.limits.framebufferColorSampleCounts &
+		m_physicalDeviceProperties.limits.framebufferDepthSampleCounts;
+
+	if (counts & VK_SAMPLE_COUNT_64_BIT)
+		return VK_SAMPLE_COUNT_64_BIT;
+	if (counts & VK_SAMPLE_COUNT_32_BIT)
+		return VK_SAMPLE_COUNT_32_BIT;
+	if (counts & VK_SAMPLE_COUNT_16_BIT)
+		return VK_SAMPLE_COUNT_16_BIT;
+	if (counts & VK_SAMPLE_COUNT_8_BIT)
+		return VK_SAMPLE_COUNT_8_BIT;
+	if (counts & VK_SAMPLE_COUNT_4_BIT)
+		return VK_SAMPLE_COUNT_4_BIT;
+	if (counts & VK_SAMPLE_COUNT_2_BIT)
+		return VK_SAMPLE_COUNT_2_BIT;
+
+	return VK_SAMPLE_COUNT_1_BIT;
+}
+
 Device::~Device() {
 	vkDeviceWaitIdle(m_device);
 

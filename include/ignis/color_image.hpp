@@ -13,17 +13,25 @@ enum class ColorFormat {
 class ColorImage : public Image {
 public:
 	struct CreateInfo {
-		const Device* device;
-		ColorFormat format;
-		VkExtent2D extent;
-		VkImageUsageFlags usage;
-		VkImageLayout optimalLayout;
-		const void* initialPixels;
+		const Device* device{nullptr};
+		ColorFormat format{ColorFormat::RGBA8};
+		VkExtent2D extent{0, 0};
+		VkImageUsageFlags usage{};
+		VkImageLayout optimalLayout{VK_IMAGE_LAYOUT_UNDEFINED};
+		VkSampleCountFlagBits sampleCount{VK_SAMPLE_COUNT_1_BIT};
+		const void* initialPixels{nullptr};
 	};
 
 	ColorImage(CreateInfo);
 
-	static ColorImage* createDrawImage(const Device* device, VkExtent2D extent);
+	struct DrawImageCreateInfo {
+		const Device* device{nullptr};
+		VkExtent2D extent{0, 0};
+		ColorFormat format{ColorFormat::RGBA16};
+		VkSampleCountFlagBits sampleCount{VK_SAMPLE_COUNT_1_BIT};
+	};
+
+	static ColorImage* createDrawImage(DrawImageCreateInfo);
 
 	ColorFormat getFormat() const { return m_format; }
 
