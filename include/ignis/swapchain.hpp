@@ -15,14 +15,17 @@ class Image;
 class Semaphore;
 class Fence;
 struct ImageData;
+enum class ColorFormat;
 
 class Swapchain {
 public:
 	struct CreateInfo {
-		const Device* device;
-		VkExtent2D extent;
-		VkSurfaceKHR surface;
-		VkPresentModeKHR presentMode;
+		const Device* device{nullptr};
+		VkExtent2D extent{0, 0};
+		ColorFormat format{VK_FORMAT_R8G8B8A8_UNORM};
+		VkColorSpaceKHR colorSpace{VK_COLOR_SPACE_SRGB_NONLINEAR_KHR};
+		VkSurfaceKHR surface{VK_NULL_HANDLE};
+		VkPresentModeKHR presentMode{VK_PRESENT_MODE_FIFO_KHR};
 	};
 
 	Swapchain(CreateInfo);

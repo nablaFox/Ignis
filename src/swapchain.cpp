@@ -16,6 +16,9 @@ using namespace ignis;
 // (if it throws, it's the user's fault)
 Swapchain::Swapchain(CreateInfo info)
 	: m_device(*info.device), m_surface(info.surface) {
+	assert(info.extent.width > 0 && info.extent.height > 0 &&
+		   "Invalid swapchain extent");
+
 	VkPhysicalDevice physicalDevice = m_device.getPhysicalDevice();
 	VkSurfaceKHR surface = info.surface;
 
@@ -79,21 +82,20 @@ Swapchain::Swapchain(CreateInfo info)
 	}
 
 	// 6. Surface format
-	VkSurfaceFormatKHR chosenFormat;
+	VkSurfaceFormatKHR chosenFormat{};
 	if (formats.size() == 1 && formats[0].format == VK_FORMAT_UNDEFINED) {
-		chosenFormat.format = VK_FORMAT_B8G8R8A8_UNORM;
-		chosenFormat.colorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
+		chosenFormat.format = static_cast<VkFormat>(info.format);
+		chosenFormat.colorSpace = info.colorSpace;
 	} else {
 		bool found = false;
 		for (const auto& availableFormat : formats) {
-			if (availableFormat.format == VK_FORMAT_B8G8R8A8_UNORM &&
-				availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
+			if (availableFormat.format == static_cast<VkFormat>(info.format) &&
+				availableFormat.colorSpace == info.colorSpace) {
 				chosenFormat = availableFormat;
 				found = true;
 				break;
 			}
 		}
-
 		if (!found) {
 			chosenFormat = formats[0];
 		}

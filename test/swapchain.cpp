@@ -269,14 +269,14 @@ int main(int argc, char* argv[]) {
 	Swapchain swapchain({
 		.device = &device,
 		.extent = {WINDOW_WIDTH, WINDOW_HEIGHT},
+		.format = ColorFormat::RGBA8,
 		.surface = surface,
-		.presentMode = VK_PRESENT_MODE_FIFO_KHR,
 	});
 
 	ColorImage* drawImage = ColorImage::createDrawImage({
 		.device = &device,
 		.extent = {WINDOW_WIDTH, WINDOW_HEIGHT},
-		.sampleCount = VK_SAMPLE_COUNT_4_BIT,
+		.sampleCount = VK_SAMPLE_COUNT_1_BIT,
 	});
 
 	Screen screen{};

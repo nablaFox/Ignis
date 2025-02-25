@@ -18,8 +18,8 @@ ColorImage* ColorImage::createDrawImage(DrawImageCreateInfo info) {
 		.device = info.device,
 		.format = info.format,
 		.extent = info.extent,
-		.usage =
-			VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
+		.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
+				 VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
 		.optimalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
 		.sampleCount = info.sampleCount,
 	});
