@@ -74,19 +74,20 @@ Pipeline::Pipeline(CreateInfo info) : m_device(*info.device) {
 	VkPipelineDepthStencilStateCreateInfo depthStencil{
 		.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
 		.depthTestEnable = VK_TRUE,
-		.depthWriteEnable = VK_TRUE,
+		.depthWriteEnable = info.enableDepthWrite,
 		.depthCompareOp = info.depthCompareOp,
 		.depthBoundsTestEnable = VK_FALSE,
 		.stencilTestEnable = VK_FALSE,
 	};
 
-	if (!info.enableDepthTest) {
-		depthStencil.depthTestEnable = VK_FALSE;
-		depthStencil.depthWriteEnable = VK_FALSE;
-	}
-
 	VkPipelineColorBlendAttachmentState colorBlendAttachment{
-		.blendEnable = VK_FALSE,
+		.blendEnable = info.blendEnable,
+		.srcColorBlendFactor = info.srcColorBlendFactor,
+		.dstColorBlendFactor = info.dstColorBlendFactor,
+		.colorBlendOp = info.colorBlendOp,
+		.srcAlphaBlendFactor = info.srcAlphaBlendFactor,
+		.dstAlphaBlendFactor = info.dstAlphaBlendFactor,
+		.alphaBlendOp = info.alphaBlendOp,
 		.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
 						  VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
 	};

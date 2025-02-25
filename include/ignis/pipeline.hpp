@@ -13,8 +13,8 @@ enum class DepthFormat;
 
 // Note 1: for now we handle only graphics pipelines
 // Note 2: we can't render to multiple images, just to a single one
-// Note 3: only dynamic rendering is available
-// Note 4: blending, vertexInput, inputAssembly & dynamicStates are not configurable
+// Note 3: dynamic rendering only
+// Note 4: vertexInput, inputAssembly & dynamicStates are not configurable
 
 class Pipeline {
 public:
@@ -31,7 +31,15 @@ public:
 		VkSampleCountFlagBits sampleCount{VK_SAMPLE_COUNT_1_BIT};
 		bool sampleShadingEnable{false};
 		float minSampleShading{1.0f};
-		bool enableDepthTest{true};
+		bool enableDepthTest{false};
+		bool enableDepthWrite{false};
+		bool blendEnable{false};
+		VkBlendFactor srcColorBlendFactor{VK_BLEND_FACTOR_ONE};
+		VkBlendFactor dstColorBlendFactor{VK_BLEND_FACTOR_ZERO};
+		VkBlendOp colorBlendOp{VK_BLEND_OP_ADD};
+		VkBlendFactor srcAlphaBlendFactor{VK_BLEND_FACTOR_ONE};
+		VkBlendFactor dstAlphaBlendFactor{VK_BLEND_FACTOR_ZERO};
+		VkBlendOp alphaBlendOp{VK_BLEND_OP_ADD};
 	};
 
 	Pipeline(CreateInfo);
