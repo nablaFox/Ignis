@@ -91,6 +91,8 @@ public:
 							  const Sampler& sampler,
 							  uint32_t index);
 
+	bool isFeatureEnabled(const char* feature) const;
+
 	VkSampleCountFlagBits getMaxSampleCount() const;
 
 	VmaAllocator getAllocator() const { return m_allocator; }

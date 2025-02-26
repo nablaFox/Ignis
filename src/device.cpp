@@ -409,6 +409,10 @@ std::string Device::getFullShaderPath(std::string shaderPath) const {
 	return m_shadersFolder + "/" + shaderPath;
 }
 
+bool Device::isFeatureEnabled(const char* feature) const {
+	return m_features->isFeatureEnabled(feature, m_phyiscalDevice);
+}
+
 VkSampleCountFlagBits Device::getMaxSampleCount() const {
 	VkSampleCountFlags counts =
 		m_physicalDeviceProperties.limits.framebufferColorSampleCounts &
