@@ -32,12 +32,12 @@ FeaturesChain::FeaturesChain() {
 
 Features::Features(std::vector<const char*> requiredFeatures,
 				   std::vector<const char*> optionalFeatures)
-	: m_requiredFeatures(std::move(requiredFeatures)) {
+	: m_requiredFeatures(requiredFeatures) {
 	for (const char* feature : optionalFeatures) {
-		m_requiredFeatures.push_back(feature);
+		requiredFeatures.push_back(feature);
 	}
 
-	for (const char* feature : m_requiredFeatures) {
+	for (const char* feature : requiredFeatures) {
 		if (strcmp(feature, "BufferDeviceAddress") == 0) {
 			chain.bufferDeviceAddress.bufferDeviceAddress = VK_TRUE;
 		}
@@ -50,20 +50,28 @@ Features::Features(std::vector<const char*> requiredFeatures,
 			chain.syncrhonization2.synchronization2 = VK_TRUE;
 		}
 
-		if (strcmp(feature, "DescriptorIndexing") == 0) {
-			auto& descriptorIndexing = chain.descriptorIndexing;
+		auto& descriptorIndexing = chain.descriptorIndexing;
 
+		if (strcmp(feature, "DescriptorBindingUniformBufferUpdateAfterBind") == 0) {
 			descriptorIndexing.descriptorBindingUniformBufferUpdateAfterBind =
 				VK_TRUE;
+		}
 
+		if (strcmp(feature, "DescriptorBindingSampledImageUpdateAfterBind") == 0) {
 			descriptorIndexing.descriptorBindingSampledImageUpdateAfterBind =
 				VK_TRUE;
+		}
 
+		if (strcmp(feature, "DescriptorBindingStorageBufferUpdateAfterBind") == 0) {
 			descriptorIndexing.descriptorBindingStorageBufferUpdateAfterBind =
 				VK_TRUE;
+		}
 
+		if (strcmp(feature, "DescriptorBindingPartiallyBound") == 0) {
 			descriptorIndexing.descriptorBindingPartiallyBound = VK_TRUE;
+		}
 
+		if (strcmp(feature, "RuntimeDescriptorArray") == 0) {
 			descriptorIndexing.runtimeDescriptorArray = VK_TRUE;
 		}
 
@@ -114,15 +122,27 @@ bool Features::isFeatureEnabled(const char* feature, VkPhysicalDevice device) {
 		return chain.syncrhonization2.synchronization2 == VK_TRUE;
 	}
 
-	if (strcmp(feature, "DescriptorIndexing") == 0) {
+	if (strcmp(feature, "DescriptorBindingUniformBufferUpdateAfterBind") == 0) {
 		return chain.descriptorIndexing
-					   .descriptorBindingUniformBufferUpdateAfterBind == VK_TRUE &&
-			   chain.descriptorIndexing
-					   .descriptorBindingSampledImageUpdateAfterBind == VK_TRUE &&
-			   chain.descriptorIndexing
-					   .descriptorBindingStorageBufferUpdateAfterBind == VK_TRUE &&
-			   chain.descriptorIndexing.descriptorBindingPartiallyBound == VK_TRUE &&
-			   chain.descriptorIndexing.runtimeDescriptorArray == VK_TRUE;
+				   .descriptorBindingUniformBufferUpdateAfterBind == VK_TRUE;
+	}
+
+	if (strcmp(feature, "DescriptorBindingSampledImageUpdateAfterBind") == 0) {
+		return chain.descriptorIndexing
+				   .descriptorBindingSampledImageUpdateAfterBind == VK_TRUE;
+	}
+
+	if (strcmp(feature, "DescriptorBindingStorageBufferUpdateAfterBind") == 0) {
+		return chain.descriptorIndexing
+				   .descriptorBindingStorageBufferUpdateAfterBind == VK_TRUE;
+	}
+
+	if (strcmp(feature, "DescriptorBindingPartiallyBound") == 0) {
+		return chain.descriptorIndexing.descriptorBindingPartiallyBound == VK_TRUE;
+	}
+
+	if (strcmp(feature, "RuntimeDescriptorArray") == 0) {
+		return chain.descriptorIndexing.runtimeDescriptorArray == VK_TRUE;
 	}
 
 	return false;

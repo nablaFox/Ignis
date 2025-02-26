@@ -28,7 +28,11 @@ constexpr std::array IGNIS_REQ_FEATURES = {
 	"BufferDeviceAddress",
 	"DynamicRendering",
 	"Synchronization2",
-	"DescriptorIndexing",
+	"DescriptorBindingUniformBufferUpdateAfterBind",
+	"DescriptorBindingSampledImageUpdateAfterBind",
+	"DescriptorBindingStorageBufferUpdateAfterBind",
+	"DescriptorBindingPartiallyBound",
+	"RuntimeDescriptorArray",
 };
 
 // Note 1: the library supports just 1 instance, physical and logical device
