@@ -38,14 +38,19 @@ target_link_libraries(ignis PUBLIC
   spirv-cross-cpp
 )
 
-# "tests"
-option(IGNIS_BUILD_TESTS "Build the tests" ON)
+# examples
+option(IGNIS_BUILD_EXAMPLES "Build the examples" ON)
 
-if(NOT IGNIS_BUILD_TESTS)
+if(NOT IGNIS_BUILD_EXAMPLES)
   return()
 endif()
 
 find_package(glfw3 REQUIRED)
 
-add_executable(ignis_test test/main.cpp)
-target_link_libraries(ignis_test PRIVATE Ignis::Ignis glfw)
+file(GLOB EXAMPLES_SRC "examples/*.cpp")
+
+foreach(EXAMPLE_SRC ${EXAMPLES_SRC})
+  get_filename_component(EXAMPLE_NAME ${EXAMPLE_SRC} NAME_WE)
+  add_executable(${EXAMPLE_NAME} ${EXAMPLE_SRC})
+  target_link_libraries(${EXAMPLE_NAME} PRIVATE Ignis::Ignis glfw)
+endforeach()

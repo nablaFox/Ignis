@@ -1,6 +1,5 @@
 #include "buffer.hpp"
 #include "device.hpp"
-#include "math.hpp"
 #include "utils.hpp"
 
 struct TestData {

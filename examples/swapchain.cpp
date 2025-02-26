@@ -1,11 +1,9 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
-#include "math.hpp"
 #include <math.h>
 #include "semaphore.hpp"
 #include "color_image.hpp"
-#include "window.hpp"
 #include "buffer.hpp"
 #include "device.hpp"
 #include "command.hpp"
@@ -13,6 +11,7 @@
 #include "shader.hpp"
 #include "pipeline.hpp"
 #include "swapchain.hpp"
+#include "utils.hpp"
 
 using namespace ignis;
 
