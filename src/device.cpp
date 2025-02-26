@@ -101,8 +101,9 @@ static void createInstance(std::string appName,
 
 static void getPhysicalDevice(VkInstance instance,
 							  const std::vector<const char*>& requiredExtensions,
+							  Features& features,
 							  VkPhysicalDevice* device,
-							  VkPhysicalDeviceProperties* features) {
+							  VkPhysicalDeviceProperties* properties) {
 	uint32_t deviceCount = 0;
 	vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
 
@@ -112,10 +113,7 @@ static void getPhysicalDevice(VkInstance instance,
 	vkEnumeratePhysicalDevices(instance, &deviceCount, physicalDevices.data());
 
 	for (const auto& physicalDevice : physicalDevices) {
-		bool featuresCompatible =
-			RequiredFeatures::checkCompatibility(physicalDevice);
-
-		if (!featuresCompatible)
+		if (!features.checkCompatibility(physicalDevice))
 			continue;
 
 		if (!checkExtensionsCompatibility(physicalDevice, requiredExtensions))
@@ -127,7 +125,7 @@ static void getPhysicalDevice(VkInstance instance,
 	// TODO: show what are the incompatibilies
 	THROW_ERROR(*device == VK_NULL_HANDLE, "Failed to find a suitable GPU");
 
-	vkGetPhysicalDeviceProperties(*device, features);
+	vkGetPhysicalDeviceProperties(*device, properties);
 }
 
 static void getGraphicsFamily(VkPhysicalDevice device,
@@ -154,6 +152,7 @@ static void createLogicalDevice(VkPhysicalDevice physicalDevice,
 								uint32_t graphicsQueuesCount,
 								uint32_t graphicsFamilyIndex,
 								const std::vector<const char*>& extensions,
+								VkPhysicalDeviceFeatures2 features,
 								std::vector<VkQueue>* queues,
 								VkDevice* device) {
 	std::vector<float> priorities(graphicsQueuesCount, 1.0f);
@@ -165,12 +164,9 @@ static void createLogicalDevice(VkPhysicalDevice physicalDevice,
 		.pQueuePriorities = priorities.data(),
 	};
 
-	RequiredFeatures features;
-	auto& featuresChain = features.physicalDeviceFeatures2;
-
 	VkDeviceCreateInfo createInfo{
 		.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
-		.pNext = &featuresChain,
+		.pNext = &features,
 		.queueCreateInfoCount = 1,
 		.pQueueCreateInfos = &queueCreateInfo,
 		.enabledExtensionCount = static_cast<uint32_t>(extensions.size()),
@@ -230,15 +226,17 @@ Device::Device(CreateInfo createInfo) : m_shadersFolder(createInfo.shadersFolder
 	createDebugUtilsMessenger(m_instance, &m_debugMessenger);
 #endif
 
-	::getPhysicalDevice(m_instance, createInfo.extensions, &m_phyiscalDevice,
-						&m_physicalDeviceProperties);
+	Features features(createInfo.requiredFeatures);
+
+	::getPhysicalDevice(m_instance, createInfo.extensions, features,
+						&m_phyiscalDevice, &m_physicalDeviceProperties);
 
 	getGraphicsFamily(m_phyiscalDevice, &m_graphicsQueuesCount,
 					  &m_graphicsFamilyIndex);
 
 	createLogicalDevice(m_phyiscalDevice, m_graphicsQueuesCount,
-						m_graphicsFamilyIndex, createInfo.extensions, &m_queues,
-						&m_device);
+						m_graphicsFamilyIndex, createInfo.extensions,
+						features.physicalDeviceFeatures2, &m_queues, &m_device);
 
 	createAllocator(m_device, m_phyiscalDevice, m_instance, &m_allocator);
 

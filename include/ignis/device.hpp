@@ -26,7 +26,7 @@ struct SubmitCmdInfo {
 // Note 2: we handle only graphics queues
 // Note 3: the library works only in vulkan 1.3 with dynamic rendering and other
 // required features
-// Note 4: we don't handle custom features
+// Note 4: we don't handle optional features
 // Note 5: command pools are relative to a single thread
 // Note 6: we allocate a command pool for each queue
 // Note 7: only combined image samplers are supported
@@ -39,6 +39,7 @@ public:
 		std::string shadersFolder{"shaders"};
 		std::vector<const char*> extensions{};
 		std::vector<const char*> instanceExtensions{};
+		std::vector<const char*> requiredFeatures{};
 	};
 
 	Device(CreateInfo);

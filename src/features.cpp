@@ -1,8 +1,10 @@
 #include "features.hpp"
+#include <cstring>
 
 using namespace ignis;
 
-RequiredFeatures::RequiredFeatures() {
+Features::Features(std::vector<const char*> additionalFeatures)
+	: m_additionalFeatures(std::move(additionalFeatures)) {
 	bufferDeviceAddress = {
 		.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_DEVICE_ADDRESS_FEATURES,
 		.pNext = nullptr,
@@ -35,29 +37,59 @@ RequiredFeatures::RequiredFeatures() {
 		.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
 		.pNext = &descriptorIndexing,
 	};
+
+	// additional user requested features
+	auto& features = physicalDeviceFeatures2.features;
+
+	for (const auto& feature : m_additionalFeatures) {
+		if (strcmp(feature, "sampleRateShading") == 0) {
+			features.sampleRateShading = VK_TRUE;
+		}
+
+		if (strcmp(feature, "fillModeNonSolid") == 0) {
+			features.fillModeNonSolid = VK_TRUE;
+		}
+	}
 }
 
-bool RequiredFeatures::checkCompatibility(VkPhysicalDevice device) {
-	RequiredFeatures features;
-	vkGetPhysicalDeviceFeatures2(device, &features.physicalDeviceFeatures2);
+bool Features::checkCompatibility(VkPhysicalDevice device) {
+	vkGetPhysicalDeviceFeatures2(device, &physicalDeviceFeatures2);
 
-	bool hasBufferDeviceAddress =
-		features.bufferDeviceAddress.bufferDeviceAddress == VK_TRUE;
+	if (bufferDeviceAddress.bufferDeviceAddress != VK_TRUE) {
+		return false;
+	}
 
-	bool hasDynamicRendering = features.dynamicRendering.dynamicRendering == VK_TRUE;
+	if (dynamicRendering.dynamicRendering != VK_TRUE) {
+		return false;
+	}
 
-	bool hasSynchronization2 = features.syncrhonization2.synchronization2 == VK_TRUE;
+	if (syncrhonization2.synchronization2 != VK_TRUE) {
+		return false;
+	}
 
-	bool hasDescriptorIndexing =
-		features.descriptorIndexing.descriptorBindingUniformBufferUpdateAfterBind ==
-			VK_TRUE &&
-		features.descriptorIndexing.descriptorBindingSampledImageUpdateAfterBind ==
-			VK_TRUE &&
-		features.descriptorIndexing.descriptorBindingStorageBufferUpdateAfterBind ==
-			VK_TRUE &&
-		features.descriptorIndexing.descriptorBindingPartiallyBound == VK_TRUE &&
-		features.descriptorIndexing.runtimeDescriptorArray == VK_TRUE;
+	if (descriptorIndexing.descriptorBindingUniformBufferUpdateAfterBind !=
+			VK_TRUE ||
+		descriptorIndexing.descriptorBindingSampledImageUpdateAfterBind != VK_TRUE ||
+		descriptorIndexing.descriptorBindingStorageBufferUpdateAfterBind !=
+			VK_TRUE ||
+		descriptorIndexing.descriptorBindingPartiallyBound != VK_TRUE ||
+		descriptorIndexing.runtimeDescriptorArray != VK_TRUE) {
+		return false;
+	}
 
-	return hasBufferDeviceAddress && hasDynamicRendering && hasSynchronization2 &&
-		   hasDescriptorIndexing;
+	for (const auto& feature : m_additionalFeatures) {
+		if (strcmp(feature, "sampleRateShading") == 0) {
+			if (physicalDeviceFeatures2.features.sampleRateShading != VK_TRUE) {
+				return false;
+			}
+		}
+
+		if (strcmp(feature, "fillModeNonSolid") == 0) {
+			if (physicalDeviceFeatures2.features.fillModeNonSolid != VK_TRUE) {
+				return false;
+			}
+		}
+	}
+
+	return true;
 }

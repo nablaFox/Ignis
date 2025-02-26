@@ -1,20 +1,24 @@
 #pragma once
 
 #include <vulkan/vulkan_core.h>
+#include <vector>
 
 namespace ignis {
 
-struct RequiredFeatures {
+struct Features {
+	// ignis required features
 	VkPhysicalDeviceBufferDeviceAddressFeatures bufferDeviceAddress{};
 	VkPhysicalDeviceDynamicRenderingFeatures dynamicRendering{};
 	VkPhysicalDeviceSynchronization2FeaturesKHR syncrhonization2{};
 	VkPhysicalDeviceDescriptorIndexingFeatures descriptorIndexing{};
 
+	Features(std::vector<const char*> additionalFeatures = {});
+
 	VkPhysicalDeviceFeatures2 physicalDeviceFeatures2{};
 
-	RequiredFeatures();
+	bool checkCompatibility(VkPhysicalDevice device);
 
-	static bool checkCompatibility(VkPhysicalDevice device);
+	std::vector<const char*> m_additionalFeatures;
 };
 
 }  // namespace ignis
