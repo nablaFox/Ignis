@@ -5,20 +5,33 @@
 
 namespace ignis {
 
-struct Features {
-	// ignis required features
+struct FeaturesChain {
+	FeaturesChain();
+
 	VkPhysicalDeviceBufferDeviceAddressFeatures bufferDeviceAddress{};
 	VkPhysicalDeviceDynamicRenderingFeatures dynamicRendering{};
 	VkPhysicalDeviceSynchronization2FeaturesKHR syncrhonization2{};
 	VkPhysicalDeviceDescriptorIndexingFeatures descriptorIndexing{};
 
-	Features(std::vector<const char*> additionalFeatures = {});
+	VkPhysicalDeviceFeatures2 physicalDeviceFeatures{};
+};
 
-	VkPhysicalDeviceFeatures2 physicalDeviceFeatures2{};
+class Features {
+public:
+	Features(std::vector<const char*> requiredFeatures,
+			 std::vector<const char*> optionalFeatures);
 
 	bool checkCompatibility(VkPhysicalDevice device);
 
-	std::vector<const char*> m_additionalFeatures;
+	static bool isFeatureEnabled(const char* feature, VkPhysicalDevice);
+
+	VkPhysicalDeviceFeatures2 getFeatures() const {
+		return chain.physicalDeviceFeatures;
+	}
+
+private:
+	FeaturesChain chain;
+	std::vector<const char*> m_requiredFeatures;
 };
 
 }  // namespace ignis

@@ -226,9 +226,14 @@ Device::Device(CreateInfo createInfo) : m_shadersFolder(createInfo.shadersFolder
 	createDebugUtilsMessenger(m_instance, &m_debugMessenger);
 #endif
 
-	Features features(createInfo.requiredFeatures);
+	for (const auto& reqFeature : IGNIS_REQ_FEATURES) {
+		createInfo.requiredFeatures.push_back(reqFeature);
+	}
 
-	::getPhysicalDevice(m_instance, createInfo.extensions, features,
+	auto m_features = std::make_unique<Features>(createInfo.requiredFeatures,
+												 createInfo.optionalFeatures);
+
+	::getPhysicalDevice(m_instance, createInfo.extensions, *m_features,
 						&m_phyiscalDevice, &m_physicalDeviceProperties);
 
 	getGraphicsFamily(m_phyiscalDevice, &m_graphicsQueuesCount,
@@ -236,7 +241,7 @@ Device::Device(CreateInfo createInfo) : m_shadersFolder(createInfo.shadersFolder
 
 	createLogicalDevice(m_phyiscalDevice, m_graphicsQueuesCount,
 						m_graphicsFamilyIndex, createInfo.extensions,
-						features.physicalDeviceFeatures2, &m_queues, &m_device);
+						m_features->getFeatures(), &m_queues, &m_device);
 
 	createAllocator(m_device, m_phyiscalDevice, m_instance, &m_allocator);
 

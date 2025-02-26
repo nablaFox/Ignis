@@ -2,6 +2,7 @@
 
 #include <vk_mem_alloc.h>
 #include <vulkan/vulkan_core.h>
+#include <memory>
 #include <string>
 #include <vector>
 #include "bindless_resources.hpp"
@@ -14,12 +15,20 @@ class Command;
 class Buffer;
 class Image;
 class Sampler;
+class Features;
 
 // each command should be relative to the same queue
 struct SubmitCmdInfo {
 	const Command* command;
 	std::vector<const Semaphore*> waitSemaphores;
 	std::vector<const Semaphore*> signalSemaphores;
+};
+
+constexpr std::array IGNIS_REQ_FEATURES = {
+	"BufferDeviceAddress",
+	"DynamicRendering",
+	"Synchronization2",
+	"DescriptorIndexing",
 };
 
 // Note 1: the library supports just 1 instance, physical and logical device
@@ -40,6 +49,7 @@ public:
 		std::vector<const char*> extensions{};
 		std::vector<const char*> instanceExtensions{};
 		std::vector<const char*> requiredFeatures{};
+		std::vector<const char*> optionalFeatures{};
 	};
 
 	Device(CreateInfo);
@@ -104,10 +114,12 @@ private:
 
 	std::string m_shadersFolder;
 
+	std::unique_ptr<Features> m_features;
+
 public:
-	Device(const Device&) = default;
+	Device(const Device&) = delete;
 	Device(Device&&) = delete;
-	Device& operator=(const Device&) = default;
+	Device& operator=(const Device&) = delete;
 	Device& operator=(Device&&) = delete;
 };
 
