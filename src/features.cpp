@@ -48,5 +48,16 @@ bool RequiredFeatures::checkCompatibility(VkPhysicalDevice device) {
 
 	bool hasSynchronization2 = features.syncrhonization2.synchronization2 == VK_TRUE;
 
-	return hasBufferDeviceAddress && hasDynamicRendering && hasSynchronization2;
+	bool hasDescriptorIndexing =
+		features.descriptorIndexing.descriptorBindingUniformBufferUpdateAfterBind ==
+			VK_TRUE &&
+		features.descriptorIndexing.descriptorBindingSampledImageUpdateAfterBind ==
+			VK_TRUE &&
+		features.descriptorIndexing.descriptorBindingStorageBufferUpdateAfterBind ==
+			VK_TRUE &&
+		features.descriptorIndexing.descriptorBindingPartiallyBound == VK_TRUE &&
+		features.descriptorIndexing.runtimeDescriptorArray == VK_TRUE;
+
+	return hasBufferDeviceAddress && hasDynamicRendering && hasSynchronization2 &&
+		   hasDescriptorIndexing;
 }
