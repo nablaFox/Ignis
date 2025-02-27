@@ -302,7 +302,7 @@ void Command::beginRender(const DrawAttachment* drawAttachment,
 	VkRenderingAttachmentInfo colorAttachment{
 		.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
 		.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-		.clearValue = {.color = {0.0f, 0.0f, 0.0f, 1.0f}},
+		.clearValue = {.color = drawAttachment->clearColor},
 	};
 
 	if (drawAttachment != nullptr) {

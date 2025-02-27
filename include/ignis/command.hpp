@@ -17,15 +17,16 @@ class ColorImage;
 class DepthImage;
 
 struct DrawAttachment {
-	ColorImage* drawImage;
-	VkAttachmentLoadOp loadAction;
-	VkAttachmentStoreOp storeAction;
+	ColorImage* drawImage{nullptr};
+	VkAttachmentLoadOp loadAction{VK_ATTACHMENT_LOAD_OP_CLEAR};
+	VkAttachmentStoreOp storeAction{VK_ATTACHMENT_STORE_OP_STORE};
+	VkClearColorValue clearColor{0.0f, 0.0f, 0.0f, 1.0f};
 };
 
 struct DepthAttachment {
-	DepthImage* depthImage;
-	VkAttachmentLoadOp loadAction;
-	VkAttachmentStoreOp storeAction;
+	DepthImage* depthImage{nullptr};
+	VkAttachmentLoadOp loadAction{VK_ATTACHMENT_LOAD_OP_CLEAR};
+	VkAttachmentStoreOp storeAction{VK_ATTACHMENT_STORE_OP_DONT_CARE};
 };
 
 #define CHECK_IS_RECORDING \
