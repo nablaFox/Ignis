@@ -3,6 +3,12 @@
 #include <vulkan/vulkan_core.h>
 #include <vk_mem_alloc.h>
 
+// Note 1: we don't support custom views. Every image has a fixed view
+// Note 2: we don't allow for multi layer images
+// Note 3: we don't allow for 3D images
+// Note 4: we don't allow for custom image creation flags
+// Note 5: images are never host visible
+
 namespace ignis {
 
 enum class DepthFormat {
@@ -18,18 +24,18 @@ enum class ColorFormat {
 };
 
 class Image {
-	friend class Device;
 	friend class Command;
 
 public:
 	struct CreateInfo {
-		VkImageUsageFlags usage;
-		VkImageAspectFlags aspect;
-		VkExtent2D extent;
-		VkFormat format;
-		VkImageLayout currentLayout;
-		VkImageLayout optimalLayout;
-		VkSampleCountFlagBits sampleCount;
+		VkImageUsageFlags usage{VK_IMAGE_USAGE_TRANSFER_DST_BIT |
+								VK_IMAGE_USAGE_SAMPLED_BIT};
+		VkImageAspectFlags aspect{VK_IMAGE_ASPECT_COLOR_BIT};
+		uint32_t width;
+		uint32_t height;
+		VkFormat format{VK_FORMAT_R8G8B8A8_UNORM};
+		VkImageLayout optimalLayout{VK_IMAGE_LAYOUT_UNDEFINED};
+		VkSampleCountFlagBits sampleCount{VK_SAMPLE_COUNT_1_BIT};
 	};
 
 	Image(VkImage, VkImageView, const CreateInfo&);
@@ -44,10 +50,13 @@ public:
 
 	~Image();
 
+	static Image allocateImage(VkDevice, VmaAllocator, const CreateInfo&);
+
 	VkDeviceSize getPixelSize() const { return m_pixelSize; }
 
 	VkDeviceSize getImageSize() const {
-		return static_cast<VkDeviceSize>(m_extent.width * m_extent.height) *
+		return static_cast<VkDeviceSize>(m_creationInfo.width *
+										 m_creationInfo.height) *
 			   m_pixelSize;
 	}
 
@@ -55,19 +64,27 @@ public:
 
 	VkImageView getViewHandle() const { return m_view; }
 
-	VkImageUsageFlags getUsage() const { return m_usage; }
+	VkImageUsageFlags getUsage() const { return m_creationInfo.usage; }
 
-	VkImageAspectFlags getAspect() const { return m_aspect; }
+	VkImageAspectFlags getAspect() const { return m_creationInfo.aspect; }
 
-	VkImageLayout getOptimalLayout() const { return m_optimalLayout; }
+	VkImageLayout getOptimalLayout() const { return m_creationInfo.optimalLayout; }
 
 	VkImageLayout getCurrentLayout() const { return m_currentLayout; }
 
-	VkExtent2D getExtent() const { return m_extent; }
+	VkExtent3D getExtent() const {
+		return {m_creationInfo.width, m_creationInfo.height, 1};
+	}
 
-	VkFormat getFormat() const { return m_format; }
+	VkExtent2D getExtent2D() const {
+		return {m_creationInfo.width, m_creationInfo.height};
+	}
 
-	VkSampleCountFlagBits getSampleCount() const { return m_sampleCount; }
+	VkFormat getFormat() const { return m_creationInfo.format; }
+
+	VkSampleCountFlagBits getSampleCount() const {
+		return m_creationInfo.sampleCount;
+	}
 
 private:
 	VkDevice m_device;
@@ -76,16 +93,10 @@ private:
 	VmaAllocation m_allocation;
 	VmaAllocator m_allocator;
 
-	VkImageUsageFlags m_usage;
-	VkImageAspectFlags m_aspect;
-	VkDeviceSize m_pixelSize;
-	VkExtent2D m_extent;
-	VkFormat m_format;
 	VkImageLayout m_currentLayout;
-	VkImageLayout m_optimalLayout;
-	VkSampleCountFlagBits m_sampleCount;
+	VkDeviceSize m_pixelSize;
 
-	static Image allocateImage(VkDevice, VmaAllocator, const CreateInfo&);
+	CreateInfo m_creationInfo;
 
 public:
 	Image(const Image&) = delete;

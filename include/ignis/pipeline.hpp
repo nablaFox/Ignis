@@ -6,7 +6,6 @@
 
 namespace ignis {
 
-class Device;
 class Shader;
 enum class DepthFormat;
 enum class ColorFormat;
@@ -19,7 +18,6 @@ enum class ColorFormat;
 class Pipeline {
 public:
 	struct CreateInfo {
-		const Device* device;
 		std::vector<std::string> shaders;
 		ColorFormat colorFormat;
 		DepthFormat depthFormat;
@@ -51,7 +49,7 @@ public:
 	VkPipelineLayout getLayoutHandle() const { return m_pipelineLayout; }
 
 private:
-	const Device& m_device;
+	VkDevice m_device;
 	VkPipelineLayout m_pipelineLayout{VK_NULL_HANDLE};
 	VkPipeline m_pipeline{VK_NULL_HANDLE};
 

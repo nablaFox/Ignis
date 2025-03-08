@@ -16,9 +16,13 @@ Buffer::Buffer(VkDevice device,
 	  m_bufferAddress(address),
 	  m_allocation(allocation),
 	  m_allocator(allocator),
-	  m_size(info.size),
-	  m_bufferUsage(info.bufferUsage),
-	  m_memoryProperties(info.memoryProperties) {
+	  m_creationInfo(info) {
+	assert(device != nullptr && "Invalid device");
+	assert(buffer != nullptr && "Invalid buffer");
+	assert(allocation != nullptr && "Invalid allocation");
+	assert(allocator != nullptr && "Invalid allocator");
+	assert(info.size > 0 && "Invalid buffer size");
+
 	if (info.initialData) {
 		writeData(info.initialData);
 	}
@@ -29,14 +33,15 @@ Buffer::~Buffer() {
 }
 
 void Buffer::writeData(const void* data, uint32_t offset, uint32_t size) {
-	THROW_ERROR(!(m_memoryProperties & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT),
-				"Writing to non-host visible buffer");
+	THROW_ERROR(
+		!(m_creationInfo.memoryProperties & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT),
+		"Writing to non-host visible buffer");
 
 	if (!size) {
-		size = m_size - offset;
+		size = m_creationInfo.size - offset;
 	}
 
-	THROW_ERROR(offset + size > m_size, "Out of bounds");
+	THROW_ERROR(offset + size > m_creationInfo.size, "Out of bounds");
 
 	void* mappedData = nullptr;
 	vmaMapMemory(m_allocator, m_allocation, &mappedData);
@@ -44,7 +49,7 @@ void Buffer::writeData(const void* data, uint32_t offset, uint32_t size) {
 	char* dst = static_cast<char*>(mappedData) + offset;
 	memcpy(dst, data, size);
 
-	if (!(m_memoryProperties & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)) {
+	if (!(m_creationInfo.memoryProperties & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)) {
 		vmaFlushAllocation(m_allocator, m_allocation, offset, size);
 	}
 
@@ -52,11 +57,12 @@ void Buffer::writeData(const void* data, uint32_t offset, uint32_t size) {
 }
 
 void Buffer::readData(void* data, uint32_t offset, uint32_t size) {
-	THROW_ERROR(!(m_memoryProperties & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT),
-				"Reading from non-host visible buffer");
+	THROW_ERROR(
+		!(m_creationInfo.memoryProperties & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT),
+		"Reading from non-host visible buffer");
 
 	if (!size) {
-		size = m_size - offset;
+		size = m_creationInfo.size - offset;
 	}
 
 	THROW_ERROR(offset + size > size, "Out of bounds");
@@ -69,7 +75,7 @@ void Buffer::readData(void* data, uint32_t offset, uint32_t size) {
 
 	vmaUnmapMemory(m_allocator, m_allocation);
 
-	if (!(m_memoryProperties & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)) {
+	if (!(m_creationInfo.memoryProperties & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)) {
 		vmaInvalidateAllocation(m_allocator, m_allocation, offset, size);
 	}
 }

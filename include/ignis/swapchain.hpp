@@ -34,6 +34,10 @@ public:
 
 	~Swapchain();
 
+	static Swapchain allocateSwapchain(VkDevice,
+									   VkPhysicalDevice,
+									   const CreateInfo&);
+
 	Image& getCurrentImage();
 
 	Image& acquireNextImage(const Semaphore* signalSemaphore = nullptr);
@@ -52,10 +56,6 @@ private:
 
 	std::vector<Image> m_images;
 	uint32_t m_currentImageIndex{0};
-
-	static Swapchain allocateSwapchain(VkDevice,
-									   VkPhysicalDevice,
-									   const CreateInfo&);
 
 public:
 	Swapchain(const Swapchain&) = delete;

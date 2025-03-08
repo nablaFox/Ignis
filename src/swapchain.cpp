@@ -14,6 +14,8 @@ Swapchain::Swapchain(VkDevice device,
 	assert(info.extent.width > 0 && info.extent.height > 0 &&
 		   "Invalid swapchain extent");
 
+	assert(info.surface != nullptr && "Invalid surface");
+
 	uint32_t actualImageCount = 0;
 	vkGetSwapchainImagesKHR(m_device, m_swapchain, &actualImageCount, nullptr);
 
@@ -28,7 +30,8 @@ Swapchain::Swapchain(VkDevice device,
 			.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
 					 VK_IMAGE_USAGE_TRANSFER_DST_BIT,
 			.aspect = VK_IMAGE_ASPECT_COLOR_BIT,
-			.extent = info.extent,
+			.width = info.extent.width,
+			.height = info.extent.height,
 			.format = static_cast<VkFormat>(info.swapchainFormat),
 			.optimalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
 			.sampleCount = VK_SAMPLE_COUNT_1_BIT,
@@ -43,6 +46,10 @@ Swapchain::Swapchain(VkDevice device,
 Swapchain Swapchain::allocateSwapchain(VkDevice device,
 									   VkPhysicalDevice physicalDevice,
 									   const CreateInfo& info) {
+	assert(device != nullptr && "Invalid device");
+
+	assert(physicalDevice != nullptr && "Invalid physical device");
+
 	assert(info.extent.width > 0 && info.extent.height > 0 &&
 		   "Invalid swapchain extent");
 

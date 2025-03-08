@@ -43,8 +43,6 @@ struct DepthAttachment {
 // Note 8: the command in certain methods will allocate GPU memory (staging buffers)
 
 class Command {
-	friend class Device;
-
 public:
 	struct CreateInfo {
 		VkQueue queue;
@@ -58,6 +56,12 @@ public:
 			const CreateInfo&);
 
 	~Command();
+
+	static Command allocateCommand(VkDevice,
+								   VkCommandPool,
+								   VkDescriptorSet,
+								   VmaAllocator,
+								   const CreateInfo&);
 
 	void begin(VkCommandBufferUsageFlags flags =
 				   VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
@@ -135,16 +139,9 @@ private:
 	bool m_pipelineBound{false};
 	std::vector<std::unique_ptr<Buffer>> m_stagingBuffers{};
 
-	static Command allocateCommand(VkDevice,
-								   VkCommandPool,
-								   VkDescriptorSet,
-								   VmaAllocator,
-								   const CreateInfo&);
-
 public:
-	// TODO make move-only
 	Command(const Command&) = delete;
-	Command(Command&&) = delete;
+	Command(Command&&) = default;
 	Command& operator=(const Command&) = delete;
 	Command& operator=(Command&&) = delete;
 };

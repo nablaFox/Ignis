@@ -7,11 +7,9 @@
 
 namespace ignis {
 
-class Device;
-
 class Fence {
 public:
-	Fence(const Device& device, bool signaled = false);
+	Fence(VkDevice, bool signaled = false);
 	~Fence();
 
 	VkFence getHandle() const { return m_fence; }
@@ -21,7 +19,7 @@ public:
 	void wait() const;
 
 private:
-	const Device& m_device;
+	VkDevice m_device;
 	VkFence m_fence{nullptr};
 
 public:

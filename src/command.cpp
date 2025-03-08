@@ -18,7 +18,14 @@ Command::Command(VkDevice device,
 	  m_commandPool(commandPool),
 	  m_descriptorSet(descriptorSet),
 	  m_allocator(allocator),
-	  m_queue(info.queue) {}
+	  m_queue(info.queue) {
+	assert(m_device != nullptr && "Invalid device");
+	assert(m_commandBuffer != nullptr && "Invalid command buffer");
+	assert(m_commandPool != nullptr && "Invalid command pool");
+	assert(m_descriptorSet != nullptr && "Invalid descriptor set");
+	assert(m_allocator != nullptr && "Invalid allocator");
+	assert(m_queue != nullptr && "Invalid queue");
+}
 
 Command::~Command() {
 	m_stagingBuffers.clear();
@@ -66,7 +73,7 @@ void Command::transitionImageLayout(Image& image, VkImageLayout newLayout) {
 		.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
 		.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
 		.image = image.m_image,
-		.subresourceRange = {image.m_aspect, 0, 1, 0, 1},
+		.subresourceRange = {image.getAspect(), 0, 1, 0, 1},
 	};
 
 	vkCmdPipelineBarrier(m_commandBuffer, transitionInfo.srcStage,
@@ -79,7 +86,7 @@ void Command::transitionImageLayout(Image& image, VkImageLayout newLayout) {
 void Command::transitionToOptimalLayout(Image& image) {
 	CHECK_IS_RECORDING;
 
-	transitionImageLayout(image, image.m_optimalLayout);
+	transitionImageLayout(image, image.getOptimalLayout());
 }
 
 void Command::copyImage(const Image& src,
@@ -93,14 +100,14 @@ void Command::copyImage(const Image& src,
 		   "Destination image is not in the correct layout");
 
 	VkImageSubresourceLayers srcSubresource{
-		.aspectMask = src.m_aspect,
+		.aspectMask = src.getAspect(),
 		.mipLevel = 0,
 		.baseArrayLayer = 0,
 		.layerCount = 1,
 	};
 
 	VkImageSubresourceLayers dstSubresource{
-		.aspectMask = dst.m_aspect,
+		.aspectMask = dst.getAspect(),
 		.mipLevel = 0,
 		.baseArrayLayer = 0,
 		.layerCount = 1,
@@ -111,7 +118,7 @@ void Command::copyImage(const Image& src,
 		.srcOffset = {srcOffset.x, srcOffset.y, 0},
 		.dstSubresource = dstSubresource,
 		.dstOffset = {dstOffset.x, dstOffset.y, 0},
-		.extent = {src.m_extent.width, src.m_extent.height, 1},
+		.extent = src.getExtent(),
 	};
 
 	vkCmdCopyImage(m_commandBuffer, src.m_image,
@@ -128,14 +135,17 @@ void Command::blitImage(const Image& src,
 	assert(dst.m_currentLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL &&
 		   "Destination image is not in the correct layout");
 
+	VkExtent3D srcExtent = src.getExtent();
+	VkExtent3D dstExtent = dst.getExtent();
+
 	uint32_t srcAvailableWidth =
-		src.m_extent.width - static_cast<uint32_t>(srcOffset.x);
+		srcExtent.width - static_cast<uint32_t>(srcOffset.x);
 	uint32_t srcAvailableHeight =
-		src.m_extent.height - static_cast<uint32_t>(srcOffset.y);
+		srcExtent.height - static_cast<uint32_t>(srcOffset.y);
 	uint32_t dstAvailableWidth =
-		dst.m_extent.width - static_cast<uint32_t>(dstOffset.x);
+		dstExtent.width - static_cast<uint32_t>(dstOffset.x);
 	uint32_t dstAvailableHeight =
-		dst.m_extent.height - static_cast<uint32_t>(dstOffset.y);
+		dstExtent.height - static_cast<uint32_t>(dstOffset.y);
 
 	uint32_t regionWidth = std::min(srcAvailableWidth, dstAvailableWidth);
 	uint32_t regionHeight = std::min(srcAvailableHeight, dstAvailableHeight);
@@ -153,7 +163,7 @@ void Command::blitImage(const Image& src,
 		.pNext = nullptr,
 		.srcSubresource =
 			{
-				.aspectMask = src.m_aspect,
+				.aspectMask = src.getAspect(),
 				.mipLevel = 0,
 				.baseArrayLayer = 0,
 				.layerCount = 1,
@@ -161,7 +171,7 @@ void Command::blitImage(const Image& src,
 		.srcOffsets = {srcStart, srcEnd},
 		.dstSubresource =
 			{
-				.aspectMask = dst.m_aspect,
+				.aspectMask = dst.getAspect(),
 				.mipLevel = 0,
 				.baseArrayLayer = 0,
 				.layerCount = 1,
@@ -194,7 +204,7 @@ void Command::updateImage(const Image& image,
 		   "Image is not in the correct layout");
 
 	VkExtent2D size =
-		(!imageSize.width && !imageSize.height) ? image.getExtent() : imageSize;
+		(!imageSize.width && !imageSize.height) ? image.getExtent2D() : imageSize;
 
 	uint32_t pixelsCount = size.width * size.height;
 
@@ -226,11 +236,11 @@ void Command::resolveImage(const Image& src, const Image& dst) {
 		   "Destination image is not in the correct layout");
 
 	VkImageResolve resolveRegion{
-		.srcSubresource = {src.m_aspect, 0, 0, 1},
+		.srcSubresource = {src.getAspect(), 0, 0, 1},
 		.srcOffset = {0, 0, 0},
-		.dstSubresource = {dst.m_aspect, 0, 0, 1},
+		.dstSubresource = {dst.getAspect(), 0, 0, 1},
 		.dstOffset = {0, 0, 0},
-		.extent = {src.m_extent.width, src.m_extent.height, 1},
+		.extent = src.getExtent(),
 	};
 
 	vkCmdResolveImage(m_commandBuffer, src.m_image,
@@ -329,8 +339,8 @@ void Command::beginRender(const DrawAttachment* drawAttachment,
 		depthAttachmentInfo.storeOp = depthAttachment->storeAction;
 	}
 
-	VkExtent2D extent = drawAttachment ? drawAttachment->drawImage.getExtent()
-									   : depthAttachment->depthImage.getExtent();
+	VkExtent2D extent = drawAttachment ? drawAttachment->drawImage.getExtent2D()
+									   : depthAttachment->depthImage.getExtent2D();
 
 	VkRenderingInfo renderingInfo{
 		.sType = VK_STRUCTURE_TYPE_RENDERING_INFO,
