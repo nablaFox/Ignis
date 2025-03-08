@@ -5,27 +5,24 @@
 #include <cassert>
 #include <memory>
 #include <vector>
-#include "exceptions.hpp"
 #include "pipeline.hpp"
 
 namespace ignis {
 
 class Buffer;
 class Image;
-class ColorImage;
-class DepthImage;
 class Swapchain;
 class Semaphore;
 
 struct DrawAttachment {
-	ColorImage& drawImage;
+	Image& drawImage;
 	VkAttachmentLoadOp loadAction{VK_ATTACHMENT_LOAD_OP_CLEAR};
 	VkAttachmentStoreOp storeAction{VK_ATTACHMENT_STORE_OP_STORE};
 	VkClearColorValue clearColor{0.0f, 0.0f, 0.0f, 1.0f};
 };
 
 struct DepthAttachment {
-	DepthImage& depthImage;
+	Image& depthImage;
 	VkAttachmentLoadOp loadAction{VK_ATTACHMENT_LOAD_OP_CLEAR};
 	VkAttachmentStoreOp storeAction{VK_ATTACHMENT_STORE_OP_DONT_CARE};
 };
@@ -33,8 +30,7 @@ struct DepthAttachment {
 #define CHECK_IS_RECORDING \
 	assert(m_isRecording && "Command buffer is not recording!");
 
-#define CHECK_PIPELINE_BOUND \
-	THROW_ERROR(m_currentPipeline == nullptr, "No pipeline bound");
+#define CHECK_PIPELINE_BOUND assert(m_pipelineBound && "No pipeline bound");
 
 // Note 1: every command is a graphics command
 // Note 2: every command is primary
@@ -75,14 +71,14 @@ public:
 	void endRendering();
 
 	template <typename T>
-	void pushConstants(const T& data, uint32_t offset = 0) {
+	void pushConstants(const Pipeline& pipeline,
+					   const T& data,
+					   uint32_t offset = 0) {
 		CHECK_IS_RECORDING;
 		CHECK_PIPELINE_BOUND;
 
-		auto pipelineLayout = m_currentPipeline->getLayoutHandle();
-
-		vkCmdPushConstants(m_commandBuffer, pipelineLayout, VK_SHADER_STAGE_ALL,
-						   offset, sizeof(T), &data);
+		vkCmdPushConstants(m_commandBuffer, pipeline.getLayoutHandle(),
+						   VK_SHADER_STAGE_ALL, offset, sizeof(T), &data);
 	}
 
 	void transitionImageLayout(Image&, VkImageLayout);
@@ -136,8 +132,8 @@ private:
 	VkQueue m_queue;
 
 	bool m_isRecording{false};
+	bool m_pipelineBound{false};
 	std::vector<std::unique_ptr<Buffer>> m_stagingBuffers{};
-	const Pipeline* m_currentPipeline{nullptr};
 
 	static Command allocateCommand(VkDevice,
 								   VkCommandPool,

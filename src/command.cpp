@@ -1,7 +1,6 @@
+#include "exceptions.hpp"
 #include "command.hpp"
 #include "buffer.hpp"
-#include "color_image.hpp"
-#include "depth_image.hpp"
 #include "image.hpp"
 #include "swapchain.hpp"
 #include "vk_utils.hpp"
@@ -40,6 +39,7 @@ void Command::begin(VkCommandBufferUsageFlags flags) {
 					   "Failed to begin recording command");
 
 	m_isRecording = true;
+	m_pipelineBound = false;
 }
 
 void Command::end() {
@@ -275,7 +275,7 @@ void Command::bindPipeline(const Pipeline& pipeline) {
 	vkCmdBindPipeline(m_commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
 					  pipeline.getHandle());
 
-	m_currentPipeline = &pipeline;
+	m_pipelineBound = true;
 }
 
 void Command::beginRender(const DrawAttachment* drawAttachment,
@@ -299,6 +299,9 @@ void Command::beginRender(const DrawAttachment* drawAttachment,
 		assert(drawAttachment->drawImage.getCurrentLayout() ==
 			   VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
+		assert(isColorFormat(drawAttachment->drawImage.getFormat()) &&
+			   "Draw image format is not a color format");
+
 		colorAttachment.imageView = drawAttachment->drawImage.getViewHandle();
 		colorAttachment.loadOp = drawAttachment->loadAction;
 		colorAttachment.storeOp = drawAttachment->storeAction;
@@ -317,6 +320,9 @@ void Command::beginRender(const DrawAttachment* drawAttachment,
 
 		assert(depthAttachment->depthImage.getCurrentLayout() ==
 			   VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+
+		assert(isDepthFormat(depthAttachment->depthImage.getFormat()) &&
+			   "Depth image format is not a depth format");
 
 		depthAttachmentInfo.imageView = depthAttachment->depthImage.getViewHandle();
 		depthAttachmentInfo.loadOp = depthAttachment->loadAction;

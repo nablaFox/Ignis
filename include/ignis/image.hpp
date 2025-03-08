@@ -5,6 +5,18 @@
 
 namespace ignis {
 
+enum class DepthFormat {
+	D16_UNORM = VK_FORMAT_D16_UNORM,
+	D24_UNORM_S8_UINT = VK_FORMAT_D24_UNORM_S8_UINT,
+	D32_SFLOAT = VK_FORMAT_D32_SFLOAT
+};
+
+enum class ColorFormat {
+	RGBA8 = VK_FORMAT_R8G8B8A8_UNORM,
+	RGBA16 = VK_FORMAT_R16G16B16A16_SFLOAT,
+	HDR = VK_FORMAT_R32G32B32A32_SFLOAT,
+};
+
 class Image {
 	friend class Device;
 	friend class Command;

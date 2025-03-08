@@ -6,7 +6,8 @@
 
 using namespace ignis;
 
-Pipeline::Pipeline(CreateInfo info) : m_device(*info.device) {
+Pipeline::Pipeline(const CreateInfo& info)
+	: m_device(*info.device), m_creationInfo(info) {
 	std::vector<std::unique_ptr<Shader>> shaders;
 
 	for (const auto& shaderPath : info.shaders) {

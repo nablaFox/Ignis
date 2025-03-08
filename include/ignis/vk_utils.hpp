@@ -20,4 +20,7 @@ TransitionInfo getTransitionInfo(VkImageLayout oldLayout, VkImageLayout newLayou
 
 VkDeviceSize getPixelSize(VkFormat);
 
+bool isColorFormat(VkFormat);
+bool isDepthFormat(VkFormat);
+
 }  // namespace ignis

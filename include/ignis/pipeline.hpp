@@ -8,8 +8,8 @@ namespace ignis {
 
 class Device;
 class Shader;
-enum class ColorFormat;
 enum class DepthFormat;
+enum class ColorFormat;
 
 // Note 1: for now we handle only graphics pipelines
 // Note 2: we can't render to multiple images, just to a single one
@@ -42,7 +42,7 @@ public:
 		VkBlendOp alphaBlendOp{VK_BLEND_OP_ADD};
 	};
 
-	Pipeline(CreateInfo);
+	Pipeline(const CreateInfo&);
 
 	~Pipeline();
 
@@ -54,6 +54,8 @@ private:
 	const Device& m_device;
 	VkPipelineLayout m_pipelineLayout{VK_NULL_HANDLE};
 	VkPipeline m_pipeline{VK_NULL_HANDLE};
+
+	CreateInfo m_creationInfo;
 
 public:
 	Pipeline(const Pipeline&) = delete;
