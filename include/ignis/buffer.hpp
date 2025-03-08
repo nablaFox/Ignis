@@ -32,25 +32,21 @@ public:
 
 	void readData(void* data, uint32_t offset = 0, uint32_t size = 0);
 
-	static Buffer* createUBO(const Device* device,
+	static Buffer createUBO(const Device* device,
+							uint32_t size,
+							const void* data = nullptr);
+
+	static Buffer createSSBO(const Device* device,
 							 uint32_t size,
 							 const void* data = nullptr);
 
-	static Buffer* createSSBO(const Device* device,
-							  uint32_t size,
-							  const void* data = nullptr);
+	static Buffer createIndexBuffer32(const Device*,
+									  uint32_t elementCount,
+									  uint32_t* data = nullptr);
 
-	static Buffer* createVertexBuffer(const Device* device,
-									  uint32_t size,
+	static Buffer createStagingBuffer(const Device* device,
+									  VkDeviceSize size,
 									  const void* data = nullptr);
-
-	static Buffer* createIndexBuffer32(const Device*,
-									   uint32_t elementCount,
-									   uint32_t* data = nullptr);
-
-	static Buffer* createStagingBuffer(const Device* device,
-									   VkDeviceSize size,
-									   const void* data = nullptr);
 
 private:
 	const Device& m_device;

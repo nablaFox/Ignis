@@ -91,11 +91,11 @@ void Buffer::readData(void* data, uint32_t offset, uint32_t size) {
 	}
 }
 
-Buffer* Buffer::createUBO(const Device* device, uint32_t size, const void* data) {
+Buffer Buffer::createUBO(const Device* device, uint32_t size, const void* data) {
 	VkDeviceSize alignment = device->getUboAlignment();
 	VkDeviceSize bufferSize = (size + alignment - 1) & ~(alignment - 1);
 
-	return new Buffer({
+	return Buffer({
 		.device = device,
 		.bufferUsage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
 		.memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
@@ -105,11 +105,11 @@ Buffer* Buffer::createUBO(const Device* device, uint32_t size, const void* data)
 	});
 }
 
-Buffer* Buffer::createSSBO(const Device* device, uint32_t size, const void* data) {
+Buffer Buffer::createSSBO(const Device* device, uint32_t size, const void* data) {
 	VkDeviceSize alignment = device->getSsboAlignment();
 	VkDeviceSize bufferSize = (size + alignment - 1) & ~(alignment - 1);
 
-	return new Buffer({
+	return Buffer({
 		.device = device,
 		.bufferUsage =
 			VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
@@ -119,23 +119,10 @@ Buffer* Buffer::createSSBO(const Device* device, uint32_t size, const void* data
 	});
 }
 
-Buffer* Buffer::createVertexBuffer(const Device* device,
-								   uint32_t size,
-								   const void* data) {
-	return new Buffer({
-		.device = device,
-		.bufferUsage =
-			VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-		.memoryProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-		.size = size,
-		.initialData = data,
-	});
-}
-
-Buffer* Buffer::createIndexBuffer32(const Device* device,
-									uint32_t elementCount,
-									uint32_t* data) {
-	return new Buffer({
+Buffer Buffer::createIndexBuffer32(const Device* device,
+								   uint32_t elementCount,
+								   uint32_t* data) {
+	return Buffer({
 		.device = device,
 		.bufferUsage =
 			VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
@@ -145,10 +132,10 @@ Buffer* Buffer::createIndexBuffer32(const Device* device,
 	});
 }
 
-Buffer* Buffer::createStagingBuffer(const Device* device,
-									VkDeviceSize size,
-									const void* data) {
-	return new Buffer({
+Buffer Buffer::createStagingBuffer(const Device* device,
+								   VkDeviceSize size,
+								   const void* data) {
+	return Buffer({
 		.device = device,
 		.bufferUsage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
 		.memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
