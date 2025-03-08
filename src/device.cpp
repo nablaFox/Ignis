@@ -9,6 +9,7 @@
 #include "buffer.hpp"
 #include "image.hpp"
 #include "sampler.hpp"
+#include "shader.hpp"
 #include "vk_utils.hpp"
 
 #define VMA_IMPLEMENTATION
@@ -456,6 +457,16 @@ Buffer Device::createStagingBuffer(VkDeviceSize size, void* initialData) const {
 
 Swapchain Device::createSwapchain(const Swapchain::CreateInfo& info) const {
 	return Swapchain(m_device, m_phyiscalDevice, info);
+}
+
+Pipeline Device::createPipeline(const Pipeline::CreateInfo& info) const {
+	ShaderResources resources{};
+
+	for (const auto& shader : info.shaders) {
+		Shader::getMergedResources(shader->getResources(), &resources);
+	}
+
+	return Pipeline(m_device, getPipelineLayout(resources.pushConstants.size), info);
 }
 
 Device::~Device() {

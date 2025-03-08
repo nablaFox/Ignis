@@ -1,7 +1,6 @@
 #pragma once
 
 #include <vulkan/vulkan_core.h>
-#include <string>
 #include <vector>
 
 namespace ignis {
@@ -18,7 +17,7 @@ enum class ColorFormat;
 class Pipeline {
 public:
 	struct CreateInfo {
-		std::vector<std::string> shaders;
+		std::vector<const Shader*> shaders;
 		ColorFormat colorFormat;
 		DepthFormat depthFormat;
 		VkCullModeFlagBits cullMode{VK_CULL_MODE_BACK_BIT};
@@ -40,7 +39,7 @@ public:
 		VkBlendOp alphaBlendOp{VK_BLEND_OP_ADD};
 	};
 
-	Pipeline(VkDevice, const CreateInfo&);
+	Pipeline(VkDevice, VkPipelineLayout, const CreateInfo&);
 
 	~Pipeline();
 
@@ -50,8 +49,9 @@ public:
 
 private:
 	VkDevice m_device;
-	VkPipelineLayout m_pipelineLayout{VK_NULL_HANDLE};
-	VkPipeline m_pipeline{VK_NULL_HANDLE};
+
+	VkPipeline m_pipeline{nullptr};
+	VkPipelineLayout m_pipelineLayout;
 
 	CreateInfo m_creationInfo;
 

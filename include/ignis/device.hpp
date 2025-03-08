@@ -122,6 +122,8 @@ public:
 
 	Swapchain createSwapchain(const Swapchain::CreateInfo&) const;
 
+	Pipeline createPipeline(const Pipeline::CreateInfo&) const;
+
 private:
 	VkInstance m_instance{nullptr};
 	VkDebugUtilsMessengerEXT m_debugMessenger{nullptr};

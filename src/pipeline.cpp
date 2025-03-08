@@ -1,31 +1,23 @@
-#include <memory>
+#include <cassert>
 #include "pipeline.hpp"
 #include "shader.hpp"
-#include "device.hpp"
 #include "exceptions.hpp"
 
 using namespace ignis;
 
-Pipeline::Pipeline(const CreateInfo& info)
-	: m_device(*info.device), m_creationInfo(info) {
-	std::vector<std::unique_ptr<Shader>> shaders;
-
-	for (const auto& shaderPath : info.shaders) {
-		shaders.emplace_back(std::make_unique<Shader>(m_device, shaderPath));
-	}
-
-	ShaderResources resources{};
-
-	for (const auto& shader : shaders) {
-		Shader::getMergedResources(shader->getResources(), &resources);
-	}
-
-	m_pipelineLayout = m_device.getPipelineLayout(resources.pushConstants.size);
+// It's up to the user to make sure the pipeline layout has the ignis format and
+// the correct push constants size. The reccomended way is to use
+// device.createPipeline
+Pipeline::Pipeline(VkDevice device, VkPipelineLayout layout, const CreateInfo& info)
+	: m_device(device), m_creationInfo(info), m_pipelineLayout(layout) {
+	assert(device != nullptr && "Invalid device");
+	assert(layout != nullptr && "Invalid pipeline layout");
+	assert(info.shaders.size() > 0 && "No shaders provided");
 
 	std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
 	shaderStages.reserve(info.shaders.size());
 
-	for (const auto& shader : shaders) {
+	for (const auto& shader : info.shaders) {
 		shaderStages.push_back({
 			.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
 			.stage = shader->getStage(),
@@ -143,11 +135,11 @@ Pipeline::Pipeline(const CreateInfo& info)
 	};
 
 	THROW_VULKAN_ERROR(
-		vkCreateGraphicsPipelines(m_device.getDevice(), VK_NULL_HANDLE, 1,
-								  &pipelineInfo, nullptr, &m_pipeline),
+		vkCreateGraphicsPipelines(m_device, VK_NULL_HANDLE, 1, &pipelineInfo,
+								  nullptr, &m_pipeline),
 		"Failed to create pipeline");
 }
 
 Pipeline::~Pipeline() {
-	vkDestroyPipeline(m_device.getDevice(), m_pipeline, nullptr);
+	vkDestroyPipeline(m_device, m_pipeline, nullptr);
 }
