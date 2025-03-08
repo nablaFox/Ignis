@@ -107,7 +107,6 @@ public:
 	std::string getFullShaderPath(std::string shaderPath) const;
 
 public:
-	// allocation stuff
 	Command createCommand(const Command::CreateInfo&) const;
 
 	Buffer createBuffer(const Buffer::CreateInfo&) const;
@@ -118,8 +117,11 @@ public:
 
 	Buffer createStagingBuffer(VkDeviceSize size, void* initialData = nullptr) const;
 
-	// here we will also transition the image to the optimal layout
 	Image createImage(const Image::CreateInfo&) const;
+
+	Image createDrawImage(const Image::DrawImageCreateInfo&) const;
+
+	Image createDepthImage(const Image::DepthImageCreateInfo&) const;
 
 	Swapchain createSwapchain(const Swapchain::CreateInfo&) const;
 

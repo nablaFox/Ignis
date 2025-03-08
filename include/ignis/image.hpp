@@ -38,6 +38,20 @@ public:
 		VkSampleCountFlagBits sampleCount{VK_SAMPLE_COUNT_1_BIT};
 	};
 
+	struct DrawImageCreateInfo {
+		uint32_t width{0};
+		uint32_t height{0};
+		ColorFormat format{ColorFormat::RGBA8};
+		VkSampleCountFlagBits sampleCount{VK_SAMPLE_COUNT_1_BIT};
+	};
+
+	struct DepthImageCreateInfo {
+		uint32_t width{0};
+		uint32_t height{0};
+		DepthFormat format{DepthFormat::D24_UNORM_S8_UINT};
+		VkSampleCountFlagBits sampleCount{VK_SAMPLE_COUNT_1_BIT};
+	};
+
 	// wrapper
 	Image(VkImage, VkImageView, const CreateInfo&);
 
@@ -46,7 +60,13 @@ public:
 
 	~Image();
 
-	static Image allocateImage(VkDevice, VmaAllocator, const CreateInfo&);
+	static Image allocateDrawImage(VkDevice,
+								   VmaAllocator,
+								   const DrawImageCreateInfo&);
+
+	static Image allocateDepthImage(VkDevice,
+									VmaAllocator,
+									const DepthImageCreateInfo&);
 
 	VkDeviceSize getPixelSize() const { return m_pixelSize; }
 

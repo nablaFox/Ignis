@@ -75,3 +75,35 @@ Image::~Image() {
 	vkDestroyImageView(m_device, m_view, nullptr);
 	vmaDestroyImage(m_allocator, m_image, m_allocation);
 }
+
+Image Image::allocateDrawImage(VkDevice device,
+							   VmaAllocator allocator,
+							   const DrawImageCreateInfo& info) {
+	Image::CreateInfo imageCreateInfo{
+		.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
+				 VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
+		.width = info.width,
+		.height = info.height,
+		.format = static_cast<VkFormat>(info.format),
+		.optimalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+		.sampleCount = info.sampleCount,
+	};
+
+	return Image(device, allocator, imageCreateInfo);
+}
+
+Image Image::allocateDepthImage(VkDevice device,
+								VmaAllocator allocator,
+								const DepthImageCreateInfo& info) {
+	Image::CreateInfo imageCreateInfo{
+		.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
+				 VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
+		.width = info.width,
+		.height = info.height,
+		.format = static_cast<VkFormat>(info.format),
+		.optimalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+		.sampleCount = info.sampleCount,
+	};
+
+	return Image(device, allocator, imageCreateInfo);
+}

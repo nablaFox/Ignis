@@ -438,47 +438,6 @@ VkSampleCountFlagBits Device::getMaxSampleCount() const {
 	return VK_SAMPLE_COUNT_1_BIT;
 }
 
-Command Device::createCommand(const Command::CreateInfo& info) const {
-	return Command(m_device, getCommandPool(info.queue),
-				   m_bindlessResources.getDescriptorSet(), m_allocator, info);
-}
-
-Buffer Device::createBuffer(const Buffer::CreateInfo& info) const {
-	return Buffer(m_device, m_allocator, info);
-}
-
-Buffer Device::createUBO(VkDeviceSize size, void* initialData) const {
-	return Buffer::allocateUBO(m_device, getUboAlignment(), m_allocator, size,
-							   initialData);
-}
-
-Buffer Device::createSSBO(VkDeviceSize size, void* initialData) const {
-	return Buffer::allocateSSBO(m_device, getSsboAlignment(), m_allocator, size,
-								initialData);
-}
-
-Buffer Device::createStagingBuffer(VkDeviceSize size, void* initialData) const {
-	return Buffer::allocateStagingBuffer(m_device, m_allocator, size, initialData);
-}
-
-Swapchain Device::createSwapchain(const Swapchain::CreateInfo& info) const {
-	return Swapchain(m_device, m_phyiscalDevice, info);
-}
-
-Pipeline Device::createPipeline(const Pipeline::CreateInfo& info) const {
-	ShaderResources resources{};
-
-	for (const auto& shader : info.shaders) {
-		Shader::getMergedResources(shader->getResources(), &resources);
-	}
-
-	return Pipeline(m_device, getPipelineLayout(resources.pushConstants.size), info);
-}
-
-Image Device::createImage(const Image::CreateInfo& info) const {
-	return Image(m_device, m_allocator, info);
-}
-
 Device::~Device() {
 	vkDeviceWaitIdle(m_device);
 
@@ -502,4 +461,53 @@ Device::~Device() {
 #endif
 
 	vkDestroyInstance(m_instance, nullptr);
+}
+
+Command Device::createCommand(const Command::CreateInfo& info) const {
+	return Command(m_device, getCommandPool(info.queue),
+				   m_bindlessResources.getDescriptorSet(), m_allocator, info);
+}
+
+Buffer Device::createBuffer(const Buffer::CreateInfo& info) const {
+	return Buffer(m_device, m_allocator, info);
+}
+
+Buffer Device::createUBO(VkDeviceSize size, void* initialData) const {
+	return Buffer::allocateUBO(m_device, getUboAlignment(), m_allocator, size,
+							   initialData);
+}
+
+Buffer Device::createSSBO(VkDeviceSize size, void* initialData) const {
+	return Buffer::allocateSSBO(m_device, getSsboAlignment(), m_allocator, size,
+								initialData);
+}
+
+Buffer Device::createStagingBuffer(VkDeviceSize size, void* initialData) const {
+	return Buffer::allocateStagingBuffer(m_device, m_allocator, size, initialData);
+}
+
+Image Device::createImage(const Image::CreateInfo& info) const {
+	return Image(m_device, m_allocator, info);
+}
+
+Image Device::createDrawImage(const Image::DrawImageCreateInfo& info) const {
+	return Image::allocateDrawImage(m_device, m_allocator, info);
+}
+
+Image Device::createDepthImage(const Image::DepthImageCreateInfo& info) const {
+	return Image::allocateDepthImage(m_device, m_allocator, info);
+}
+
+Swapchain Device::createSwapchain(const Swapchain::CreateInfo& info) const {
+	return Swapchain(m_device, m_phyiscalDevice, info);
+}
+
+Pipeline Device::createPipeline(const Pipeline::CreateInfo& info) const {
+	ShaderResources resources{};
+
+	for (const auto& shader : info.shaders) {
+		Shader::getMergedResources(shader->getResources(), &resources);
+	}
+
+	return Pipeline(m_device, getPipelineLayout(resources.pushConstants.size), info);
 }
