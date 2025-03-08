@@ -3,7 +3,6 @@
 
 #include <math.h>
 #include "semaphore.hpp"
-#include "color_image.hpp"
 #include "device.hpp"
 #include "command.hpp"
 #include "fence.hpp"
@@ -265,14 +264,16 @@ int main(int argc, char* argv[]) {
 	}
 
 	Swapchain swapchain = device.createSwapchain({
-		.extent = {WINDOW_WIDTH, WINDOW_HEIGHT},
+		.width = WINDOW_WIDTH,
+		.height = WINDOW_HEIGHT,
 		.swapchainFormat = ColorFormat::RGBA8,
 		.surface = surface,
 	});
 
-	ColorImage* drawImage = ColorImage::createDrawImage({
-		.device = &device,
-		.extent = {WINDOW_WIDTH, WINDOW_HEIGHT},
+	Image drawImage = device.createImage({
+		.width = WINDOW_WIDTH,
+		.height = WINDOW_HEIGHT,
+		.format = VK_FORMAT_R8G8B8A8_UNORM,
 		.sampleCount = VK_SAMPLE_COUNT_1_BIT,
 	});
 
@@ -285,8 +286,8 @@ int main(int argc, char* argv[]) {
 
 	Command updatePixelsCmd = device.createCommand({.queue = device.getQueue(0)});
 
-	Fence waitForRendering(device, true);
-	Semaphore finishedRendering(device);
+	Fence waitForRendering(device.getDevice(), true);
+	Semaphore finishedRendering(device.getDevice());
 
 	const float dt = 1.f / 60.f;
 	float timeAccumulator = 0.f;
@@ -334,12 +335,12 @@ int main(int argc, char* argv[]) {
 		waitForRendering.reset();
 
 		updatePixelsCmd.begin();
-		updatePixelsCmd.transitionImageLayout(*drawImage,
+		updatePixelsCmd.transitionImageLayout(drawImage,
 											  VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
-		updatePixelsCmd.updateImage(*drawImage, screen.pixels.data());
+		updatePixelsCmd.updateImage(drawImage, screen.pixels.data());
 
-		updatePixelsCmd.transitionToOptimalLayout(*drawImage);
+		updatePixelsCmd.transitionToOptimalLayout(drawImage);
 
 		updatePixelsCmd.end();
 
@@ -350,13 +351,11 @@ int main(int argc, char* argv[]) {
 
 		device.submitCommands({std::move(submitUpdatePixelsInfo)}, waitForRendering);
 
-		swapchain.present({
-			.srcImage = drawImage,
-			.waitSemaphores = {&finishedRendering},
-		});
+		// swapchain.present({
+		// 	.srcImage = drawImage,
+		// 	.waitSemaphores = {&finishedRendering},
+		// });
 	}
-
-	delete drawImage;
 
 	return 0;
 }

@@ -4,17 +4,15 @@
 
 namespace ignis {
 
-class Device;
-
 class Semaphore {
 public:
-	Semaphore(const Device& device);
+	Semaphore(VkDevice device);
 	~Semaphore();
 
 	VkSemaphore getHandle() const { return m_semaphore; }
 
 private:
-	const Device& m_device;
+	VkDevice m_device;
 	VkSemaphore m_semaphore{nullptr};
 
 public:

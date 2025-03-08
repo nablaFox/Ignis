@@ -200,14 +200,15 @@ static void createAllocator(VkDevice device,
 					   "Failed to create allocator");
 }
 
-static void allocateCommandPools(VkDevice device,
-								 uint32_t graphicsQueuesCount,
-								 uint32_t graphicsFamilyIndex,
-								 std::vector<VkCommandPool>* commandPools) {
-	for (uint32_t i = 0; i < graphicsQueuesCount; i++) {
+static void allocateCommandPools(
+	VkDevice device,
+	uint32_t graphicsFamilyIndex,
+	const std::vector<VkQueue>& graphicsQueues,
+	std::unordered_map<VkQueue, VkCommandPool>* commandPools) {
+	for (const auto& queue : graphicsQueues) {
 		VkCommandPoolCreateInfo poolInfo{
 			.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
-			.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,  // PONDER
+			.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
 			.queueFamilyIndex = graphicsFamilyIndex,
 		};
 
@@ -216,7 +217,7 @@ static void allocateCommandPools(VkDevice device,
 			vkCreateCommandPool(device, &poolInfo, nullptr, &commandPool),
 			"Failed to create command pool");
 
-		commandPools->push_back(commandPool);
+		commandPools->insert({queue, commandPool});
 	}
 }
 
@@ -246,8 +247,7 @@ Device::Device(CreateInfo createInfo) : m_shadersFolder(createInfo.shadersFolder
 
 	createAllocator(m_device, m_phyiscalDevice, m_instance, &m_allocator);
 
-	allocateCommandPools(m_device, m_graphicsQueuesCount, m_graphicsFamilyIndex,
-						 &m_commandPools);
+	allocateCommandPools(m_device, m_graphicsFamilyIndex, m_queues, &m_commandPools);
 
 	m_bindlessResources.initialize(m_device);
 }
@@ -325,9 +325,12 @@ void Device::submitCommands(std::vector<SubmitCmdInfo> submits,
 				   submitInfos.data(), fence.getHandle());
 }
 
-VkCommandPool Device::getCommandPool(uint32_t index) const {
-	THROW_ERROR(index >= m_commandPools.size(), "Invalid command pool index");
-	return m_commandPools[index];
+VkCommandPool Device::getCommandPool(VkQueue queue) const {
+	auto it = m_commandPools.find(queue);
+
+	THROW_ERROR(it == m_commandPools.end(), "Invalid queue");
+
+	return it->second;
 }
 
 VkQueue Device::getQueue(uint32_t index) const {
@@ -435,7 +438,10 @@ VkSampleCountFlagBits Device::getMaxSampleCount() const {
 	return VK_SAMPLE_COUNT_1_BIT;
 }
 
-Command Device::createCommand(const Command::CreateInfo& info) const {}
+Command Device::createCommand(const Command::CreateInfo& info) const {
+	return Command(m_device, getCommandPool(info.queue),
+				   m_bindlessResources.getDescriptorSet(), m_allocator, info);
+}
 
 Buffer Device::createBuffer(const Buffer::CreateInfo& info) const {
 	return Buffer(m_device, m_allocator, info);
@@ -469,6 +475,10 @@ Pipeline Device::createPipeline(const Pipeline::CreateInfo& info) const {
 	return Pipeline(m_device, getPipelineLayout(resources.pushConstants.size), info);
 }
 
+Image Device::createImage(const Image::CreateInfo& info) const {
+	return Image(m_device, m_allocator, info);
+}
+
 Device::~Device() {
 	vkDeviceWaitIdle(m_device);
 
@@ -477,7 +487,7 @@ Device::~Device() {
 	for (auto queue : m_queues)
 		vkQueueWaitIdle(queue);
 
-	for (auto commandPool : m_commandPools)
+	for (const auto& [_, commandPool] : m_commandPools)
 		vkDestroyCommandPool(m_device, commandPool, nullptr);
 
 	vmaDestroyAllocator(m_allocator);

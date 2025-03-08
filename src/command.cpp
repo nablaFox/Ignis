@@ -18,11 +18,21 @@ Command::Command(VkDevice device,
 	  m_allocator(allocator),
 	  m_queue(info.queue) {
 	assert(m_device != nullptr && "Invalid device");
-	assert(m_commandBuffer != nullptr && "Invalid command buffer");
 	assert(m_commandPool != nullptr && "Invalid command pool");
 	assert(m_descriptorSet != nullptr && "Invalid descriptor set");
 	assert(m_allocator != nullptr && "Invalid allocator");
 	assert(m_queue != nullptr && "Invalid queue");
+
+	VkCommandBufferAllocateInfo allocInfo{
+		.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+		.commandPool = m_commandPool,
+		.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+		.commandBufferCount = 1,
+	};
+
+	THROW_VULKAN_ERROR(
+		vkAllocateCommandBuffers(m_device, &allocInfo, &m_commandBuffer),
+		"Failed to allocate command buffer");
 }
 
 Command::~Command() {

@@ -64,7 +64,6 @@ Image::Image(VkImage image, VkImageView view, const CreateInfo& info)
 	  m_pixelSize(::getPixelSize(info.format)),
 	  m_currentLayout(VK_IMAGE_LAYOUT_UNDEFINED) {
 	assert(image != nullptr && "Invalid image");
-	assert(view != nullptr && "Invalid image view");
 	assert(m_pixelSize > 0 && "Invalid pixel size");
 	assert(info.width > 0 && info.height > 0 && "Invalid image extent");
 }
