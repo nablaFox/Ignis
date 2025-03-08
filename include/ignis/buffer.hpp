@@ -15,18 +15,9 @@ public:
 		const void* initialData{nullptr};
 	};
 
-	// VmaAllocator should be created relative to the same VkDevice
-	// passed here. This is not enforced but is required and will be documented
-	Buffer(VkDevice,
-		   VkBuffer,
-		   VkDeviceAddress,
-		   VmaAllocation,
-		   VmaAllocator,
-		   const CreateInfo&);
+	Buffer(VkDevice, VmaAllocator, const CreateInfo&);
 
 	~Buffer();
-
-	static Buffer allocateBuffer(VkDevice, VmaAllocator, const CreateInfo&);
 
 	static Buffer allocateUBO(VkDevice,
 							  VkDeviceSize alignment,
@@ -64,10 +55,11 @@ public:
 
 private:
 	VkDevice m_device;
-	VkBuffer m_buffer;
-	VkDeviceAddress m_bufferAddress;
-	VmaAllocation m_allocation;
 	VmaAllocator m_allocator;
+
+	VkBuffer m_buffer{nullptr};
+	VkDeviceAddress m_bufferAddress{0};
+	VmaAllocation m_allocation{nullptr};
 
 	CreateInfo m_creationInfo;
 

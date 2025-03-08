@@ -31,22 +31,18 @@ public:
 		VkImageUsageFlags usage{VK_IMAGE_USAGE_TRANSFER_DST_BIT |
 								VK_IMAGE_USAGE_SAMPLED_BIT};
 		VkImageAspectFlags aspect{VK_IMAGE_ASPECT_COLOR_BIT};
-		uint32_t width;
-		uint32_t height;
+		uint32_t width{0};
+		uint32_t height{0};
 		VkFormat format{VK_FORMAT_R8G8B8A8_UNORM};
 		VkImageLayout optimalLayout{VK_IMAGE_LAYOUT_UNDEFINED};
 		VkSampleCountFlagBits sampleCount{VK_SAMPLE_COUNT_1_BIT};
 	};
 
+	// wrapper
 	Image(VkImage, VkImageView, const CreateInfo&);
 
 	// gpu allocated
-	Image(VkDevice,
-		  VkImage,
-		  VkImageView,
-		  VmaAllocation,
-		  VmaAllocator,
-		  const CreateInfo&);
+	Image(VkDevice, VmaAllocator, const CreateInfo&);
 
 	~Image();
 
@@ -87,15 +83,15 @@ public:
 	}
 
 private:
-	VkDevice m_device;
-	VkImage m_image;
-	VkImageView m_view;
-	VmaAllocation m_allocation;
-	VmaAllocator m_allocator;
+	VkDevice m_device{nullptr};
+	VmaAllocator m_allocator{nullptr};
+
+	VmaAllocation m_allocation{nullptr};
+	VkImage m_image{nullptr};
+	VkImageView m_view{nullptr};
 
 	VkImageLayout m_currentLayout;
 	VkDeviceSize m_pixelSize;
-
 	CreateInfo m_creationInfo;
 
 public:

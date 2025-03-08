@@ -19,24 +19,19 @@ struct PresentInfo {
 };
 
 class Swapchain {
-	friend class Device;
-
 public:
 	struct CreateInfo {
-		VkExtent2D extent{0, 0};
+		uint32_t width;
+		uint32_t height;
 		ColorFormat swapchainFormat{VK_FORMAT_R8G8B8A8_UNORM};
 		VkColorSpaceKHR colorSpace{VK_COLOR_SPACE_SRGB_NONLINEAR_KHR};
 		VkPresentModeKHR presentMode{VK_PRESENT_MODE_FIFO_KHR};
 		VkSurfaceKHR surface{nullptr};
 	};
 
-	Swapchain(VkDevice, VkSwapchainKHR, const CreateInfo&);
+	Swapchain(VkDevice, VkPhysicalDevice, const CreateInfo&);
 
 	~Swapchain();
-
-	static Swapchain allocateSwapchain(VkDevice,
-									   VkPhysicalDevice,
-									   const CreateInfo&);
 
 	Image& getCurrentImage();
 
@@ -50,12 +45,11 @@ public:
 
 private:
 	VkDevice m_device;
-	VkSwapchainKHR m_swapchain;
-
 	CreateInfo m_creationInfo;
 
-	std::vector<Image> m_images;
+	VkSwapchainKHR m_swapchain{nullptr};
 	uint32_t m_currentImageIndex{0};
+	std::vector<Image> m_images;
 
 public:
 	Swapchain(const Swapchain&) = delete;

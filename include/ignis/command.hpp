@@ -49,19 +49,12 @@ public:
 	};
 
 	Command(VkDevice,
-			VkCommandBuffer,
 			VkCommandPool,
-			VkDescriptorSet,  // to bind pipeline
+			VkDescriptorSet,  // to bind pipelines
 			VmaAllocator,	  // to allocate staging buffers
 			const CreateInfo&);
 
 	~Command();
-
-	static Command allocateCommand(VkDevice,
-								   VkCommandPool,
-								   VkDescriptorSet,
-								   VmaAllocator,
-								   const CreateInfo&);
 
 	void begin(VkCommandBufferUsageFlags flags =
 				   VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
@@ -129,12 +122,12 @@ public:
 
 private:
 	VkDevice m_device;
-	VkCommandBuffer m_commandBuffer;
 	VkCommandPool m_commandPool;
 	VkDescriptorSet m_descriptorSet;
 	VmaAllocator m_allocator;
 	VkQueue m_queue;
 
+	VkCommandBuffer m_commandBuffer{nullptr};
 	bool m_isRecording{false};
 	bool m_pipelineBound{false};
 	std::vector<std::unique_ptr<Buffer>> m_stagingBuffers{};

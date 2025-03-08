@@ -5,23 +5,33 @@
 
 using namespace ignis;
 
-Buffer::Buffer(VkDevice device,
-			   VkBuffer buffer,
-			   VkDeviceAddress address,
-			   VmaAllocation allocation,
-			   VmaAllocator allocator,
-			   const CreateInfo& info)
-	: m_device(device),
-	  m_buffer(buffer),
-	  m_bufferAddress(address),
-	  m_allocation(allocation),
-	  m_allocator(allocator),
-	  m_creationInfo(info) {
-	assert(device != nullptr && "Invalid device");
-	assert(buffer != nullptr && "Invalid buffer");
-	assert(allocation != nullptr && "Invalid allocation");
-	assert(allocator != nullptr && "Invalid allocator");
+Buffer::Buffer(VkDevice device, VmaAllocator allocator, const CreateInfo& info)
+	: m_device(device), m_allocator(allocator), m_creationInfo(info) {
+	assert(m_device != nullptr && "Invalid device");
+	assert(m_allocator != nullptr && "Invalid allocator");
 	assert(info.size > 0 && "Invalid buffer size");
+
+	VkBufferCreateInfo bufferInfo{
+		.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+		.size = info.size,
+		.usage = info.bufferUsage | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
+		.sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+	};
+
+	VmaAllocationCreateInfo allocationInfo{
+		.requiredFlags = info.memoryProperties,
+	};
+
+	THROW_VULKAN_ERROR(vmaCreateBuffer(allocator, &bufferInfo, &allocationInfo,
+									   &m_buffer, &m_allocation, nullptr),
+					   "Failed to create buffer");
+
+	VkBufferDeviceAddressInfo addressInfo{
+		.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO,
+		.buffer = m_buffer,
+	};
+
+	m_bufferAddress = vkGetBufferDeviceAddress(device, &addressInfo);
 
 	if (info.initialData) {
 		writeData(info.initialData);
@@ -80,37 +90,6 @@ void Buffer::readData(void* data, uint32_t offset, uint32_t size) {
 	}
 }
 
-Buffer Buffer::allocateBuffer(VkDevice device,
-							  VmaAllocator allocator,
-							  const CreateInfo& info) {
-	VkBufferCreateInfo bufferInfo{
-		.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-		.size = info.size,
-		.usage = info.bufferUsage | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
-		.sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-	};
-
-	VmaAllocationCreateInfo allocationInfo{
-		.requiredFlags = info.memoryProperties,
-	};
-
-	VkBuffer allocatedBuffer{nullptr};
-	VmaAllocation allocation{nullptr};
-
-	THROW_VULKAN_ERROR(vmaCreateBuffer(allocator, &bufferInfo, &allocationInfo,
-									   &allocatedBuffer, &allocation, nullptr),
-					   "Failed to create buffer");
-
-	VkBufferDeviceAddressInfo addressInfo{
-		.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO,
-		.buffer = allocatedBuffer,
-	};
-
-	VkDeviceAddress address = vkGetBufferDeviceAddress(device, &addressInfo);
-
-	return Buffer(device, allocatedBuffer, address, allocation, allocator, info);
-}
-
 Buffer Buffer::allocateUBO(VkDevice device,
 						   VkDeviceSize alignment,
 						   VmaAllocator allocator,
@@ -126,7 +105,7 @@ Buffer Buffer::allocateUBO(VkDevice device,
 		.initialData = data,
 	};
 
-	return allocateBuffer(device, allocator, info);
+	return Buffer(device, allocator, info);
 }
 
 Buffer Buffer::allocateSSBO(VkDevice device,
@@ -144,7 +123,7 @@ Buffer Buffer::allocateSSBO(VkDevice device,
 		.initialData = data,
 	};
 
-	return allocateBuffer(device, allocator, info);
+	return Buffer(device, allocator, info);
 }
 
 Buffer Buffer::allocateStagingBuffer(VkDevice device,
@@ -159,7 +138,7 @@ Buffer Buffer::allocateStagingBuffer(VkDevice device,
 		.initialData = data,
 	};
 
-	return allocateBuffer(device, allocator, info);
+	return Buffer(device, allocator, info);
 }
 
 Buffer Buffer::allocateIndexBuffer32(VkDevice device,
@@ -174,5 +153,5 @@ Buffer Buffer::allocateIndexBuffer32(VkDevice device,
 		.initialData = data,
 	};
 
-	return allocateBuffer(device, allocator, info);
+	return Buffer(device, allocator, info);
 }

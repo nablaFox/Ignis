@@ -40,7 +40,7 @@ public:
 		VkBlendOp alphaBlendOp{VK_BLEND_OP_ADD};
 	};
 
-	Pipeline(const CreateInfo&);
+	Pipeline(VkDevice, const CreateInfo&);
 
 	~Pipeline();
 

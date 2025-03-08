@@ -8,13 +8,11 @@
 using namespace ignis;
 
 Command::Command(VkDevice device,
-				 VkCommandBuffer commandBuffer,
 				 VkCommandPool commandPool,
 				 VkDescriptorSet descriptorSet,
 				 VmaAllocator allocator,
 				 const CreateInfo& info)
 	: m_device(device),
-	  m_commandBuffer(commandBuffer),
 	  m_commandPool(commandPool),
 	  m_descriptorSet(descriptorSet),
 	  m_allocator(allocator),
