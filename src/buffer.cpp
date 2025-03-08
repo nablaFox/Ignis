@@ -1,48 +1,31 @@
-#include "buffer.hpp"
 #include <cassert>
 #include <cstring>
 #include "exceptions.hpp"
-#include "device.hpp"
+#include "buffer.hpp"
 
 using namespace ignis;
 
-Buffer::Buffer(CreateInfo info)
-	: m_device(*info.device),
-	  m_memoryProperties(info.memoryProperties),
+Buffer::Buffer(VkDevice device,
+			   VkBuffer buffer,
+			   VkDeviceAddress address,
+			   VmaAllocation allocation,
+			   VmaAllocator allocator,
+			   const CreateInfo& info)
+	: m_device(device),
+	  m_buffer(buffer),
+	  m_bufferAddress(address),
+	  m_allocation(allocation),
+	  m_allocator(allocator),
+	  m_size(info.size),
 	  m_bufferUsage(info.bufferUsage),
-	  m_size(info.size) {
-	assert(m_size > 0 && "Buffer size must be greater than 0");
-
-	VkBufferCreateInfo bufferInfo{
-		.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
-		.size = m_size,
-		.usage = info.bufferUsage | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
-		.sharingMode = VK_SHARING_MODE_EXCLUSIVE,
-	};
-
-	VmaAllocationCreateInfo allocationInfo{
-		.requiredFlags = info.memoryProperties,
-	};
-
-	THROW_VULKAN_ERROR(
-		vmaCreateBuffer(m_device.getAllocator(), &bufferInfo, &allocationInfo,
-						&m_buffer, &m_allocation, nullptr),
-		"Failed to create buffer");
-
-	VkBufferDeviceAddressInfo addressInfo{
-		.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO,
-		.buffer = m_buffer,
-	};
-
-	m_deviceAddress = vkGetBufferDeviceAddress(m_device.getDevice(), &addressInfo);
-
+	  m_memoryProperties(info.memoryProperties) {
 	if (info.initialData) {
 		writeData(info.initialData);
 	}
 }
 
 Buffer::~Buffer() {
-	vmaDestroyBuffer(m_device.getAllocator(), m_buffer, m_allocation);
+	vmaDestroyBuffer(m_allocator, m_buffer, m_allocation);
 }
 
 void Buffer::writeData(const void* data, uint32_t offset, uint32_t size) {
@@ -56,16 +39,16 @@ void Buffer::writeData(const void* data, uint32_t offset, uint32_t size) {
 	THROW_ERROR(offset + size > m_size, "Out of bounds");
 
 	void* mappedData = nullptr;
-	vmaMapMemory(m_device.getAllocator(), m_allocation, &mappedData);
+	vmaMapMemory(m_allocator, m_allocation, &mappedData);
 
 	char* dst = static_cast<char*>(mappedData) + offset;
 	memcpy(dst, data, size);
 
 	if (!(m_memoryProperties & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)) {
-		vmaFlushAllocation(m_device.getAllocator(), m_allocation, offset, size);
+		vmaFlushAllocation(m_allocator, m_allocation, offset, size);
 	}
 
-	vmaUnmapMemory(m_device.getAllocator(), m_allocation);
+	vmaUnmapMemory(m_allocator, m_allocation);
 }
 
 void Buffer::readData(void* data, uint32_t offset, uint32_t size) {
@@ -79,81 +62,111 @@ void Buffer::readData(void* data, uint32_t offset, uint32_t size) {
 	THROW_ERROR(offset + size > size, "Out of bounds");
 
 	void* mappedData = nullptr;
-	vmaMapMemory(m_device.getAllocator(), m_allocation, &mappedData);
+	vmaMapMemory(m_allocator, m_allocation, &mappedData);
 
 	char* src = static_cast<char*>(mappedData) + offset;
 	memcpy(data, src, size);
 
-	vmaUnmapMemory(m_device.getAllocator(), m_allocation);
+	vmaUnmapMemory(m_allocator, m_allocation);
 
 	if (!(m_memoryProperties & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)) {
-		vmaInvalidateAllocation(m_device.getAllocator(), m_allocation, offset, size);
+		vmaInvalidateAllocation(m_allocator, m_allocation, offset, size);
 	}
 }
 
-Buffer* Buffer::createUBO(const Device* device, uint32_t size, const void* data) {
-	VkDeviceSize alignment = device->getUboAlignment();
+Buffer Buffer::allocateBuffer(VkDevice device,
+							  VmaAllocator allocator,
+							  const CreateInfo& info) {
+	VkBufferCreateInfo bufferInfo{
+		.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+		.size = info.size,
+		.usage = info.bufferUsage | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
+		.sharingMode = VK_SHARING_MODE_EXCLUSIVE,
+	};
+
+	VmaAllocationCreateInfo allocationInfo{
+		.requiredFlags = info.memoryProperties,
+	};
+
+	VkBuffer allocatedBuffer{nullptr};
+	VmaAllocation allocation{nullptr};
+
+	THROW_VULKAN_ERROR(vmaCreateBuffer(allocator, &bufferInfo, &allocationInfo,
+									   &allocatedBuffer, &allocation, nullptr),
+					   "Failed to create buffer");
+
+	VkBufferDeviceAddressInfo addressInfo{
+		.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO,
+		.buffer = allocatedBuffer,
+	};
+
+	VkDeviceAddress address = vkGetBufferDeviceAddress(device, &addressInfo);
+
+	return Buffer(device, allocatedBuffer, address, allocation, allocator, info);
+}
+
+Buffer Buffer::allocateUBO(VkDevice device,
+						   VkDeviceSize alignment,
+						   VmaAllocator allocator,
+						   VkDeviceSize size,
+						   const void* data) {
 	VkDeviceSize bufferSize = (size + alignment - 1) & ~(alignment - 1);
 
-	return new Buffer({
-		.device = device,
+	Buffer::CreateInfo info{
 		.bufferUsage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
 		.memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
 							VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
 		.size = bufferSize,
 		.initialData = data,
-	});
+	};
+
+	return allocateBuffer(device, allocator, info);
 }
 
-Buffer* Buffer::createSSBO(const Device* device, uint32_t size, const void* data) {
-	VkDeviceSize alignment = device->getSsboAlignment();
+Buffer Buffer::allocateSSBO(VkDevice device,
+							VkDeviceSize alignment,
+							VmaAllocator allocator,
+							VkDeviceSize size,
+							const void* data) {
 	VkDeviceSize bufferSize = (size + alignment - 1) & ~(alignment - 1);
 
-	return new Buffer({
-		.device = device,
+	Buffer::CreateInfo info{
 		.bufferUsage =
 			VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
 		.memoryProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
 		.size = bufferSize,
 		.initialData = data,
-	});
+	};
+
+	return allocateBuffer(device, allocator, info);
 }
 
-Buffer* Buffer::createVertexBuffer(const Device* device,
-								   uint32_t size,
-								   const void* data) {
-	return new Buffer({
-		.device = device,
-		.bufferUsage =
-			VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-		.memoryProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-		.size = size,
-		.initialData = data,
-	});
-}
-
-Buffer* Buffer::createIndexBuffer32(const Device* device,
-									uint32_t elementCount,
-									uint32_t* data) {
-	return new Buffer({
-		.device = device,
-		.bufferUsage =
-			VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-		.memoryProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-		.size = sizeof(uint32_t) * elementCount,
-		.initialData = data,
-	});
-}
-
-Buffer* Buffer::createStagingBuffer(const Device* device,
-									VkDeviceSize size,
-									const void* data) {
-	return new Buffer({
-		.device = device,
+Buffer Buffer::allocateStagingBuffer(VkDevice device,
+									 VmaAllocator allocator,
+									 VkDeviceSize size,
+									 const void* data) {
+	Buffer::CreateInfo info{
 		.bufferUsage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
 		.memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
 							VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
 		.size = size,
 		.initialData = data,
-	});
+	};
+
+	return allocateBuffer(device, allocator, info);
+}
+
+Buffer Buffer::allocateIndexBuffer32(VkDevice device,
+									 VmaAllocator allocator,
+									 uint32_t indicesCount,
+									 uint32_t* data) {
+	Buffer::CreateInfo info{
+		.bufferUsage =
+			VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+		.memoryProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+		.size = sizeof(uint32_t) * indicesCount,
+		.initialData = data,
+	};
+
+	return allocateBuffer(device, allocator, info);
 }

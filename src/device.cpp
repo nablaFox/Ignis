@@ -253,11 +253,11 @@ Device::Device(CreateInfo createInfo) : m_shadersFolder(createInfo.shadersFolder
 
 void Device::submitCommands(std::vector<SubmitCmdInfo> submits,
 							const Fence& fence) const {
-	uint32_t queueIndex = submits[0].command->getQueueIndex();
+	VkQueue queue = submits[0].command.getQueue();
 
 #ifndef NDEBUG
 	for (const auto& submit : submits) {
-		if (submit.command->getQueueIndex() != queueIndex) {
+		if (submit.command.getQueue() != queue) {
 			std::cerr << "ignis::Device::submitCommands: "
 						 "commands must be relative to the same queue"
 					  << std::endl;
@@ -299,7 +299,7 @@ void Device::submitCommands(std::vector<SubmitCmdInfo> submits,
 
 		data.commandInfo = {
 			.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO,
-			.commandBuffer = submit.command->getHandle(),
+			.commandBuffer = submit.command.getHandle(),
 		};
 
 		data.submitInfo = {
@@ -320,7 +320,7 @@ void Device::submitCommands(std::vector<SubmitCmdInfo> submits,
 		submitInfos.push_back(data.submitInfo);
 	}
 
-	vkQueueSubmit2(m_queues[queueIndex], static_cast<uint32_t>(submitInfos.size()),
+	vkQueueSubmit2(queue, static_cast<uint32_t>(submitInfos.size()),
 				   submitInfos.data(), fence.getHandle());
 }
 
@@ -432,6 +432,24 @@ VkSampleCountFlagBits Device::getMaxSampleCount() const {
 		return VK_SAMPLE_COUNT_2_BIT;
 
 	return VK_SAMPLE_COUNT_1_BIT;
+}
+
+Buffer Device::createBuffer(Buffer::CreateInfo info) const {
+	return Buffer::allocateBuffer(m_device, m_allocator, info);
+}
+
+Buffer Device::createUBO(VkDeviceSize size, void* initialData) const {
+	return Buffer::allocateUBO(m_device, getUboAlignment(), m_allocator, size,
+							   initialData);
+}
+
+Buffer Device::createSSBO(VkDeviceSize size, void* initialData) const {
+	return Buffer::allocateSSBO(m_device, getSsboAlignment(), m_allocator, size,
+								initialData);
+}
+
+Buffer Device::createStagingBuffer(VkDeviceSize size, void* initialData) const {
+	return Buffer::allocateStagingBuffer(m_device, m_allocator, size, initialData);
 }
 
 Device::~Device() {

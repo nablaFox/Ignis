@@ -6,20 +6,20 @@
 #include <string>
 #include <vector>
 #include "bindless_resources.hpp"
+#include "buffer.hpp"
+#include "command.hpp"
 
 namespace ignis {
 
 class Semaphore;
 class Fence;
-class Command;
-class Buffer;
 class Image;
 class Sampler;
 class Features;
 
 // each command should be relative to the same queue
 struct SubmitCmdInfo {
-	const Command* command;
+	const Command& command;
 	std::vector<const Semaphore*> waitSemaphores;
 	std::vector<const Semaphore*> signalSemaphores;
 };
@@ -102,6 +102,18 @@ public:
 	VmaAllocator getAllocator() const { return m_allocator; }
 
 	std::string getFullShaderPath(std::string shaderPath) const;
+
+public:
+	// allocation stuff
+	Command createCommand(Command::CreateInfo) const;
+
+	Buffer createBuffer(Buffer::CreateInfo) const;
+
+	Buffer createUBO(VkDeviceSize size, void* initialData = nullptr) const;
+
+	Buffer createSSBO(VkDeviceSize size, void* initialData = nullptr) const;
+
+	Buffer createStagingBuffer(VkDeviceSize size, void* initialData = nullptr) const;
 
 private:
 	VkInstance m_instance{nullptr};

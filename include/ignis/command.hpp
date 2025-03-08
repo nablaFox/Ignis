@@ -1,15 +1,15 @@
 #pragma once
 
 #include <vulkan/vulkan_core.h>
+#include <vk_mem_alloc.h>
 #include <cassert>
+#include <memory>
 #include <vector>
 #include "exceptions.hpp"
 #include "pipeline.hpp"
 
 namespace ignis {
 
-class Device;
-class Pipeline;
 class Buffer;
 class Image;
 struct ImageData;
@@ -17,14 +17,14 @@ class ColorImage;
 class DepthImage;
 
 struct DrawAttachment {
-	ColorImage* drawImage{nullptr};
+	ColorImage& drawImage;
 	VkAttachmentLoadOp loadAction{VK_ATTACHMENT_LOAD_OP_CLEAR};
 	VkAttachmentStoreOp storeAction{VK_ATTACHMENT_STORE_OP_STORE};
 	VkClearColorValue clearColor{0.0f, 0.0f, 0.0f, 1.0f};
 };
 
 struct DepthAttachment {
-	DepthImage* depthImage{nullptr};
+	DepthImage& depthImage;
 	VkAttachmentLoadOp loadAction{VK_ATTACHMENT_LOAD_OP_CLEAR};
 	VkAttachmentStoreOp storeAction{VK_ATTACHMENT_STORE_OP_DONT_CARE};
 };
@@ -43,10 +43,23 @@ struct DepthAttachment {
 // Note 5: clear values are fixed
 // Note 6: the render area is fixed
 // Note 7: we can only render to 1 draw attachment
+// Note 8: the command in certain methods will allocate GPU memory (staging buffers)
 
 class Command {
+	friend class Device;
+
 public:
-	Command(const Device&, uint32_t queueIndex = 0);
+	struct CreateInfo {
+		VkQueue queue;
+	};
+
+	Command(VkDevice,
+			VkCommandBuffer,
+			VkCommandPool,
+			VkDescriptorSet,  // to bind pipeline
+			VmaAllocator,	  // to allocate staging buffers
+			const CreateInfo&);
+
 	~Command();
 
 	void begin(VkCommandBufferUsageFlags flags =
@@ -57,8 +70,6 @@ public:
 	void bindPipeline(const Pipeline&);
 
 	void beginRender(const DrawAttachment*, const DepthAttachment*);
-
-	void beginRender(DepthAttachment);
 
 	void endRendering();
 
@@ -110,20 +121,30 @@ public:
 					   uint32_t firstVertex = 0,
 					   uint32_t firstInstance = 0);
 
-	uint32_t getQueueIndex() const { return m_queueIndex; }
+	VkQueue getQueue() const { return m_queue; }
 
 	VkCommandBuffer getHandle() const { return m_commandBuffer; }
 
 private:
-	const Device& m_device;
-	VkCommandPool m_commandPool{nullptr};
-	uint32_t m_queueIndex;
-	VkCommandBuffer m_commandBuffer{nullptr};
+	VkDevice m_device;
+	VkCommandBuffer m_commandBuffer;
+	VkCommandPool m_commandPool;
+	VkDescriptorSet m_descriptorSet;
+	VmaAllocator m_allocator;
+	VkQueue m_queue;
+
 	bool m_isRecording{false};
-	std::vector<Buffer*> m_stagingBuffers;
+	std::vector<std::unique_ptr<Buffer>> m_stagingBuffers{};
 	const Pipeline* m_currentPipeline{nullptr};
 
+	static Command allocateCommand(VkDevice,
+								   VkCommandPool,
+								   VkDescriptorSet,
+								   VmaAllocator,
+								   const CreateInfo&);
+
 public:
+	// TODO make move-only
 	Command(const Command&) = delete;
 	Command(Command&&) = delete;
 	Command& operator=(const Command&) = delete;

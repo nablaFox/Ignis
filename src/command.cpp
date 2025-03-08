@@ -4,43 +4,30 @@
 #include "depth_image.hpp"
 #include "device.hpp"
 #include "image.hpp"
-#include "sampler.hpp"
-#include "shader.hpp"
 #include "vk_utils.hpp"
 
 using namespace ignis;
 
-static void clearStagingBuffers(std::vector<Buffer*>& buffers) {
-	for (auto& buffer : buffers) {
-		delete buffer;
-	}
-
-	buffers.clear();
-}
-
-Command::Command(const Device& device, uint32_t queueIndex)
+Command::Command(VkDevice device,
+				 VkCommandBuffer commandBuffer,
+				 VkCommandPool commandPool,
+				 VkDescriptorSet descriptorSet,
+				 VmaAllocator allocator,
+				 const CreateInfo& info)
 	: m_device(device),
-	  m_commandPool(m_device.getCommandPool(queueIndex)),
-	  m_queueIndex(queueIndex) {
-	VkCommandBufferAllocateInfo allocInfo{
-		.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-		.commandPool = m_commandPool,
-		.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
-		.commandBufferCount = 1,
-	};
-
-	THROW_VULKAN_ERROR(
-		vkAllocateCommandBuffers(m_device.getDevice(), &allocInfo, &m_commandBuffer),
-		"Failed to allocate command buffer");
-}
+	  m_commandBuffer(commandBuffer),
+	  m_commandPool(commandPool),
+	  m_descriptorSet(descriptorSet),
+	  m_allocator(allocator),
+	  m_queue(info.queue) {}
 
 Command::~Command() {
-	clearStagingBuffers(m_stagingBuffers);
-	vkFreeCommandBuffers(m_device.getDevice(), m_commandPool, 1, &m_commandBuffer);
+	m_stagingBuffers.clear();
+	vkFreeCommandBuffers(m_device, m_commandPool, 1, &m_commandBuffer);
 }
 
 void Command::begin(VkCommandBufferUsageFlags flags) {
-	clearStagingBuffers(m_stagingBuffers);
+	m_stagingBuffers.clear();
 
 	assert(!m_isRecording);
 
@@ -211,10 +198,10 @@ void Command::updateImage(const Image& image,
 
 	uint32_t pixelsCount = size.width * size.height;
 
-	Buffer* staging = Buffer::createStagingBuffer(
-		&m_device, image.getPixelSize() * pixelsCount, pixels);
+	auto staging = std::make_unique<Buffer>(Buffer::allocateStagingBuffer(
+		m_device, m_allocator, image.getPixelSize() * pixelsCount, pixels));
 
-	m_stagingBuffers.push_back(staging);
+	m_stagingBuffers.push_back(std::move(staging));
 
 	staging->writeData(pixels);
 
@@ -263,9 +250,10 @@ void Command::updateBuffer(const Buffer& buffer,
 
 	THROW_ERROR(offset + size > buffer.getSize(), "Out of bounds");
 
-	Buffer* staging = Buffer::createStagingBuffer(&m_device, size, data);
+	auto staging = std::make_unique<Buffer>(
+		Buffer::allocateStagingBuffer(m_device, m_allocator, size, data));
 
-	m_stagingBuffers.push_back(staging);
+	m_stagingBuffers.push_back(std::move(staging));
 
 	VkBufferCopy copyRegion = {
 		.srcOffset = 0,
@@ -280,10 +268,8 @@ void Command::updateBuffer(const Buffer& buffer,
 void Command::bindPipeline(const Pipeline& pipeline) {
 	CHECK_IS_RECORDING;
 
-	VkDescriptorSet descriptorSet = m_device.getDescriptorSet();
-
 	vkCmdBindDescriptorSets(m_commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-							pipeline.getLayoutHandle(), 0, 1, &descriptorSet, 0,
+							pipeline.getLayoutHandle(), 0, 1, &m_descriptorSet, 0,
 							nullptr);
 
 	vkCmdBindPipeline(m_commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
@@ -306,14 +292,14 @@ void Command::beginRender(const DrawAttachment* drawAttachment,
 	};
 
 	if (drawAttachment != nullptr) {
-		THROW_ERROR((drawAttachment->drawImage->getUsage() &
+		THROW_ERROR((drawAttachment->drawImage.getUsage() &
 					 VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT) == 0,
 					"Draw image must have COLOR_ATTACHMENT usage");
 
-		assert(drawAttachment->drawImage->getCurrentLayout() ==
+		assert(drawAttachment->drawImage.getCurrentLayout() ==
 			   VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
-		colorAttachment.imageView = drawAttachment->drawImage->getViewHandle();
+		colorAttachment.imageView = drawAttachment->drawImage.getViewHandle();
 		colorAttachment.loadOp = drawAttachment->loadAction;
 		colorAttachment.storeOp = drawAttachment->storeAction;
 	}
@@ -325,20 +311,20 @@ void Command::beginRender(const DrawAttachment* drawAttachment,
 	};
 
 	if (depthAttachment != nullptr) {
-		THROW_ERROR((depthAttachment->depthImage->getUsage() &
+		THROW_ERROR((depthAttachment->depthImage.getUsage() &
 					 VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT) == 0,
 					"Depth image must have DEPTH_STENCIL_ATTACHMENT usage");
 
-		assert(depthAttachment->depthImage->getCurrentLayout() ==
+		assert(depthAttachment->depthImage.getCurrentLayout() ==
 			   VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 
-		depthAttachmentInfo.imageView = depthAttachment->depthImage->getViewHandle();
+		depthAttachmentInfo.imageView = depthAttachment->depthImage.getViewHandle();
 		depthAttachmentInfo.loadOp = depthAttachment->loadAction;
 		depthAttachmentInfo.storeOp = depthAttachment->storeAction;
 	}
 
-	VkExtent2D extent = drawAttachment ? drawAttachment->drawImage->getExtent()
-									   : depthAttachment->depthImage->getExtent();
+	VkExtent2D extent = drawAttachment ? drawAttachment->drawImage.getExtent()
+									   : depthAttachment->depthImage.getExtent();
 
 	VkRenderingInfo renderingInfo{
 		.sType = VK_STRUCTURE_TYPE_RENDERING_INFO,
