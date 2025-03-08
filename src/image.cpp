@@ -7,30 +7,22 @@
 
 using namespace ignis;
 
-Image::Image(const Device& device,
-			 VkExtent2D extent,
-			 VkFormat format,
-			 VkImageUsageFlags usage,
-			 VkSampleCountFlagBits sampleCount,
-			 VkImageLayout optimalLayout,
-			 VkImageAspectFlags viewAspect,
-			 const void* initialPixels)
-	: ImageData{VK_NULL_HANDLE, usage,	viewAspect,
-				extent,			format, VK_IMAGE_LAYOUT_UNDEFINED,
-				optimalLayout},
-	  m_device(device),
-	  m_pixelSize(::getPixelSize(format)),
-	  m_sampleCount(sampleCount) {
+Image::Image(const Device& device, const ImageCreateInfo& info)
+	: m_device(device),
+	  m_pixelSize(::getPixelSize(info.format)),
+	  m_creationInfo(info) {
+	assert(info.width > 0 && info.height > 0 && "Invalid image extent");
+
 	VkImageCreateInfo imageInfo = {
 		.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
 		.imageType = VK_IMAGE_TYPE_2D,
-		.format = format,
-		.extent = {extent.width, extent.height, 1},
+		.format = info.format,
+		.extent = {info.width, info.height, 1},
 		.mipLevels = 1,
 		.arrayLayers = 1,
-		.samples = sampleCount,
+		.samples = info.sampleCount,
 		.tiling = VK_IMAGE_TILING_OPTIMAL,
-		.usage = usage,
+		.usage = info.usage,
 		.sharingMode = VK_SHARING_MODE_EXCLUSIVE,
 		.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
 	};
@@ -41,17 +33,17 @@ Image::Image(const Device& device,
 
 	THROW_VULKAN_ERROR(
 		vmaCreateImage(m_device.getAllocator(), &imageInfo, &allocationInfo,
-					   &m_handle, &m_allocation, nullptr),
+					   &m_image, &m_allocation, nullptr),
 		"Failed to create image");
 
 	VkImageViewCreateInfo viewInfo = {
 		.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-		.image = m_handle,
+		.image = m_image,
 		.viewType = VK_IMAGE_VIEW_TYPE_2D,
-		.format = format,
+		.format = info.format,
 		.subresourceRange =
 			{
-				.aspectMask = viewAspect,
+				.aspectMask = info.aspect,
 				.baseMipLevel = 0,
 				.levelCount = 1,
 				.baseArrayLayer = 0,
@@ -67,12 +59,12 @@ Image::Image(const Device& device,
 
 	cmd.begin();
 
-	if (initialPixels) {
+	if (info.initialPixels) {
 		cmd.transitionImageLayout(*this, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-		cmd.updateImage(*this, initialPixels);
+		cmd.updateImage(*this, info.initialPixels);
 	}
 
-	cmd.transitionImageLayout(*this, m_optimalLayout);
+	cmd.transitionImageLayout(*this, info.optimalLayout);
 
 	cmd.end();
 
@@ -83,7 +75,24 @@ Image::Image(const Device& device,
 	fence.wait();
 }
 
+Image::Image(const Device& device,
+			 VkImage image,
+			 VkImageView view,
+			 const ImageCreateInfo& info)
+	: m_image(image),
+	  m_view(view),
+	  m_device(device),
+	  m_creationInfo(info),
+	  m_pixelSize(::getPixelSize(info.format)) {
+	assert(info.width > 0 && info.height > 0 && "Invalid image extent");
+	assert(m_image != nullptr && "Invalid image handle");
+}
+
 Image::~Image() {
-	vkDestroyImageView(m_device.getDevice(), m_view, nullptr);
-	vmaDestroyImage(m_device.getAllocator(), m_handle, m_allocation);
+	// TEMP: now we are using m_view to check if the image was created
+	// as a wrapper or as an allocation
+	if (m_view != nullptr) {
+		vkDestroyImageView(m_device.getDevice(), m_view, nullptr);
+		vmaDestroyImage(m_device.getAllocator(), m_image, m_allocation);
+	}
 }

@@ -64,7 +64,7 @@ void Command::end() {
 	m_isRecording = false;
 }
 
-void Command::transitionImageLayout(ImageData& image, VkImageLayout newLayout) {
+void Command::transitionImageLayout(Image& image, VkImageLayout newLayout) {
 	CHECK_IS_RECORDING;
 
 	TransitionInfo transitionInfo =
@@ -78,8 +78,8 @@ void Command::transitionImageLayout(ImageData& image, VkImageLayout newLayout) {
 		.newLayout = newLayout,
 		.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
 		.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-		.image = image.m_handle,
-		.subresourceRange = {image.m_aspect, 0, 1, 0, 1},
+		.image = image.getHandle(),
+		.subresourceRange = {image.getAspect(), 0, 1, 0, 1},
 	};
 
 	vkCmdPipelineBarrier(m_commandBuffer, transitionInfo.srcStage,
@@ -89,14 +89,14 @@ void Command::transitionImageLayout(ImageData& image, VkImageLayout newLayout) {
 	image.m_currentLayout = newLayout;
 }
 
-void Command::transitionToOptimalLayout(ImageData& image) {
+void Command::transitionToOptimalLayout(Image& image) {
 	CHECK_IS_RECORDING;
 
-	transitionImageLayout(image, image.m_optimalLayout);
+	transitionImageLayout(image, image.getOptimalLayout());
 }
 
-void Command::copyImage(const ImageData& src,
-						const ImageData& dst,
+void Command::copyImage(const Image& src,
+						const Image& dst,
 						VkOffset2D srcOffset,
 						VkOffset2D dstOffset) {
 	assert(src.m_currentLayout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL &&
@@ -106,14 +106,14 @@ void Command::copyImage(const ImageData& src,
 		   "Destination image is not in the correct layout");
 
 	VkImageSubresourceLayers srcSubresource{
-		.aspectMask = src.m_aspect,
+		.aspectMask = src.getAspect(),
 		.mipLevel = 0,
 		.baseArrayLayer = 0,
 		.layerCount = 1,
 	};
 
 	VkImageSubresourceLayers dstSubresource{
-		.aspectMask = dst.m_aspect,
+		.aspectMask = dst.getAspect(),
 		.mipLevel = 0,
 		.baseArrayLayer = 0,
 		.layerCount = 1,
@@ -124,16 +124,16 @@ void Command::copyImage(const ImageData& src,
 		.srcOffset = {srcOffset.x, srcOffset.y, 0},
 		.dstSubresource = dstSubresource,
 		.dstOffset = {dstOffset.x, dstOffset.y, 0},
-		.extent = {src.m_extent.width, src.m_extent.height, 1},
+		.extent = src.getExtent(),
 	};
 
-	vkCmdCopyImage(m_commandBuffer, src.m_handle,
-				   VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, dst.m_handle,
+	vkCmdCopyImage(m_commandBuffer, src.getHandle(),
+				   VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, dst.getHandle(),
 				   VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copyRegion);
 }
 
-void Command::blitImage(const ImageData& src,
-						const ImageData& dst,
+void Command::blitImage(const Image& src,
+						const Image& dst,
 						VkOffset2D srcOffset,
 						VkOffset2D dstOffset) {
 	assert(src.m_currentLayout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL &&
@@ -141,14 +141,17 @@ void Command::blitImage(const ImageData& src,
 	assert(dst.m_currentLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL &&
 		   "Destination image is not in the correct layout");
 
+	VkExtent2D srcExtent = src.getExtent2D();
+	VkExtent2D dstExtent = dst.getExtent2D();
+
 	uint32_t srcAvailableWidth =
-		src.m_extent.width - static_cast<uint32_t>(srcOffset.x);
+		srcExtent.width - static_cast<uint32_t>(srcOffset.x);
 	uint32_t srcAvailableHeight =
-		src.m_extent.height - static_cast<uint32_t>(srcOffset.y);
+		srcExtent.height - static_cast<uint32_t>(srcOffset.y);
 	uint32_t dstAvailableWidth =
-		dst.m_extent.width - static_cast<uint32_t>(dstOffset.x);
+		dstExtent.width - static_cast<uint32_t>(dstOffset.x);
 	uint32_t dstAvailableHeight =
-		dst.m_extent.height - static_cast<uint32_t>(dstOffset.y);
+		dstExtent.height - static_cast<uint32_t>(dstOffset.y);
 
 	uint32_t regionWidth = std::min(srcAvailableWidth, dstAvailableWidth);
 	uint32_t regionHeight = std::min(srcAvailableHeight, dstAvailableHeight);
@@ -166,7 +169,7 @@ void Command::blitImage(const ImageData& src,
 		.pNext = nullptr,
 		.srcSubresource =
 			{
-				.aspectMask = src.m_aspect,
+				.aspectMask = src.getAspect(),
 				.mipLevel = 0,
 				.baseArrayLayer = 0,
 				.layerCount = 1,
@@ -174,7 +177,7 @@ void Command::blitImage(const ImageData& src,
 		.srcOffsets = {srcStart, srcEnd},
 		.dstSubresource =
 			{
-				.aspectMask = dst.m_aspect,
+				.aspectMask = dst.getAspect(),
 				.mipLevel = 0,
 				.baseArrayLayer = 0,
 				.layerCount = 1,
@@ -185,9 +188,9 @@ void Command::blitImage(const ImageData& src,
 	VkBlitImageInfo2 blitInfo{
 		.sType = VK_STRUCTURE_TYPE_BLIT_IMAGE_INFO_2,
 		.pNext = nullptr,
-		.srcImage = src.m_handle,
+		.srcImage = src.getHandle(),
 		.srcImageLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-		.dstImage = dst.m_handle,
+		.dstImage = dst.getHandle(),
 		.dstImageLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
 		.regionCount = 1,
 		.pRegions = &blitRegion,
@@ -206,13 +209,16 @@ void Command::updateImage(const Image& image,
 	assert(image.getCurrentLayout() == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL &&
 		   "Image is not in the correct layout");
 
-	VkExtent2D size =
-		(!imageSize.width && !imageSize.height) ? image.getExtent() : imageSize;
+	if (!imageSize.width) {
+		imageSize.width = image.getExtent2D().width;
+	}
 
-	uint32_t pixelsCount = size.width * size.height;
+	if (!imageSize.height) {
+		imageSize.height = image.getExtent2D().height;
+	}
 
-	Buffer* staging = Buffer::createStagingBuffer(
-		&m_device, image.getPixelSize() * pixelsCount, pixels);
+	Buffer* staging =
+		Buffer::createStagingBuffer(&m_device, image.getSize(), pixels);
 
 	m_stagingBuffers.push_back(staging);
 
@@ -222,14 +228,14 @@ void Command::updateImage(const Image& image,
 		.bufferOffset = 0,
 		.imageSubresource = {image.getAspect(), 0, 0, 1},
 		.imageOffset = {imageOffset.x, imageOffset.y, 0},
-		.imageExtent = {size.width, size.height, 1},
+		.imageExtent = {imageSize.width, imageSize.height, 1},
 	};
 
 	vkCmdCopyBufferToImage(m_commandBuffer, staging->getHandle(), image.getHandle(),
 						   VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copyRegion);
 }
 
-void Command::resolveImage(const ImageData& src, const ImageData& dst) {
+void Command::resolveImage(const Image& src, const Image& dst) {
 	CHECK_IS_RECORDING;
 
 	assert(src.m_currentLayout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL &&
@@ -239,15 +245,15 @@ void Command::resolveImage(const ImageData& src, const ImageData& dst) {
 		   "Destination image is not in the correct layout");
 
 	VkImageResolve resolveRegion{
-		.srcSubresource = {src.m_aspect, 0, 0, 1},
+		.srcSubresource = {src.getAspect(), 0, 0, 1},
 		.srcOffset = {0, 0, 0},
-		.dstSubresource = {dst.m_aspect, 0, 0, 1},
+		.dstSubresource = {dst.getAspect(), 0, 0, 1},
 		.dstOffset = {0, 0, 0},
-		.extent = {src.m_extent.width, src.m_extent.height, 1},
+		.extent = src.getExtent(),
 	};
 
-	vkCmdResolveImage(m_commandBuffer, src.m_handle,
-					  VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, dst.m_handle,
+	vkCmdResolveImage(m_commandBuffer, src.getHandle(),
+					  VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, dst.getHandle(),
 					  VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &resolveRegion);
 }
 
@@ -313,6 +319,8 @@ void Command::beginRender(const DrawAttachment* drawAttachment,
 		assert(drawAttachment->drawImage->getCurrentLayout() ==
 			   VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
+		assert(drawAttachment->drawImage->getViewHandle() != nullptr);
+
 		colorAttachment.imageView = drawAttachment->drawImage->getViewHandle();
 		colorAttachment.loadOp = drawAttachment->loadAction;
 		colorAttachment.storeOp = drawAttachment->storeAction;
@@ -332,13 +340,15 @@ void Command::beginRender(const DrawAttachment* drawAttachment,
 		assert(depthAttachment->depthImage->getCurrentLayout() ==
 			   VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 
+		assert(drawAttachment->drawImage->getViewHandle() != nullptr);
+
 		depthAttachmentInfo.imageView = depthAttachment->depthImage->getViewHandle();
 		depthAttachmentInfo.loadOp = depthAttachment->loadAction;
 		depthAttachmentInfo.storeOp = depthAttachment->storeAction;
 	}
 
-	VkExtent2D extent = drawAttachment ? drawAttachment->drawImage->getExtent()
-									   : depthAttachment->depthImage->getExtent();
+	VkExtent2D extent = drawAttachment ? drawAttachment->drawImage->getExtent2D()
+									   : depthAttachment->depthImage->getExtent2D();
 
 	VkRenderingInfo renderingInfo{
 		.sType = VK_STRUCTURE_TYPE_RENDERING_INFO,

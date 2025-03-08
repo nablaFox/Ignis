@@ -5,13 +5,16 @@ using namespace ignis;
 DepthImage::DepthImage(CreateInfo info)
 	: m_format(info.format),
 	  Image(*info.device,
-			info.extent,
-			static_cast<VkFormat>(info.format),
-			info.usage,
-			info.sampleCount,
-			info.optimalLayout,
-			VK_IMAGE_ASPECT_DEPTH_BIT,
-			info.initialPixels) {}
+			{
+				.usage = info.usage,
+				.aspect = VK_IMAGE_ASPECT_DEPTH_BIT,
+				.width = info.extent.width,
+				.height = info.extent.height,
+				.format = static_cast<VkFormat>(info.format),
+				.optimalLayout = info.optimalLayout,
+				.sampleCount = info.sampleCount,
+				.initialPixels = info.initialPixels,
+			}) {}
 
 DepthImage* DepthImage::createDepthImage(DepthStencilCreateInfo info) {
 	return new DepthImage({

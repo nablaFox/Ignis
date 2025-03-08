@@ -5,7 +5,6 @@
 #include "device.hpp"
 #include "exceptions.hpp"
 #include "image.hpp"
-#include "image_data.hpp"
 #include "semaphore.hpp"
 #include "fence.hpp"
 
@@ -142,10 +141,16 @@ Swapchain::Swapchain(CreateInfo info)
 	m_images.reserve(actualImageCount);
 
 	for (const auto& handle : imageHandles) {
-		m_images.push_back({handle, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
-							VK_IMAGE_ASPECT_COLOR_BIT, swapExtent,
-							chosenFormat.format, VK_IMAGE_LAYOUT_UNDEFINED,
-							VK_IMAGE_LAYOUT_PRESENT_SRC_KHR});
+		ImageCreateInfo info{
+			.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
+					 VK_IMAGE_USAGE_TRANSFER_DST_BIT,
+			.width = swapExtent.width,
+			.height = swapExtent.height,
+			.format = chosenFormat.format,
+			.optimalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+		};
+
+		m_images.push_back(std::make_unique<Image>(m_device, handle, nullptr, info));
 	}
 
 	// 10. transition all the images to transfer dst
@@ -154,7 +159,7 @@ Swapchain::Swapchain(CreateInfo info)
 	cmd.begin();
 
 	for (auto& image : m_images) {
-		cmd.transitionImageLayout(image, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+		cmd.transitionImageLayout(*image, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 	}
 
 	cmd.end();
@@ -176,13 +181,13 @@ Swapchain::~Swapchain() {
 	vkDestroySurfaceKHR(m_device.getInstance(), m_surface, nullptr);
 }
 
-ImageData& Swapchain::acquireNextImage(const Semaphore* signalSemaphore) {
+Image& Swapchain::acquireNextImage(const Semaphore* signalSemaphore) {
 	THROW_ERROR(vkAcquireNextImageKHR(m_device.getDevice(), m_swapchain, UINT64_MAX,
 									  signalSemaphore->getHandle(), VK_NULL_HANDLE,
 									  &m_currentImageIndex) != VK_SUCCESS,
 				"Failed to acquire next image");
 
-	return m_images[m_currentImageIndex];
+	return *m_images[m_currentImageIndex];
 }
 
 void Swapchain::present(PresentInfo info) {

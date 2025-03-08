@@ -3,7 +3,7 @@
 #include <vulkan/vulkan_core.h>
 #include <memory>
 #include <vector>
-#include "image_data.hpp"
+#include "image.hpp"
 
 // Note 1: we don't have multi layered swapchains
 // Note 2: each swapchain is relative to a single surface
@@ -14,7 +14,6 @@ class Device;
 class Image;
 class Semaphore;
 class Fence;
-struct ImageData;
 enum class ColorFormat;
 
 class Swapchain {
@@ -40,9 +39,9 @@ public:
 			signalSemaphores;  // they are relative to the presenting
 	};
 
-	ImageData& getCurrentImage() { return m_images[m_currentImageIndex]; }
+	Image& getCurrentImage() { return *m_images[m_currentImageIndex]; }
 
-	ImageData& acquireNextImage(const Semaphore* signalSemaphore);
+	Image& acquireNextImage(const Semaphore* signalSemaphore);
 
 	uint32_t getImagesCount() const { return m_images.size(); }
 
@@ -52,7 +51,7 @@ private:
 	const Device& m_device;
 	VkSwapchainKHR m_swapchain{nullptr};
 	VkSurfaceKHR m_surface;
-	std::vector<ImageData> m_images;
+	std::vector<std::unique_ptr<Image>> m_images;
 	uint32_t m_currentImageIndex{0};
 	VkExtent2D m_extent{0, 0};
 
