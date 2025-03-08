@@ -434,7 +434,9 @@ VkSampleCountFlagBits Device::getMaxSampleCount() const {
 	return VK_SAMPLE_COUNT_1_BIT;
 }
 
-Buffer Device::createBuffer(Buffer::CreateInfo info) const {
+Command Device::createCommand(const Command::CreateInfo& info) const {}
+
+Buffer Device::createBuffer(const Buffer::CreateInfo& info) const {
 	return Buffer::allocateBuffer(m_device, m_allocator, info);
 }
 
@@ -450,6 +452,10 @@ Buffer Device::createSSBO(VkDeviceSize size, void* initialData) const {
 
 Buffer Device::createStagingBuffer(VkDeviceSize size, void* initialData) const {
 	return Buffer::allocateStagingBuffer(m_device, m_allocator, size, initialData);
+}
+
+Swapchain Device::createSwapchain(const Swapchain::CreateInfo& info) const {
+	return Swapchain::allocateSwapchain(m_device, m_phyiscalDevice, info);
 }
 
 Device::~Device() {

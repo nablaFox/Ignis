@@ -1,64 +1,61 @@
 #pragma once
 
 #include <vulkan/vulkan_core.h>
-#include <memory>
 #include <vector>
-#include "image_data.hpp"
 
 // Note 1: we don't have multi layered swapchains
 // Note 2: each swapchain is relative to a single surface
 
 namespace ignis {
 
-class Device;
-class Image;
 class Semaphore;
-class Fence;
-struct ImageData;
+class Image;
 enum class ColorFormat;
 
+struct PresentInfo {
+	Image* srcImage;
+	VkQueue presentationQueue;
+	std::vector<const Semaphore*> waitSemaphores;
+};
+
 class Swapchain {
+	friend class Device;
+
 public:
 	struct CreateInfo {
-		const Device* device{nullptr};
 		VkExtent2D extent{0, 0};
-		ColorFormat format{VK_FORMAT_R8G8B8A8_UNORM};
+		ColorFormat swapchainFormat{VK_FORMAT_R8G8B8A8_UNORM};
 		VkColorSpaceKHR colorSpace{VK_COLOR_SPACE_SRGB_NONLINEAR_KHR};
-		VkSurfaceKHR surface{VK_NULL_HANDLE};
 		VkPresentModeKHR presentMode{VK_PRESENT_MODE_FIFO_KHR};
+		VkSurfaceKHR surface{nullptr};
 	};
 
-	Swapchain(CreateInfo);
+	Swapchain(VkDevice, VkSwapchainKHR, const CreateInfo&);
+
 	~Swapchain();
 
-	struct PresentInfo {
-		Image* srcImage;
-		uint32_t queueIndex;
-		std::vector<const Semaphore*>
-			waitSemaphores;	 // they are relative to the blitting
-		std::vector<const Semaphore*>
-			signalSemaphores;  // they are relative to the presenting
-	};
+	Image& getCurrentImage();
 
-	ImageData& getCurrentImage() { return m_images[m_currentImageIndex]; }
+	Image& acquireNextImage(const Semaphore* signalSemaphore = nullptr);
 
-	ImageData& acquireNextImage(const Semaphore* signalSemaphore);
+	VkSwapchainKHR getHandle() const { return m_swapchain; }
 
-	uint32_t getImagesCount() const { return m_images.size(); }
+	uint32_t getImagesCount() const;
 
-	void present(PresentInfo);
+	void presentCurrent(const PresentInfo&);
 
 private:
-	const Device& m_device;
-	VkSwapchainKHR m_swapchain{nullptr};
-	VkSurfaceKHR m_surface;
-	std::vector<ImageData> m_images;
-	uint32_t m_currentImageIndex{0};
-	VkExtent2D m_extent{0, 0};
+	VkDevice m_device;
+	VkSwapchainKHR m_swapchain;
 
-	std::unique_ptr<Semaphore> acquiredImageSem;
-	std::unique_ptr<Semaphore> blittedImageSem;
-	std::unique_ptr<Fence> blitFence;
+	CreateInfo m_creationInfo;
+
+	std::vector<Image> m_images;
+	uint32_t m_currentImageIndex{0};
+
+	static Swapchain allocateSwapchain(VkDevice,
+									   VkPhysicalDevice,
+									   const CreateInfo&);
 
 public:
 	Swapchain(const Swapchain&) = delete;

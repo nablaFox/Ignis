@@ -2,8 +2,8 @@
 #include "buffer.hpp"
 #include "color_image.hpp"
 #include "depth_image.hpp"
-#include "device.hpp"
 #include "image.hpp"
+#include "swapchain.hpp"
 #include "vk_utils.hpp"
 
 using namespace ignis;
@@ -51,7 +51,7 @@ void Command::end() {
 	m_isRecording = false;
 }
 
-void Command::transitionImageLayout(ImageData& image, VkImageLayout newLayout) {
+void Command::transitionImageLayout(Image& image, VkImageLayout newLayout) {
 	CHECK_IS_RECORDING;
 
 	TransitionInfo transitionInfo =
@@ -65,7 +65,7 @@ void Command::transitionImageLayout(ImageData& image, VkImageLayout newLayout) {
 		.newLayout = newLayout,
 		.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
 		.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-		.image = image.m_handle,
+		.image = image.m_image,
 		.subresourceRange = {image.m_aspect, 0, 1, 0, 1},
 	};
 
@@ -76,14 +76,14 @@ void Command::transitionImageLayout(ImageData& image, VkImageLayout newLayout) {
 	image.m_currentLayout = newLayout;
 }
 
-void Command::transitionToOptimalLayout(ImageData& image) {
+void Command::transitionToOptimalLayout(Image& image) {
 	CHECK_IS_RECORDING;
 
 	transitionImageLayout(image, image.m_optimalLayout);
 }
 
-void Command::copyImage(const ImageData& src,
-						const ImageData& dst,
+void Command::copyImage(const Image& src,
+						const Image& dst,
 						VkOffset2D srcOffset,
 						VkOffset2D dstOffset) {
 	assert(src.m_currentLayout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL &&
@@ -114,13 +114,13 @@ void Command::copyImage(const ImageData& src,
 		.extent = {src.m_extent.width, src.m_extent.height, 1},
 	};
 
-	vkCmdCopyImage(m_commandBuffer, src.m_handle,
-				   VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, dst.m_handle,
+	vkCmdCopyImage(m_commandBuffer, src.m_image,
+				   VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, dst.m_image,
 				   VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copyRegion);
 }
 
-void Command::blitImage(const ImageData& src,
-						const ImageData& dst,
+void Command::blitImage(const Image& src,
+						const Image& dst,
 						VkOffset2D srcOffset,
 						VkOffset2D dstOffset) {
 	assert(src.m_currentLayout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL &&
@@ -172,9 +172,9 @@ void Command::blitImage(const ImageData& src,
 	VkBlitImageInfo2 blitInfo{
 		.sType = VK_STRUCTURE_TYPE_BLIT_IMAGE_INFO_2,
 		.pNext = nullptr,
-		.srcImage = src.m_handle,
+		.srcImage = src.m_image,
 		.srcImageLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-		.dstImage = dst.m_handle,
+		.dstImage = dst.m_image,
 		.dstImageLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
 		.regionCount = 1,
 		.pRegions = &blitRegion,
@@ -216,7 +216,7 @@ void Command::updateImage(const Image& image,
 						   VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copyRegion);
 }
 
-void Command::resolveImage(const ImageData& src, const ImageData& dst) {
+void Command::resolveImage(const Image& src, const Image& dst) {
 	CHECK_IS_RECORDING;
 
 	assert(src.m_currentLayout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL &&
@@ -233,8 +233,8 @@ void Command::resolveImage(const ImageData& src, const ImageData& dst) {
 		.extent = {src.m_extent.width, src.m_extent.height, 1},
 	};
 
-	vkCmdResolveImage(m_commandBuffer, src.m_handle,
-					  VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, dst.m_handle,
+	vkCmdResolveImage(m_commandBuffer, src.m_image,
+					  VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, dst.m_image,
 					  VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &resolveRegion);
 }
 

@@ -4,7 +4,6 @@
 #include <math.h>
 #include "semaphore.hpp"
 #include "color_image.hpp"
-#include "buffer.hpp"
 #include "device.hpp"
 #include "command.hpp"
 #include "fence.hpp"
@@ -265,10 +264,9 @@ int main(int argc, char* argv[]) {
 		return 1;
 	}
 
-	Swapchain swapchain({
-		.device = &device,
+	Swapchain swapchain = device.createSwapchain({
 		.extent = {WINDOW_WIDTH, WINDOW_HEIGHT},
-		.format = ColorFormat::RGBA8,
+		.swapchainFormat = ColorFormat::RGBA8,
 		.surface = surface,
 	});
 
@@ -285,7 +283,8 @@ int main(int argc, char* argv[]) {
 
 	vec2 pushIntensity = {8.f * square.mass, 9.8f * square.mass};
 
-	Command updatePixelsCmd(device);
+	Command updatePixelsCmd = device.createCommand({.queue = device.getQueue(0)});
+
 	Fence waitForRendering(device, true);
 	Semaphore finishedRendering(device);
 
@@ -345,7 +344,7 @@ int main(int argc, char* argv[]) {
 		updatePixelsCmd.end();
 
 		SubmitCmdInfo submitUpdatePixelsInfo{
-			.command = &updatePixelsCmd,
+			.command = updatePixelsCmd,
 			.signalSemaphores = {&finishedRendering},
 		};
 

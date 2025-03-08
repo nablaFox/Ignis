@@ -8,12 +8,13 @@
 #include "bindless_resources.hpp"
 #include "buffer.hpp"
 #include "command.hpp"
+#include "image.hpp"
+#include "swapchain.hpp"
 
 namespace ignis {
 
 class Semaphore;
 class Fence;
-class Image;
 class Sampler;
 class Features;
 
@@ -24,6 +25,7 @@ struct SubmitCmdInfo {
 	std::vector<const Semaphore*> signalSemaphores;
 };
 
+// TODO: use enums
 constexpr std::array IGNIS_REQ_FEATURES = {
 	"BufferDeviceAddress",
 	"DynamicRendering",
@@ -105,15 +107,20 @@ public:
 
 public:
 	// allocation stuff
-	Command createCommand(Command::CreateInfo) const;
+	Command createCommand(const Command::CreateInfo&) const;
 
-	Buffer createBuffer(Buffer::CreateInfo) const;
+	Buffer createBuffer(const Buffer::CreateInfo&) const;
 
 	Buffer createUBO(VkDeviceSize size, void* initialData = nullptr) const;
 
 	Buffer createSSBO(VkDeviceSize size, void* initialData = nullptr) const;
 
 	Buffer createStagingBuffer(VkDeviceSize size, void* initialData = nullptr) const;
+
+	// here we will also transition the image to the optimal layout
+	Image createImage(const Image::CreateInfo&) const;
+
+	Swapchain createSwapchain(const Swapchain::CreateInfo&) const;
 
 private:
 	VkInstance m_instance{nullptr};

@@ -1,56 +1,83 @@
-#include "swapchain.hpp"
-#include <vulkan/vulkan_core.h>
 #include <cassert>
+#include "swapchain.hpp"
 #include "command.hpp"
-#include "device.hpp"
 #include "exceptions.hpp"
 #include "image.hpp"
-#include "image_data.hpp"
 #include "semaphore.hpp"
-#include "fence.hpp"
 
 using namespace ignis;
 
-// the user should provide the correct instance & device extensions
-// when creating the device so here we don't do any check
-// (if it throws, it's the user's fault)
-Swapchain::Swapchain(CreateInfo info)
-	: m_device(*info.device), m_surface(info.surface) {
+Swapchain::Swapchain(VkDevice device,
+					 VkSwapchainKHR swapchain,
+					 const CreateInfo& info)
+	: m_device(device), m_swapchain(swapchain), m_creationInfo(info) {
 	assert(info.extent.width > 0 && info.extent.height > 0 &&
 		   "Invalid swapchain extent");
 
-	VkPhysicalDevice physicalDevice = m_device.getPhysicalDevice();
-	VkSurfaceKHR surface = info.surface;
+	uint32_t actualImageCount = 0;
+	vkGetSwapchainImagesKHR(m_device, m_swapchain, &actualImageCount, nullptr);
+
+	std::vector<VkImage> imageHandles(actualImageCount);
+	vkGetSwapchainImagesKHR(m_device, m_swapchain, &actualImageCount,
+							imageHandles.data());
+
+	m_images.reserve(actualImageCount);
+
+	for (const auto& handle : imageHandles) {
+		Image::CreateInfo imageCreateInfo{
+			.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
+					 VK_IMAGE_USAGE_TRANSFER_DST_BIT,
+			.aspect = VK_IMAGE_ASPECT_COLOR_BIT,
+			.extent = info.extent,
+			.format = static_cast<VkFormat>(info.swapchainFormat),
+			.optimalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+			.sampleCount = VK_SAMPLE_COUNT_1_BIT,
+		};
+
+		Image image(handle, nullptr, std::move(imageCreateInfo));
+
+		m_images.push_back(std::move(image));
+	}
+}
+
+Swapchain Swapchain::allocateSwapchain(VkDevice device,
+									   VkPhysicalDevice physicalDevice,
+									   const CreateInfo& info) {
+	assert(info.extent.width > 0 && info.extent.height > 0 &&
+		   "Invalid swapchain extent");
+
+	assert(info.surface != nullptr && "Invalid surface");
 
 	// 1. Query the surface capabilities.VkSurfaceCapabilitiesKHR capabilities;
 	VkSurfaceCapabilitiesKHR capabilities;
 
 	THROW_ERROR(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
-					physicalDevice, surface, &capabilities) != VK_SUCCESS,
+					physicalDevice, info.surface, &capabilities) != VK_SUCCESS,
 				"Failed to get surface capabilities");
 
 	// 2. Query available surface formats.
 	uint32_t formatCount = 0;
-	THROW_ERROR(vkGetPhysicalDeviceSurfaceFormatsKHR(
-					physicalDevice, surface, &formatCount, nullptr) != VK_SUCCESS,
-				"Failed to get surface formats count");
+	THROW_ERROR(
+		vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, info.surface,
+											 &formatCount, nullptr) != VK_SUCCESS,
+		"Failed to get surface formats count");
 
 	std::vector<VkSurfaceFormatKHR> formats(formatCount);
-	THROW_ERROR(
-		vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &formatCount,
-											 formats.data()) != VK_SUCCESS,
-		"Failed to get surface formats");
+	THROW_ERROR(vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, info.surface,
+													 &formatCount,
+													 formats.data()) != VK_SUCCESS,
+				"Failed to get surface formats");
 
 	// 3. Query available present modes.
 	uint32_t presentModeCount = 0;
 	THROW_ERROR(
 		vkGetPhysicalDeviceSurfacePresentModesKHR(
-			physicalDevice, surface, &presentModeCount, nullptr) != VK_SUCCESS,
+			physicalDevice, info.surface, &presentModeCount, nullptr) != VK_SUCCESS,
 		"Failed to get present modes count");
 
 	std::vector<VkPresentModeKHR> presentModes(presentModeCount);
 	THROW_ERROR(vkGetPhysicalDeviceSurfacePresentModesKHR(
-					physicalDevice, surface, &presentModeCount,
+					physicalDevice, info.surface, &presentModeCount,
 					presentModes.data()) != VK_SUCCESS,
 				"Failed to get present modes");
 
@@ -77,19 +104,19 @@ Swapchain::Swapchain(CreateInfo info)
 		swapExtent.height = std::max(
 			capabilities.minImageExtent.height,
 			std::min(capabilities.maxImageExtent.height, swapExtent.height));
-
-		m_extent = swapExtent;
 	}
 
 	// 6. Surface format
 	VkSurfaceFormatKHR chosenFormat{};
+
 	if (formats.size() == 1 && formats[0].format == VK_FORMAT_UNDEFINED) {
-		chosenFormat.format = static_cast<VkFormat>(info.format);
+		chosenFormat.format = static_cast<VkFormat>(info.swapchainFormat);
 		chosenFormat.colorSpace = info.colorSpace;
 	} else {
 		bool found = false;
 		for (const auto& availableFormat : formats) {
-			if (availableFormat.format == static_cast<VkFormat>(info.format) &&
+			if (availableFormat.format ==
+					static_cast<VkFormat>(info.swapchainFormat) &&
 				availableFormat.colorSpace == info.colorSpace) {
 				chosenFormat = availableFormat;
 				found = true;
@@ -110,7 +137,7 @@ Swapchain::Swapchain(CreateInfo info)
 	// 8. Create the swapchain
 	VkSwapchainCreateInfoKHR createInfo = {
 		.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
-		.surface = surface,
+		.surface = info.surface,
 		.minImageCount = imageCount,
 		.imageFormat = chosenFormat.format,
 		.imageColorSpace = chosenFormat.colorSpace,
@@ -126,58 +153,28 @@ Swapchain::Swapchain(CreateInfo info)
 		.oldSwapchain = VK_NULL_HANDLE,
 	};
 
-	THROW_ERROR(vkCreateSwapchainKHR(m_device.getDevice(), &createInfo, nullptr,
-									 &m_swapchain) != VK_SUCCESS,
-				"Failed to create swapchain");
+	VkSwapchainKHR swapchain{nullptr};
 
-	// 9. Get the swapchain images
-	uint32_t actualImageCount = 0;
-	vkGetSwapchainImagesKHR(m_device.getDevice(), m_swapchain, &actualImageCount,
-							nullptr);
+	THROW_ERROR(
+		vkCreateSwapchainKHR(device, &createInfo, nullptr, &swapchain) != VK_SUCCESS,
+		"Failed to create swapchain");
 
-	std::vector<VkImage> imageHandles(actualImageCount);
-	vkGetSwapchainImagesKHR(m_device.getDevice(), m_swapchain, &actualImageCount,
-							imageHandles.data());
+	CreateInfo newInfo{
+		.extent = swapExtent,
+		.swapchainFormat = static_cast<ColorFormat>(chosenFormat.format),
+		.colorSpace = chosenFormat.colorSpace,
+		.presentMode = presentMode,
+	};
 
-	m_images.reserve(actualImageCount);
-
-	for (const auto& handle : imageHandles) {
-		m_images.push_back({handle, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
-							VK_IMAGE_ASPECT_COLOR_BIT, swapExtent,
-							chosenFormat.format, VK_IMAGE_LAYOUT_UNDEFINED,
-							VK_IMAGE_LAYOUT_PRESENT_SRC_KHR});
-	}
-
-	// 10. transition all the images to transfer dst
-	Command cmd(m_device, 0);
-
-	cmd.begin();
-
-	for (auto& image : m_images) {
-		cmd.transitionImageLayout(image, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
-	}
-
-	cmd.end();
-
-	Fence fence(m_device);
-
-	m_device.submitCommands({{&cmd}}, fence);
-
-	fence.wait();
-
-	// 11. init sync structures
-	acquiredImageSem = std::make_unique<Semaphore>(m_device);
-	blittedImageSem = std::make_unique<Semaphore>(m_device);
-	blitFence = std::make_unique<Fence>(m_device, true);
+	return Swapchain(device, swapchain, newInfo);
 }
 
 Swapchain::~Swapchain() {
-	vkDestroySwapchainKHR(m_device.getDevice(), m_swapchain, nullptr);
-	vkDestroySurfaceKHR(m_device.getInstance(), m_surface, nullptr);
+	vkDestroySwapchainKHR(m_device, m_swapchain, nullptr);
 }
 
-ImageData& Swapchain::acquireNextImage(const Semaphore* signalSemaphore) {
-	THROW_ERROR(vkAcquireNextImageKHR(m_device.getDevice(), m_swapchain, UINT64_MAX,
+Image& Swapchain::acquireNextImage(const Semaphore* signalSemaphore) {
+	THROW_ERROR(vkAcquireNextImageKHR(m_device, m_swapchain, UINT64_MAX,
 									  signalSemaphore->getHandle(), VK_NULL_HANDLE,
 									  &m_currentImageIndex) != VK_SUCCESS,
 				"Failed to acquire next image");
@@ -185,64 +182,30 @@ ImageData& Swapchain::acquireNextImage(const Semaphore* signalSemaphore) {
 	return m_images[m_currentImageIndex];
 }
 
-void Swapchain::present(PresentInfo info) {
-	assert(info.srcImage->getCurrentLayout() ==
-			   VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL &&
-		   "Image is not in the correct layout");
+Image& Swapchain::getCurrentImage() {
+	return m_images[m_currentImageIndex];
+}
 
-	blitFence->reset();
+uint32_t Swapchain::getImagesCount() const {
+	return m_images.size();
+}
 
-	auto& currentSwapchainImage = acquireNextImage(acquiredImageSem.get());
+void Swapchain::presentCurrent(const PresentInfo& info) {
+	std::vector<VkSemaphore> waitSemaphores;
 
-	// PONDER is okay to create the command every time we call this function?
-	Command blitCmd(m_device, info.queueIndex);
-
-	blitCmd.begin(VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT);
-
-	blitCmd.transitionImageLayout(currentSwapchainImage,
-								  VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-	blitCmd.transitionImageLayout(*info.srcImage,
-								  VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-
-	if (info.srcImage->getSampleCount() != VK_SAMPLE_COUNT_1_BIT) {
-		blitCmd.resolveImage(*info.srcImage, currentSwapchainImage);
-	} else if (info.srcImage->getFormat() == currentSwapchainImage.getFormat()) {
-		blitCmd.copyImage(*info.srcImage, currentSwapchainImage);
-	} else {
-		blitCmd.blitImage(*info.srcImage, currentSwapchainImage);
+	for (const auto& semaphore : info.waitSemaphores) {
+		waitSemaphores.push_back(semaphore->getHandle());
 	}
-
-	blitCmd.transitionToOptimalLayout(*info.srcImage);
-	blitCmd.transitionToOptimalLayout(currentSwapchainImage);
-
-	blitCmd.end();
-
-	info.waitSemaphores.push_back(acquiredImageSem.get());
-
-	SubmitCmdInfo copyCmdInfo{
-		.command = &blitCmd,
-		.waitSemaphores = std::move(info.waitSemaphores),
-		.signalSemaphores = {blittedImageSem.get()},
-	};
-
-	m_device.submitCommands({std::move(copyCmdInfo)}, *blitFence);
-
-	// present image
-	VkSemaphore waitSem = blittedImageSem.get()->getHandle();
 
 	VkPresentInfoKHR presentInfo{
 		.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
-		.waitSemaphoreCount = 1,
-		.pWaitSemaphores = &waitSem,
+		.waitSemaphoreCount = static_cast<uint32_t>(waitSemaphores.size()),
+		.pWaitSemaphores = waitSemaphores.data(),
 		.swapchainCount = 1,
 		.pSwapchains = &m_swapchain,
 		.pImageIndices = &m_currentImageIndex,
 	};
 
-	VkQueue presentQueue = m_device.getQueue(info.queueIndex);
-
-	THROW_VULKAN_ERROR(vkQueuePresentKHR(presentQueue, &presentInfo),
+	THROW_VULKAN_ERROR(vkQueuePresentKHR(info.presentationQueue, &presentInfo),
 					   "Failed to present swapchain image");
-
-	blitFence->wait();
 }

@@ -77,8 +77,8 @@ private:
 public:
 	Buffer(const Buffer&) = delete;
 	Buffer& operator=(const Buffer&) = delete;
-	Buffer(Buffer&&) noexcept = default;
-	Buffer& operator=(Buffer&&) noexcept = delete;
+	Buffer(Buffer&&) = default;
+	Buffer& operator=(Buffer&&) = delete;
 };
 
 }  // namespace ignis
