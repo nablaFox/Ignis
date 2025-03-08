@@ -6,7 +6,7 @@
 
 using namespace ignis;
 
-Buffer::Buffer(CreateInfo info)
+Buffer::Buffer(const BufferCreateInfo& info)
 	: m_device(*info.device),
 	  m_memoryProperties(info.memoryProperties),
 	  m_bufferUsage(info.bufferUsage),

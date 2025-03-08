@@ -1,3 +1,4 @@
+#include <cassert>
 #include <memory>
 #include "pipeline.hpp"
 #include "shader.hpp"
@@ -6,8 +7,10 @@
 
 using namespace ignis;
 
-Pipeline::Pipeline(CreateInfo info) : m_device(*info.device) {
+Pipeline::Pipeline(const PipelineCreateInfo& info) : m_device(*info.device) {
 	std::vector<std::unique_ptr<Shader>> shaders;
+
+	assert(!info.shaders.empty() && "No shaders provided");
 
 	for (const auto& shaderPath : info.shaders) {
 		shaders.emplace_back(std::make_unique<Shader>(m_device, shaderPath));

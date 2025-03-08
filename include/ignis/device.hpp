@@ -56,7 +56,8 @@ public:
 		std::vector<const char*> optionalFeatures{};
 	};
 
-	Device(CreateInfo);
+	Device(const CreateInfo&);
+
 	~Device();
 
 	void submitCommands(std::vector<SubmitCmdInfo>, const Fence& fence) const;

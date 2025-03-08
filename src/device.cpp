@@ -219,19 +219,22 @@ static void allocateCommandPools(VkDevice device,
 	}
 }
 
-Device::Device(CreateInfo createInfo) : m_shadersFolder(createInfo.shadersFolder) {
+Device::Device(const CreateInfo& createInfo)
+	: m_shadersFolder(createInfo.shadersFolder) {
 	createInstance(createInfo.appName, createInfo.instanceExtensions, &m_instance);
 
 #ifndef NDEBUG
 	createDebugUtilsMessenger(m_instance, &m_debugMessenger);
 #endif
 
+	std::vector<const char*> requiredFeatures = createInfo.requiredFeatures;
+
 	for (const auto& reqFeature : IGNIS_REQ_FEATURES) {
-		createInfo.requiredFeatures.push_back(reqFeature);
+		requiredFeatures.push_back(reqFeature);
 	}
 
-	auto m_features = std::make_unique<Features>(createInfo.requiredFeatures,
-												 createInfo.optionalFeatures);
+	auto m_features =
+		std::make_unique<Features>(requiredFeatures, createInfo.optionalFeatures);
 
 	::getPhysicalDevice(m_instance, createInfo.extensions, *m_features,
 						&m_phyiscalDevice, &m_physicalDeviceProperties);

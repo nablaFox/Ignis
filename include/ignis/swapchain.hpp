@@ -16,18 +16,19 @@ class Semaphore;
 class Fence;
 enum class ColorFormat;
 
+struct SwapchainCreateInfo {
+	const Device* device{nullptr};
+	VkExtent2D extent{0, 0};
+	ColorFormat format{VK_FORMAT_R8G8B8A8_UNORM};
+	VkColorSpaceKHR colorSpace{VK_COLOR_SPACE_SRGB_NONLINEAR_KHR};
+	VkSurfaceKHR surface{VK_NULL_HANDLE};
+	VkPresentModeKHR presentMode{VK_PRESENT_MODE_FIFO_KHR};
+};
+
 class Swapchain {
 public:
-	struct CreateInfo {
-		const Device* device{nullptr};
-		VkExtent2D extent{0, 0};
-		ColorFormat format{VK_FORMAT_R8G8B8A8_UNORM};
-		VkColorSpaceKHR colorSpace{VK_COLOR_SPACE_SRGB_NONLINEAR_KHR};
-		VkSurfaceKHR surface{VK_NULL_HANDLE};
-		VkPresentModeKHR presentMode{VK_PRESENT_MODE_FIFO_KHR};
-	};
+	Swapchain(const SwapchainCreateInfo&);
 
-	Swapchain(CreateInfo);
 	~Swapchain();
 
 	struct PresentInfo {

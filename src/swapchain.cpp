@@ -11,7 +11,7 @@ using namespace ignis;
 // the user should provide the correct instance & device extensions
 // when creating the device so here we don't do any check
 // (if it throws, it's the user's fault)
-Swapchain::Swapchain(CreateInfo info)
+Swapchain::Swapchain(const SwapchainCreateInfo& info)
 	: m_device(*info.device), m_surface(info.surface) {
 	assert(info.extent.width > 0 && info.extent.height > 0 &&
 		   "Invalid swapchain extent");

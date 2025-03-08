@@ -6,17 +6,17 @@ namespace ignis {
 
 class Device;
 
+struct BufferCreateInfo {
+	const Device* device;
+	VkBufferUsageFlags bufferUsage;
+	VkMemoryPropertyFlags memoryProperties;
+	VkDeviceSize size;
+	const void* initialData;
+};
+
 class Buffer {
 public:
-	struct CreateInfo {
-		const Device* device;
-		VkBufferUsageFlags bufferUsage;
-		VkMemoryPropertyFlags memoryProperties;
-		VkDeviceSize size;
-		const void* initialData;
-	};
-
-	Buffer(CreateInfo);
+	Buffer(const BufferCreateInfo&);
 
 	~Buffer();
 
