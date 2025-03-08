@@ -96,3 +96,34 @@ Image::~Image() {
 		vmaDestroyImage(m_device.getAllocator(), m_image, m_allocation);
 	}
 }
+
+Image Image::allocateDepthImage(const Device& device,
+								const DepthImageCreateInfo& info) {
+	ImageCreateInfo imageCreateInfo{
+		.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+		.aspect = VK_IMAGE_ASPECT_DEPTH_BIT,
+		.width = info.width,
+		.height = info.height,
+		.format = static_cast<VkFormat>(info.format),
+		.optimalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+		.sampleCount = info.sampleCount,
+	};
+
+	return Image(device, imageCreateInfo);
+}
+
+Image Image::allocateDrawImage(const Device& device,
+							   const DrawImageCreateInfo& info) {
+	ImageCreateInfo imageCreateInfo{
+		.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
+				 VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
+		.aspect = VK_IMAGE_ASPECT_COLOR_BIT,
+		.width = info.width,
+		.height = info.height,
+		.format = static_cast<VkFormat>(info.format),
+		.optimalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+		.sampleCount = info.sampleCount,
+	};
+
+	return Image(device, imageCreateInfo);
+}

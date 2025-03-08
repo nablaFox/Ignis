@@ -1,7 +1,5 @@
 #include "command.hpp"
 #include "buffer.hpp"
-#include "color_image.hpp"
-#include "depth_image.hpp"
 #include "device.hpp"
 #include "image.hpp"
 #include "sampler.hpp"
@@ -312,9 +310,15 @@ void Command::beginRender(const DrawAttachment* drawAttachment,
 	};
 
 	if (drawAttachment != nullptr) {
-		THROW_ERROR((drawAttachment->drawImage->getUsage() &
-					 VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT) == 0,
-					"Draw image must have COLOR_ATTACHMENT usage");
+		assert(drawAttachment->drawImage != nullptr &&
+			   "Draw attachment image is nullptr");
+
+		assert(isColorFormat(drawAttachment->drawImage->getFormat()) &&
+			   "Draw image format is not a color format");
+
+		assert((drawAttachment->drawImage->getUsage() &
+				VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT) != 0 &&
+			   "Draw image must have COLOR_ATTACHMENT usage");
 
 		assert(drawAttachment->drawImage->getCurrentLayout() ==
 			   VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
@@ -333,9 +337,15 @@ void Command::beginRender(const DrawAttachment* drawAttachment,
 	};
 
 	if (depthAttachment != nullptr) {
-		THROW_ERROR((depthAttachment->depthImage->getUsage() &
-					 VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT) == 0,
-					"Depth image must have DEPTH_STENCIL_ATTACHMENT usage");
+		assert(depthAttachment->depthImage != nullptr &&
+			   "Depth attachment image is nullptr");
+
+		assert(isDepthFormat(depthAttachment->depthImage->getFormat()) &&
+			   "Depth image format is not a depth format");
+
+		assert((depthAttachment->depthImage->getUsage() &
+				VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT) != 0 &&
+			   "Depth image must have DEPTH_STENCIL_ATTACHMENT usage");
 
 		assert(depthAttachment->depthImage->getCurrentLayout() ==
 			   VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);

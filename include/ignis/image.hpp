@@ -7,6 +7,18 @@ namespace ignis {
 
 class Device;
 
+enum class DepthFormat {
+	D16_UNORM = VK_FORMAT_D16_UNORM,
+	D24_UNORM_S8_UINT = VK_FORMAT_D24_UNORM_S8_UINT,
+	D32_SFLOAT = VK_FORMAT_D32_SFLOAT
+};
+
+enum class ColorFormat {
+	RGBA8 = VK_FORMAT_R8G8B8A8_UNORM,
+	RGBA16 = VK_FORMAT_R16G16B16A16_SFLOAT,
+	HDR = VK_FORMAT_R32G32B32A32_SFLOAT,
+};
+
 struct ImageCreateInfo {
 	VkImageUsageFlags usage{VK_IMAGE_USAGE_TRANSFER_DST_BIT |
 							VK_IMAGE_USAGE_SAMPLED_BIT};
@@ -17,6 +29,20 @@ struct ImageCreateInfo {
 	VkImageLayout optimalLayout{VK_IMAGE_LAYOUT_UNDEFINED};
 	VkSampleCountFlagBits sampleCount{VK_SAMPLE_COUNT_1_BIT};
 	const void* initialPixels{nullptr};
+};
+
+struct DepthImageCreateInfo {
+	uint32_t width{0};
+	uint32_t height{0};
+	DepthFormat format{DepthFormat::D16_UNORM};
+	VkSampleCountFlagBits sampleCount{VK_SAMPLE_COUNT_1_BIT};
+};
+
+struct DrawImageCreateInfo {
+	uint32_t width{0};
+	uint32_t height{0};
+	ColorFormat format{ColorFormat::RGBA16};
+	VkSampleCountFlagBits sampleCount{VK_SAMPLE_COUNT_1_BIT};
 };
 
 struct Image {
@@ -64,6 +90,11 @@ public:
 	VkSampleCountFlagBits getSampleCount() const {
 		return m_creationInfo.sampleCount;
 	}
+
+public:
+	static Image allocateDepthImage(const Device&, const DepthImageCreateInfo&);
+
+	static Image allocateDrawImage(const Device&, const DrawImageCreateInfo&);
 
 private:
 	const Device& m_device;

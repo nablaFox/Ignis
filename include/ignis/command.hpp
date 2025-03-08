@@ -12,18 +12,16 @@ class Device;
 class Pipeline;
 class Buffer;
 class Image;
-class ColorImage;
-class DepthImage;
 
 struct DrawAttachment {
-	ColorImage* drawImage{nullptr};
+	Image* drawImage{nullptr};
 	VkAttachmentLoadOp loadAction{VK_ATTACHMENT_LOAD_OP_CLEAR};
 	VkAttachmentStoreOp storeAction{VK_ATTACHMENT_STORE_OP_STORE};
 	VkClearColorValue clearColor{0.0f, 0.0f, 0.0f, 1.0f};
 };
 
 struct DepthAttachment {
-	DepthImage* depthImage{nullptr};
+	Image* depthImage{nullptr};
 	VkAttachmentLoadOp loadAction{VK_ATTACHMENT_LOAD_OP_CLEAR};
 	VkAttachmentStoreOp storeAction{VK_ATTACHMENT_STORE_OP_DONT_CARE};
 };

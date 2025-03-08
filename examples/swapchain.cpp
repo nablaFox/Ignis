@@ -3,7 +3,6 @@
 
 #include <math.h>
 #include "semaphore.hpp"
-#include "color_image.hpp"
 #include "buffer.hpp"
 #include "device.hpp"
 #include "command.hpp"
@@ -272,11 +271,12 @@ int main(int argc, char* argv[]) {
 		.surface = surface,
 	});
 
-	ColorImage* drawImage = ColorImage::createDrawImage({
-		.device = &device,
-		.extent = {WINDOW_WIDTH, WINDOW_HEIGHT},
-		.sampleCount = VK_SAMPLE_COUNT_1_BIT,
-	});
+	Image drawImage =
+		Image::allocateDrawImage(device, {
+											 .width = WINDOW_WIDTH,
+											 .height = WINDOW_HEIGHT,
+											 .sampleCount = VK_SAMPLE_COUNT_1_BIT,
+										 });
 
 	Screen screen{};
 
@@ -335,12 +335,12 @@ int main(int argc, char* argv[]) {
 		waitForRendering.reset();
 
 		updatePixelsCmd.begin();
-		updatePixelsCmd.transitionImageLayout(*drawImage,
+		updatePixelsCmd.transitionImageLayout(drawImage,
 											  VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
-		updatePixelsCmd.updateImage(*drawImage, screen.pixels.data());
+		updatePixelsCmd.updateImage(drawImage, screen.pixels.data());
 
-		updatePixelsCmd.transitionToOptimalLayout(*drawImage);
+		updatePixelsCmd.transitionToOptimalLayout(drawImage);
 
 		updatePixelsCmd.end();
 
@@ -352,12 +352,10 @@ int main(int argc, char* argv[]) {
 		device.submitCommands({std::move(submitUpdatePixelsInfo)}, waitForRendering);
 
 		swapchain.present({
-			.srcImage = drawImage,
+			.srcImage = &drawImage,
 			.waitSemaphores = {&finishedRendering},
 		});
 	}
-
-	delete drawImage;
 
 	return 0;
 }

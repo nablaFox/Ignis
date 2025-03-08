@@ -1,6 +1,4 @@
 #include "swapchain.hpp"
-#include <vulkan/vulkan_core.h>
-#include <cassert>
 #include "command.hpp"
 #include "device.hpp"
 #include "exceptions.hpp"
