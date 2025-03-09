@@ -26,12 +26,8 @@ struct SwapchainCreateInfo {
 };
 
 struct PresentInfo {
-	Image* srcImage;
-	VkQueue queue;
-	std::vector<const Semaphore*>
-		waitSemaphores;	 // they are relative to the blitting
-	std::vector<const Semaphore*>
-		signalSemaphores;  // they are relative to the presenting
+	VkQueue presentationQueue;
+	std::vector<const Semaphore*> waitSemaphores;
 };
 
 class Swapchain {
@@ -46,7 +42,7 @@ public:
 
 	uint32_t getImagesCount() const { return m_images.size(); }
 
-	void present(PresentInfo);
+	void presentCurrent(const PresentInfo&);
 
 private:
 	const Device& m_device;
@@ -55,10 +51,6 @@ private:
 	std::vector<std::unique_ptr<Image>> m_images;
 	uint32_t m_currentImageIndex{0};
 	VkExtent2D m_extent{0, 0};
-
-	std::unique_ptr<Semaphore> acquiredImageSem;
-	std::unique_ptr<Semaphore> blittedImageSem;
-	std::unique_ptr<Fence> blitFence;
 
 public:
 	Swapchain(const Swapchain&) = delete;

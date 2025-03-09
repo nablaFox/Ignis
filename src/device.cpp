@@ -255,12 +255,12 @@ Device::Device(const CreateInfo& createInfo)
 }
 
 void Device::submitCommands(std::vector<SubmitCmdInfo> submits,
-							const Fence& fence) const {
-	VkQueue queue = submits[0].command->getQueue();
+							const Fence* fence) const {
+	VkQueue queue = submits[0].command.getQueue();
 
 #ifndef NDEBUG
 	for (const auto& submit : submits) {
-		if (submit.command->getQueue() != queue) {
+		if (submit.command.getQueue() != queue) {
 			std::cerr << "ignis::Device::submitCommands: "
 						 "commands must be relative to the same queue"
 					  << std::endl;
@@ -302,7 +302,7 @@ void Device::submitCommands(std::vector<SubmitCmdInfo> submits,
 
 		data.commandInfo = {
 			.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO,
-			.commandBuffer = submit.command->getHandle(),
+			.commandBuffer = submit.command.getHandle(),
 		};
 
 		data.submitInfo = {
@@ -324,7 +324,7 @@ void Device::submitCommands(std::vector<SubmitCmdInfo> submits,
 	}
 
 	vkQueueSubmit2(queue, static_cast<uint32_t>(submitInfos.size()),
-				   submitInfos.data(), fence.getHandle());
+				   submitInfos.data(), fence ? fence->getHandle() : nullptr);
 }
 
 VkCommandPool Device::getCommandPool(VkQueue queue) const {

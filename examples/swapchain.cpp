@@ -286,8 +286,11 @@ int main(int argc, char* argv[]) {
 	vec2 pushIntensity = {8.f * square.mass, 9.8f * square.mass};
 
 	Command updatePixelsCmd({.device = device});
+	Command blitCmd({.device = device});
 	Fence waitForRendering(device, true);
 	Semaphore finishedRendering(device);
+	Semaphore finishedBlit(device);
+	Semaphore acquiredImage(device);
 
 	const float dt = 1.f / 60.f;
 	float timeAccumulator = 0.f;
@@ -345,17 +348,43 @@ int main(int argc, char* argv[]) {
 		updatePixelsCmd.end();
 
 		SubmitCmdInfo submitUpdatePixelsInfo{
-			.command = &updatePixelsCmd,
+			.command = updatePixelsCmd,
 			.signalSemaphores = {&finishedRendering},
 		};
 
-		device.submitCommands({std::move(submitUpdatePixelsInfo)}, waitForRendering);
+		device.submitCommands({std::move(submitUpdatePixelsInfo)}, nullptr);
 
-		swapchain.present({
-			.srcImage = &drawImage,
-			.waitSemaphores = {&finishedRendering},
+		Image& swapchainImage = swapchain.acquireNextImage(&acquiredImage);
+
+		blitCmd.begin();
+
+		blitCmd.transitionImageLayout(drawImage,
+									  VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+
+		blitCmd.transitionImageLayout(swapchainImage,
+									  VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+
+		blitCmd.blitImage(drawImage, swapchainImage);
+
+		blitCmd.transitionToOptimalLayout(swapchainImage);
+		blitCmd.transitionToOptimalLayout(drawImage);
+
+		blitCmd.end();
+
+		SubmitCmdInfo submitBlitInfo{
+			.command = blitCmd,
+			.waitSemaphores = {&acquiredImage, &finishedRendering},
+			.signalSemaphores = {&finishedBlit},
+		};
+
+		device.submitCommands({std::move(submitBlitInfo)}, &waitForRendering);
+
+		swapchain.presentCurrent({
+			.waitSemaphores = {&finishedBlit},
 		});
 	}
+
+	waitForRendering.wait();
 
 	return 0;
 }

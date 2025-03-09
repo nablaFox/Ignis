@@ -150,11 +150,6 @@ Swapchain::Swapchain(const SwapchainCreateInfo& info)
 
 		m_images.push_back(std::make_unique<Image>(m_device, handle, nullptr, info));
 	}
-
-	// 10. init sync structures
-	acquiredImageSem = std::make_unique<Semaphore>(m_device);
-	blittedImageSem = std::make_unique<Semaphore>(m_device);
-	blitFence = std::make_unique<Fence>(m_device, true);
 }
 
 Swapchain::~Swapchain() {
@@ -171,68 +166,25 @@ Image& Swapchain::acquireNextImage(const Semaphore* signalSemaphore) {
 	return *m_images[m_currentImageIndex];
 }
 
-void Swapchain::present(PresentInfo info) {
-	assert(info.srcImage->getCurrentLayout() ==
-			   VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL &&
-		   "Image is not in the correct layout");
+void Swapchain::presentCurrent(const PresentInfo& info) {
+	VkQueue presentationQueue =
+		info.presentationQueue ? info.presentationQueue : m_device.getQueue(0);
 
-	if (info.queue == nullptr)
-		info.queue = m_device.getQueue(0);
+	std::vector<VkSemaphore> waitSemaphores;
 
-	blitFence->reset();
-
-	auto& currentSwapchainImage = acquireNextImage(acquiredImageSem.get());
-
-	// PONDER is okay to create the command every time we call this function?
-	Command blitCmd({
-		.device = m_device,
-		.queue = info.queue,
-	});
-
-	blitCmd.begin(VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT);
-
-	blitCmd.transitionImageLayout(currentSwapchainImage,
-								  VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-	blitCmd.transitionImageLayout(*info.srcImage,
-								  VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-
-	if (info.srcImage->getSampleCount() != VK_SAMPLE_COUNT_1_BIT) {
-		blitCmd.resolveImage(*info.srcImage, currentSwapchainImage);
-	} else if (info.srcImage->getFormat() == currentSwapchainImage.getFormat()) {
-		blitCmd.copyImage(*info.srcImage, currentSwapchainImage);
-	} else {
-		blitCmd.blitImage(*info.srcImage, currentSwapchainImage);
+	for (const auto& semaphore : info.waitSemaphores) {
+		waitSemaphores.push_back(semaphore->getHandle());
 	}
-
-	blitCmd.transitionToOptimalLayout(*info.srcImage);
-	blitCmd.transitionToOptimalLayout(currentSwapchainImage);
-
-	blitCmd.end();
-
-	info.waitSemaphores.push_back(acquiredImageSem.get());
-
-	SubmitCmdInfo copyCmdInfo{
-		.command = &blitCmd,
-		.waitSemaphores = std::move(info.waitSemaphores),
-		.signalSemaphores = {blittedImageSem.get()},
-	};
-
-	m_device.submitCommands({std::move(copyCmdInfo)}, *blitFence);
-
-	// present image
-	VkSemaphore waitSem = blittedImageSem.get()->getHandle();
 
 	VkPresentInfoKHR presentInfo{
 		.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
-		.waitSemaphoreCount = 1,
-		.pWaitSemaphores = &waitSem,
+		.waitSemaphoreCount = static_cast<uint32_t>(waitSemaphores.size()),
+		.pWaitSemaphores = waitSemaphores.data(),
 		.swapchainCount = 1,
 		.pSwapchains = &m_swapchain,
 		.pImageIndices = &m_currentImageIndex,
 	};
 
-	THROW_VULKAN_ERROR(vkQueuePresentKHR(info.queue, &presentInfo),
+	THROW_VULKAN_ERROR(vkQueuePresentKHR(presentationQueue, &presentInfo),
 					   "Failed to present swapchain image");
-
-	blitFence->wait();
 }

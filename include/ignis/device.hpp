@@ -20,7 +20,7 @@ class Features;
 
 // each command should be relative to the same queue
 struct SubmitCmdInfo {
-	const Command* command;
+	const Command& command;
 	std::vector<const Semaphore*> waitSemaphores;
 	std::vector<const Semaphore*> signalSemaphores;
 };
@@ -61,7 +61,7 @@ public:
 
 	~Device();
 
-	void submitCommands(std::vector<SubmitCmdInfo>, const Fence& fence) const;
+	void submitCommands(std::vector<SubmitCmdInfo>, const Fence* fence) const;
 
 	VkPhysicalDevice getPhysicalDevice() const { return m_phyiscalDevice; }
 
