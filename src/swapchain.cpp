@@ -151,24 +151,7 @@ Swapchain::Swapchain(const SwapchainCreateInfo& info)
 		m_images.push_back(std::make_unique<Image>(m_device, handle, nullptr, info));
 	}
 
-	// 10. transition all the images to transfer dst
-	Command cmd({.device = m_device});
-
-	cmd.begin();
-
-	for (auto& image : m_images) {
-		cmd.transitionImageLayout(*image, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
-	}
-
-	cmd.end();
-
-	Fence fence(m_device);
-
-	m_device.submitCommands({{&cmd}}, fence);
-
-	fence.wait();
-
-	// 11. init sync structures
+	// 10. init sync structures
 	acquiredImageSem = std::make_unique<Semaphore>(m_device);
 	blittedImageSem = std::make_unique<Semaphore>(m_device);
 	blitFence = std::make_unique<Fence>(m_device, true);

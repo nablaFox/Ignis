@@ -58,8 +58,6 @@ public:
 
 	void beginRender(const DrawAttachment*, const DepthAttachment*);
 
-	void beginRender(DepthAttachment);
-
 	void endRendering();
 
 	template <typename T>

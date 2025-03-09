@@ -54,25 +54,6 @@ Image::Image(const Device& device, const ImageCreateInfo& info)
 	THROW_VULKAN_ERROR(
 		vkCreateImageView(m_device.getDevice(), &viewInfo, nullptr, &m_view),
 		"Failed to create image view");
-
-	Command cmd({.device = device});
-
-	cmd.begin();
-
-	if (info.initialPixels) {
-		cmd.transitionImageLayout(*this, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-		cmd.updateImage(*this, info.initialPixels);
-	}
-
-	cmd.transitionImageLayout(*this, info.optimalLayout);
-
-	cmd.end();
-
-	Fence fence(m_device);
-
-	m_device.submitCommands({{&cmd}}, fence);
-
-	fence.wait();
 }
 
 Image::Image(const Device& device,

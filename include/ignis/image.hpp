@@ -28,7 +28,6 @@ struct ImageCreateInfo {
 	VkFormat format{VK_FORMAT_R8G8B8A8_UNORM};
 	VkImageLayout optimalLayout{VK_IMAGE_LAYOUT_UNDEFINED};
 	VkSampleCountFlagBits sampleCount{VK_SAMPLE_COUNT_1_BIT};
-	const void* initialPixels{nullptr};
 };
 
 struct DepthImageCreateInfo {
