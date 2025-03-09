@@ -5,6 +5,7 @@
 #include "sampler.hpp"
 #include "shader.hpp"
 #include "vk_utils.hpp"
+#include "exceptions.hpp"
 
 using namespace ignis;
 
@@ -51,6 +52,7 @@ void Command::begin(VkCommandBufferUsageFlags flags) {
 					   "Failed to begin recording command");
 
 	m_isRecording = true;
+	m_pipelineBound = false;
 }
 
 void Command::end() {
@@ -216,7 +218,7 @@ void Command::updateImage(const Image& image,
 	}
 
 	Buffer* staging =
-		Buffer::createStagingBuffer(&m_device, image.getSize(), pixels);
+		new Buffer(Buffer::createStagingBuffer(&m_device, image.getSize(), pixels));
 
 	m_stagingBuffers.push_back(staging);
 
@@ -267,7 +269,7 @@ void Command::updateBuffer(const Buffer& buffer,
 
 	THROW_ERROR(offset + size > buffer.getSize(), "Out of bounds");
 
-	Buffer* staging = Buffer::createStagingBuffer(&m_device, size, data);
+	Buffer* staging = new Buffer(Buffer::createStagingBuffer(&m_device, size, data));
 
 	m_stagingBuffers.push_back(staging);
 
@@ -293,7 +295,7 @@ void Command::bindPipeline(const Pipeline& pipeline) {
 	vkCmdBindPipeline(m_commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
 					  pipeline.getHandle());
 
-	m_currentPipeline = &pipeline;
+	m_pipelineBound = true;
 }
 
 void Command::beginRender(const DrawAttachment* drawAttachment,

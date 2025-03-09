@@ -12,20 +12,18 @@ using namespace ignis;
 int main(int argc, char* argv[]) {
 	Device device({});
 
-	Buffer* testUbo = Buffer::createUBO(&device, sizeof(TestData));
+	Buffer testUbo = Buffer::createUBO(&device, sizeof(TestData));
 
-	print(testUbo->getSize());
+	print(testUbo.getSize());
 	print(sizeof(TestData));
 
 	TestData data{1.0f, {2.0f, 3.0f}};
-	testUbo->writeData(&data);
+	testUbo.writeData(&data);
 
 	TestData readData{};
-	testUbo->readData(&readData);
+	testUbo.readData(&readData);
 
 	print(readData.scale);
-
-	delete testUbo;
 
 	return 0;
 }
