@@ -40,12 +40,13 @@ struct DepthAttachment {
 // Note 7: we can only render to 1 draw attachment
 
 struct CommandCreateInfo {
+	const Device& device;
 	VkQueue queue;
 };
 
 class Command {
 public:
-	Command(const Device&, const CommandCreateInfo&);
+	Command(const CommandCreateInfo&);
 	~Command();
 
 	void begin(VkCommandBufferUsageFlags flags =

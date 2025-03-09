@@ -17,8 +17,8 @@ static void clearStagingBuffers(std::vector<Buffer*>& buffers) {
 	buffers.clear();
 }
 
-Command::Command(const Device& device, const CommandCreateInfo& info)
-	: m_device(device),
+Command::Command(const CommandCreateInfo& info)
+	: m_device(info.device),
 	  m_queue(info.queue != nullptr ? info.queue : m_device.getQueue(0)),
 	  m_commandPool(m_device.getCommandPool(m_queue)) {
 	VkCommandBufferAllocateInfo allocInfo{

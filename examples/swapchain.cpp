@@ -285,7 +285,7 @@ int main(int argc, char* argv[]) {
 
 	vec2 pushIntensity = {8.f * square.mass, 9.8f * square.mass};
 
-	Command updatePixelsCmd(device, {});
+	Command updatePixelsCmd({.device = device});
 	Fence waitForRendering(device, true);
 	Semaphore finishedRendering(device);
 

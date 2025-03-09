@@ -152,7 +152,7 @@ Swapchain::Swapchain(const SwapchainCreateInfo& info)
 	}
 
 	// 10. transition all the images to transfer dst
-	Command cmd(m_device, {});
+	Command cmd({.device = m_device});
 
 	cmd.begin();
 
@@ -201,7 +201,10 @@ void Swapchain::present(PresentInfo info) {
 	auto& currentSwapchainImage = acquireNextImage(acquiredImageSem.get());
 
 	// PONDER is okay to create the command every time we call this function?
-	Command blitCmd(m_device, {.queue = info.queue});
+	Command blitCmd({
+		.device = m_device,
+		.queue = info.queue,
+	});
 
 	blitCmd.begin(VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT);
 
