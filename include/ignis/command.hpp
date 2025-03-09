@@ -39,9 +39,13 @@ struct DepthAttachment {
 // Note 6: the render area is fixed
 // Note 7: we can only render to 1 draw attachment
 
+struct CommandCreateInfo {
+	VkQueue queue;
+};
+
 class Command {
 public:
-	Command(const Device&, uint32_t queueIndex = 0);
+	Command(const Device&, const CommandCreateInfo&);
 	~Command();
 
 	void begin(VkCommandBufferUsageFlags flags =
@@ -107,14 +111,15 @@ public:
 					   uint32_t firstVertex = 0,
 					   uint32_t firstInstance = 0);
 
-	uint32_t getQueueIndex() const { return m_queueIndex; }
+	VkQueue getQueue() const { return m_queue; }
 
 	VkCommandBuffer getHandle() const { return m_commandBuffer; }
 
 private:
 	const Device& m_device;
+	VkQueue m_queue;
 	VkCommandPool m_commandPool{nullptr};
-	uint32_t m_queueIndex;
+
 	VkCommandBuffer m_commandBuffer{nullptr};
 	bool m_isRecording{false};
 	bool m_pipelineBound{false};

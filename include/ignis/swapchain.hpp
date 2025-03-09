@@ -25,20 +25,20 @@ struct SwapchainCreateInfo {
 	VkPresentModeKHR presentMode{VK_PRESENT_MODE_FIFO_KHR};
 };
 
+struct PresentInfo {
+	Image* srcImage;
+	VkQueue queue;
+	std::vector<const Semaphore*>
+		waitSemaphores;	 // they are relative to the blitting
+	std::vector<const Semaphore*>
+		signalSemaphores;  // they are relative to the presenting
+};
+
 class Swapchain {
 public:
 	Swapchain(const SwapchainCreateInfo&);
 
 	~Swapchain();
-
-	struct PresentInfo {
-		Image* srcImage;
-		uint32_t queueIndex;
-		std::vector<const Semaphore*>
-			waitSemaphores;	 // they are relative to the blitting
-		std::vector<const Semaphore*>
-			signalSemaphores;  // they are relative to the presenting
-	};
 
 	Image& getCurrentImage() { return *m_images[m_currentImageIndex]; }
 

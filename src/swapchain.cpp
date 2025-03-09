@@ -152,7 +152,7 @@ Swapchain::Swapchain(const SwapchainCreateInfo& info)
 	}
 
 	// 10. transition all the images to transfer dst
-	Command cmd(m_device, 0);
+	Command cmd(m_device, {});
 
 	cmd.begin();
 
@@ -193,12 +193,15 @@ void Swapchain::present(PresentInfo info) {
 			   VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL &&
 		   "Image is not in the correct layout");
 
+	if (info.queue == nullptr)
+		info.queue = m_device.getQueue(0);
+
 	blitFence->reset();
 
 	auto& currentSwapchainImage = acquireNextImage(acquiredImageSem.get());
 
 	// PONDER is okay to create the command every time we call this function?
-	Command blitCmd(m_device, info.queueIndex);
+	Command blitCmd(m_device, {.queue = info.queue});
 
 	blitCmd.begin(VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT);
 
@@ -242,9 +245,7 @@ void Swapchain::present(PresentInfo info) {
 		.pImageIndices = &m_currentImageIndex,
 	};
 
-	VkQueue presentQueue = m_device.getQueue(info.queueIndex);
-
-	THROW_VULKAN_ERROR(vkQueuePresentKHR(presentQueue, &presentInfo),
+	THROW_VULKAN_ERROR(vkQueuePresentKHR(info.queue, &presentInfo),
 					   "Failed to present swapchain image");
 
 	blitFence->wait();

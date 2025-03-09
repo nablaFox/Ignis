@@ -4,6 +4,7 @@
 #include <vulkan/vulkan_core.h>
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <vector>
 #include "bindless_resources.hpp"
 
@@ -70,7 +71,7 @@ public:
 
 	VkQueue getQueue(uint32_t index) const;
 
-	VkCommandPool getCommandPool(uint32_t index) const;
+	VkCommandPool getCommandPool(VkQueue) const;
 
 	VkDeviceSize getUboAlignment() const {
 		return m_physicalDeviceProperties.limits.minUniformBufferOffsetAlignment;
@@ -115,7 +116,7 @@ private:
 	uint32_t m_graphicsFamilyIndex{0};
 	uint32_t m_graphicsQueuesCount{0};
 	std::vector<VkQueue> m_queues;
-	std::vector<VkCommandPool> m_commandPools;
+	std::unordered_map<VkQueue, VkCommandPool> m_commandPools;
 
 	BindlessResources m_bindlessResources;
 

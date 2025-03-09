@@ -55,7 +55,7 @@ Image::Image(const Device& device, const ImageCreateInfo& info)
 		vkCreateImageView(m_device.getDevice(), &viewInfo, nullptr, &m_view),
 		"Failed to create image view");
 
-	Command cmd(m_device);
+	Command cmd(m_device, {});
 
 	cmd.begin();
 
