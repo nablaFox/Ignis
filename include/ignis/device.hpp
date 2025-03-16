@@ -6,8 +6,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include <array>
-#include <stdint.h>
+#include "types.hpp"
 
 namespace ignis {
 
@@ -18,32 +17,16 @@ class Command;
 class Buffer;
 struct BufferCreateInfo;
 class Image;
+struct ImageCreateInfo;
+struct DrawImageCreateInfo;
+struct DepthImageCreateInfo;
 class Sampler;
 class Features;
-
-#define IGNIS_STORAGE_BUFFER_BINDING 0
-#define IGNIS_UNIFORM_BUFFER_BINDING 1
-#define IGNIS_IMAGE_SAMPLER_BINDING 2
-
-#define IGNIS_INVALID_BUFFER_ID UINT32_MAX
-
-typedef uint32_t BufferId;
 
 struct SubmitCmdInfo {
 	const Command& command;
 	std::vector<const Semaphore*> waitSemaphores;
 	std::vector<const Semaphore*> signalSemaphores;
-};
-
-constexpr std::array IGNIS_REQ_FEATURES = {
-	"BufferDeviceAddress",
-	"DynamicRendering",
-	"Synchronization2",
-	"DescriptorBindingUniformBufferUpdateAfterBind",
-	"DescriptorBindingSampledImageUpdateAfterBind",
-	"DescriptorBindingStorageBufferUpdateAfterBind",
-	"DescriptorBindingPartiallyBound",
-	"RuntimeDescriptorArray",
 };
 
 // Note 1: the library supports just 1 instance, physical and logical device
@@ -124,6 +107,19 @@ public:
 
 	void destroyBuffer(BufferId);
 
+public:
+	// it will be registered only if storage or sampled
+	ImageId createImage(const ImageCreateInfo&, ImageId = IGNIS_INVALID_IMAGE_ID);
+
+	ImageId createDrawImage(const DrawImageCreateInfo&);
+
+	ImageId createDepthImage(const DepthImageCreateInfo&);
+
+	// will assert that the image is registered
+	Image& getImage(ImageId) const;
+
+	void destroyImage(ImageId);
+
 private:
 	VkInstance m_instance{nullptr};
 	VkDebugUtilsMessengerEXT m_debugMessenger{nullptr};
@@ -145,6 +141,7 @@ private:
 
 private:
 	std::unordered_map<BufferId, std::unique_ptr<Buffer>> m_buffers;
+	std::unordered_map<ImageId, std::unique_ptr<Image>> m_images;
 
 public:
 	Device(const Device&) = delete;

@@ -13,6 +13,7 @@ int main(int argc, char* argv[]) {
 	Device device({});
 
 	BufferId testUboId = device.createUBO(sizeof(TestData));
+
 	Buffer& testUbo = device.getBuffer(testUboId);
 
 	print(testUbo.getSize());

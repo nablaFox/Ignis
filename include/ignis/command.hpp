@@ -3,25 +3,25 @@
 #include <vulkan/vulkan_core.h>
 #include <cassert>
 #include <memory>
-#include <vector>
+#include "types.hpp"
 #include "pipeline.hpp"
 
 namespace ignis {
 
 class Device;
-class Pipeline;
 class Buffer;
 class Image;
+class Pipeline;
 
 struct DrawAttachment {
-	Image* drawImage{nullptr};
+	ImageId drawImage{IGNIS_INVALID_IMAGE_ID};
 	VkAttachmentLoadOp loadAction{VK_ATTACHMENT_LOAD_OP_CLEAR};
 	VkAttachmentStoreOp storeAction{VK_ATTACHMENT_STORE_OP_STORE};
 	VkClearColorValue clearColor{0.0f, 0.0f, 0.0f, 1.0f};
 };
 
 struct DepthAttachment {
-	Image* depthImage{nullptr};
+	ImageId depthImage{IGNIS_INVALID_IMAGE_ID};
 	VkAttachmentLoadOp loadAction{VK_ATTACHMENT_LOAD_OP_CLEAR};
 	VkAttachmentStoreOp storeAction{VK_ATTACHMENT_STORE_OP_DONT_CARE};
 };
@@ -35,8 +35,6 @@ struct CommandCreateInfo {
 	assert(m_isRecording && "Command buffer is not recording!");
 
 #define CHECK_PIPELINE_BOUND assert(m_pipelineBound && "Pipeline is not bound!");
-
-typedef uint32_t BufferId;	// TEMP (maybe?)
 
 // Note 1: every command is a graphics command
 // Note 2: every command is primary
@@ -79,6 +77,9 @@ public:
 	void transitionImageLayout(Image&, VkImageLayout);
 	void transitionToOptimalLayout(Image&);
 
+	void transitionImageLayout(ImageId, VkImageLayout);
+	void transitionToOptimalLayout(ImageId);
+
 	void copyImage(const Image& src,
 				   const Image& dst,
 				   VkOffset2D srcOffset = {0, 0},
@@ -92,6 +93,11 @@ public:
 	void resolveImage(const Image& src, const Image& dst);
 
 	void updateImage(const Image&,
+					 const void* pixels,
+					 VkOffset2D imageOffset = {0, 0},
+					 VkExtent2D imageSize = {0, 0});
+
+	void updateImage(ImageId,
 					 const void* pixels,
 					 VkOffset2D imageOffset = {0, 0},
 					 VkExtent2D imageSize = {0, 0});

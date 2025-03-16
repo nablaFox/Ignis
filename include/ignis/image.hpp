@@ -88,13 +88,9 @@ public:
 	}
 
 public:
-	static Image allocateDepthImage(VkDevice,
-									VmaAllocator,
-									const DepthImageCreateInfo&);
+	static ImageCreateInfo drawImageDesc(const DrawImageCreateInfo&);
 
-	static Image allocateDrawImage(VkDevice,
-								   VmaAllocator,
-								   const DrawImageCreateInfo&);
+	static ImageCreateInfo depthImageDesc(const DepthImageCreateInfo&);
 
 private:
 	VkDevice m_device{nullptr};
@@ -114,4 +110,3 @@ public:
 };
 
 }  // namespace ignis
-

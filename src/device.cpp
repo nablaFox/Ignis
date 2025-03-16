@@ -410,6 +410,35 @@ bool Device::isFeatureEnabled(const char* feature) const {
 	return m_features->isFeatureEnabled(feature, m_phyiscalDevice);
 }
 
+ImageId Device::createImage(const ImageCreateInfo& info, ImageId givenId) {
+	static ImageId nextId = 0;	// TEMP
+	ImageId imageId = givenId == IGNIS_INVALID_BUFFER_ID ? nextId++ : givenId;
+
+	Image image(m_device, m_allocator, info);
+
+	// m_bindlessResources->registerImage(buffer.getHandle(), buffer.getUsage())
+
+	m_images.insert({imageId, std::make_unique<Image>(std::move(image))});
+
+	return imageId;
+}
+
+ImageId Device::createDrawImage(const DrawImageCreateInfo& info) {
+	return createImage(Image::drawImageDesc(info), IGNIS_INVALID_IMAGE_ID);
+}
+
+ImageId Device::createDepthImage(const DepthImageCreateInfo& info) {
+	return createImage(Image::depthImageDesc(info), IGNIS_INVALID_IMAGE_ID);
+}
+
+Image& Device::getImage(ImageId handle) const {
+	auto it = m_images.find(handle);
+
+	THROW_ERROR(it == m_images.end(), "Invalid image handle");
+
+	return *it->second;
+}
+
 VkSampleCountFlagBits Device::getMaxSampleCount() const {
 	VkSampleCountFlags counts =
 		m_physicalDeviceProperties.limits.framebufferColorSampleCounts &
@@ -437,6 +466,8 @@ Device::~Device() {
 	m_bindlessResources.reset();
 
 	m_buffers.clear();
+
+	m_images.clear();
 
 	for (auto queue : m_queues)
 		vkQueueWaitIdle(queue);

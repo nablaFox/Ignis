@@ -87,10 +87,24 @@ void Command::transitionToOptimalLayout(Image& image) {
 	transitionImageLayout(image, image.getOptimalLayout());
 }
 
+void Command::transitionImageLayout(ImageId imageId, VkImageLayout newLayout) {
+	auto& image = m_device.getImage(imageId);
+
+	transitionImageLayout(image, newLayout);
+}
+
+void Command::transitionToOptimalLayout(ImageId imageId) {
+	auto& image = m_device.getImage(imageId);
+
+	transitionToOptimalLayout(image);
+}
+
 void Command::copyImage(const Image& src,
 						const Image& dst,
 						VkOffset2D srcOffset,
 						VkOffset2D dstOffset) {
+	CHECK_IS_RECORDING;
+
 	assert(src.m_currentLayout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL &&
 		   "Source image is not in the correct layout");
 
@@ -227,6 +241,15 @@ void Command::updateImage(const Image& image,
 	m_stagingBuffers.push_back(std::move(staging));
 }
 
+void Command::updateImage(ImageId imageId,
+						  const void* pixels,
+						  VkOffset2D imageOffset,
+						  VkExtent2D imageSize) {
+	auto& image = m_device.getImage(imageId);
+
+	updateImage(image, pixels, imageOffset, imageSize);
+}
+
 void Command::resolveImage(const Image& src, const Image& dst) {
 	CHECK_IS_RECORDING;
 
@@ -306,25 +329,26 @@ void Command::beginRender(const DrawAttachment* drawAttachment,
 		.clearValue = {.color = drawAttachment->clearColor},
 	};
 
-	if (drawAttachment != nullptr) {
-		assert(drawAttachment->drawImage != nullptr &&
-			   "Draw attachment image is nullptr");
+	VkExtent2D extent{};
 
-		assert(isColorFormat(drawAttachment->drawImage->getFormat()) &&
+	if (drawAttachment != nullptr) {
+		Image& drawImage = m_device.getImage(drawAttachment->drawImage);
+
+		assert(isColorFormat(drawImage.getFormat()) &&
 			   "Draw image format is not a color format");
 
-		assert((drawAttachment->drawImage->getUsage() &
-				VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT) != 0 &&
+		assert((drawImage.getUsage() & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT) != 0 &&
 			   "Draw image must have COLOR_ATTACHMENT usage");
 
-		assert(drawAttachment->drawImage->getCurrentLayout() ==
+		assert(drawImage.getCurrentLayout() ==
 			   VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
-		assert(drawAttachment->drawImage->getViewHandle() != nullptr);
+		assert(drawImage.getViewHandle() != nullptr);
 
-		colorAttachment.imageView = drawAttachment->drawImage->getViewHandle();
+		colorAttachment.imageView = drawImage.getViewHandle();
 		colorAttachment.loadOp = drawAttachment->loadAction;
 		colorAttachment.storeOp = drawAttachment->storeAction;
+		extent = drawImage.getExtent2D();
 	}
 
 	VkRenderingAttachmentInfo depthAttachmentInfo{
@@ -334,28 +358,27 @@ void Command::beginRender(const DrawAttachment* drawAttachment,
 	};
 
 	if (depthAttachment != nullptr) {
-		assert(depthAttachment->depthImage != nullptr &&
-			   "Depth attachment image is nullptr");
+		Image& depthImage = m_device.getImage(depthAttachment->depthImage);
 
-		assert(isDepthFormat(depthAttachment->depthImage->getFormat()) &&
+		assert(isDepthFormat(depthImage.getFormat()) &&
 			   "Depth image format is not a depth format");
 
-		assert((depthAttachment->depthImage->getUsage() &
+		assert((depthImage.getUsage() &
 				VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT) != 0 &&
 			   "Depth image must have DEPTH_STENCIL_ATTACHMENT usage");
 
-		assert(depthAttachment->depthImage->getCurrentLayout() ==
+		assert(depthImage.getCurrentLayout() ==
 			   VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 
-		assert(drawAttachment->drawImage->getViewHandle() != nullptr);
+		assert(depthImage.getViewHandle() != nullptr);
 
-		depthAttachmentInfo.imageView = depthAttachment->depthImage->getViewHandle();
+		depthAttachmentInfo.imageView = depthImage.getViewHandle();
 		depthAttachmentInfo.loadOp = depthAttachment->loadAction;
 		depthAttachmentInfo.storeOp = depthAttachment->storeAction;
-	}
 
-	VkExtent2D extent = drawAttachment ? drawAttachment->drawImage->getExtent2D()
-									   : depthAttachment->depthImage->getExtent2D();
+		if (extent.width == 0 || extent.height == 0)
+			extent = depthImage.getExtent2D();
+	}
 
 	VkRenderingInfo const renderingInfo{
 		.sType = VK_STRUCTURE_TYPE_RENDERING_INFO,
