@@ -249,11 +249,13 @@ void Command::resolveImage(const Image& src, const Image& dst) {
 					  VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &resolveRegion);
 }
 
-void Command::updateBuffer(const Buffer& buffer,
+void Command::updateBuffer(BufferId bufferId,
 						   const void* data,
 						   uint32_t offset,
 						   uint32_t size) {
 	CHECK_IS_RECORDING;
+
+	auto& buffer = m_device.getBuffer(bufferId);
 
 	if (!size) {
 		size = buffer.getSize() - offset;
@@ -387,9 +389,11 @@ void Command::setScissor(VkRect2D scissor) {
 	vkCmdSetScissor(m_commandBuffer, 0, 1, &scissor);
 }
 
-void Command::bindIndexBuffer(const Buffer& indexBuffer, VkDeviceSize offset) {
+void Command::bindIndexBuffer(BufferId indexBufferId, VkDeviceSize offset) {
 	CHECK_IS_RECORDING;
 	CHECK_PIPELINE_BOUND;
+
+	auto& indexBuffer = m_device.getBuffer(indexBufferId);
 
 	assert((indexBuffer.getUsage() & VK_BUFFER_USAGE_INDEX_BUFFER_BIT) != 0 &&
 		   "Buffer is not an index buffer");

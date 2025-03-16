@@ -26,10 +26,17 @@ struct DepthAttachment {
 	VkAttachmentStoreOp storeAction{VK_ATTACHMENT_STORE_OP_DONT_CARE};
 };
 
+struct CommandCreateInfo {
+	Device& device;
+	VkQueue queue;
+};
+
 #define CHECK_IS_RECORDING \
 	assert(m_isRecording && "Command buffer is not recording!");
 
 #define CHECK_PIPELINE_BOUND assert(m_pipelineBound && "Pipeline is not bound!");
+
+typedef uint32_t BufferId;
 
 // Note 1: every command is a graphics command
 // Note 2: every command is primary
@@ -39,11 +46,6 @@ struct DepthAttachment {
 // Note 5: clear values are fixed
 // Note 6: the render area is fixed
 // Note 7: we can only render to 1 draw attachment
-
-struct CommandCreateInfo {
-	Device& device;
-	VkQueue queue;
-};
 
 class Command {
 public:
@@ -94,7 +96,7 @@ public:
 					 VkOffset2D imageOffset = {0, 0},
 					 VkExtent2D imageSize = {0, 0});
 
-	void updateBuffer(const Buffer&,
+	void updateBuffer(BufferId,
 					  const void* data,
 					  uint32_t offset = 0,
 					  uint32_t size = 0);
@@ -102,7 +104,7 @@ public:
 	void setViewport(VkViewport);
 	void setScissor(VkRect2D);
 
-	void bindIndexBuffer(const Buffer&, VkDeviceSize offset = 0);
+	void bindIndexBuffer(BufferId, VkDeviceSize offset = 0);
 
 	void draw(uint32_t indexCount, uint32_t firstIndex = 0);
 
