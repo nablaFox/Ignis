@@ -58,7 +58,6 @@ private:
 
 public:
 	Buffer(Buffer&& other) noexcept;
-
 	Buffer& operator=(Buffer&& other) = delete;
 	Buffer(const Buffer&) = delete;
 	Buffer& operator=(const Buffer&) = delete;

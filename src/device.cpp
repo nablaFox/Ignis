@@ -348,6 +348,7 @@ Buffer& Device::getBuffer(BufferId handle) const {
 	return *it->second;
 }
 
+// TODO: recycle buffer ids
 BufferId Device::registerBuffer(std::unique_ptr<Buffer> buffer) {
 	BufferId handle = m_buffers.size();
 
@@ -390,6 +391,14 @@ BufferId Device::createSSBO(VkDeviceSize size, const void* data) {
 
 Buffer Device::createStagingBuffer(VkDeviceSize size, const void* data) {
 	return std::move(Buffer::createStagingBuffer(m_allocator, size, data));
+}
+
+void Device::destroyBuffer(BufferId handle) {
+	auto it = m_buffers.find(handle);
+
+	THROW_ERROR(it == m_buffers.end(), "Invalid buffer handle");
+
+	m_buffers.erase(it);
 }
 
 void Device::registerSampledImage(const Image& image,

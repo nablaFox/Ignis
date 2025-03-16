@@ -3,7 +3,6 @@
 
 #include <math.h>
 #include "semaphore.hpp"
-#include "buffer.hpp"
 #include "device.hpp"
 #include "command.hpp"
 #include "fence.hpp"
