@@ -375,33 +375,49 @@ void Device::destroyBuffer(BufferId handle) {
 static BufferId saveBuffer(
 	Buffer buffer,
 	std::unordered_map<BufferId, std::unique_ptr<Buffer>>& buffers,
-	std::unique_ptr<BindlessResources>& bindlessResources) {
+	std::unique_ptr<BindlessResources>& bindlessResources,
+	BufferId givenId = IGNIS_INVALID_BUFFER_ID,
+	bool reg = true) {
 	static BufferId nextId = 0;
 
-	BufferId handle = nextId++;
+	BufferId bufferId = givenId == IGNIS_INVALID_BUFFER_ID ? nextId++ : givenId;
 
-	bindlessResources->registerBuffer(buffer.getHandle(), buffer.getUsage(),
-									  buffer.getSize(), handle);
+	if (reg) {
+		bindlessResources->registerBuffer(buffer.getHandle(), buffer.getUsage(),
+										  buffer.getSize(), bufferId);
+	}
 
-	buffers.insert({handle, std::make_unique<Buffer>(std::move(buffer))});
+	buffers.insert({bufferId, std::make_unique<Buffer>(std::move(buffer))});
 
-	return handle;
+	return bufferId;
 }
 
-BufferId Device::createUBO(VkDeviceSize size, const void* data) {
+BufferId Device::createBuffer(const BufferCreateInfo& createInfo,
+							  BufferId bufferId) {
+	Buffer buffer(m_allocator, createInfo);
+
+	return saveBuffer(std::move(buffer), m_buffers, m_bindlessResources, bufferId,
+					  false);
+}
+
+BufferId Device::createUBO(VkDeviceSize size, const void* data, BufferId bufferId) {
 	Buffer ubo = Buffer::createUBO(m_allocator, size, getUboAlignment(), data);
 
-	return saveBuffer(std::move(ubo), m_buffers, m_bindlessResources);
+	return saveBuffer(std::move(ubo), m_buffers, m_bindlessResources, bufferId);
 }
 
-BufferId Device::createSSBO(VkDeviceSize size, const void* data) {
-	Buffer ssbo = Buffer::createSSBO(m_allocator, getSsboAlignment(), size, data);
+BufferId Device::createSSBO(VkDeviceSize size, BufferId bufferId) {
+	Buffer ssbo = Buffer::createSSBO(m_allocator, getSsboAlignment(), size, nullptr);
 
-	return saveBuffer(std::move(ssbo), m_buffers, m_bindlessResources);
+	return saveBuffer(std::move(ssbo), m_buffers, m_bindlessResources, bufferId);
 }
 
-Buffer Device::createIndexBuffer32(uint32_t elementCount, uint32_t* data) {
-	return Buffer::createIndexBuffer32(m_allocator, elementCount, data);
+BufferId Device::createIndexBuffer32(uint32_t elementCount, BufferId bufferId) {
+	Buffer indexBuffer =
+		Buffer::createIndexBuffer32(m_allocator, elementCount, nullptr);
+
+	return saveBuffer(std::move(indexBuffer), m_buffers, m_bindlessResources,
+					  bufferId, false);
 }
 
 Buffer Device::createStagingBuffer(VkDeviceSize size, const void* data) {

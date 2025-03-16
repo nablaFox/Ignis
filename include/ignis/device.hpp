@@ -7,6 +7,7 @@
 #include <unordered_map>
 #include <vector>
 #include <array>
+#include <stdint.h>
 
 namespace ignis {
 
@@ -23,6 +24,8 @@ class Features;
 #define IGNIS_STORAGE_BUFFER_BINDING 0
 #define IGNIS_UNIFORM_BUFFER_BINDING 1
 #define IGNIS_IMAGE_SAMPLER_BINDING 2
+
+#define IGNIS_INVALID_BUFFER_ID UINT32_MAX
 
 struct SubmitCmdInfo {
 	const Command& command;
@@ -96,13 +99,22 @@ public:
 
 	void destroyBuffer(BufferId);
 
-	BufferId createUBO(VkDeviceSize, const void* data = nullptr);
+	// will not be registered
+	BufferId createBuffer(const BufferCreateInfo&,
+						  BufferId = IGNIS_INVALID_BUFFER_ID);
 
-	BufferId createSSBO(VkDeviceSize, const void* data = nullptr);
+	// will not be registered
+	BufferId createIndexBuffer32(uint32_t elementCount,
+								 BufferId = IGNIS_INVALID_BUFFER_ID);
 
+	BufferId createUBO(VkDeviceSize,
+					   const void* data = nullptr,
+					   BufferId = IGNIS_INVALID_BUFFER_ID);
+
+	BufferId createSSBO(VkDeviceSize, BufferId = IGNIS_INVALID_BUFFER_ID);
+
+	// will not be saved or registered
 	Buffer createStagingBuffer(VkDeviceSize, const void* data = nullptr);
-
-	Buffer createIndexBuffer32(uint32_t elementCount, uint32_t* data = nullptr);
 
 	void registerSampledImage(const Image&, const Sampler&, uint32_t index);
 

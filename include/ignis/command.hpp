@@ -104,7 +104,7 @@ public:
 	void setViewport(VkViewport);
 	void setScissor(VkRect2D);
 
-	void bindIndexBuffer(const Buffer&, VkDeviceSize offset = 0);
+	void bindIndexBuffer(BufferId, VkDeviceSize offset = 0);
 
 	void draw(uint32_t indexCount, uint32_t firstIndex = 0);
 
