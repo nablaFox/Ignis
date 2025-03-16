@@ -9,14 +9,6 @@
 
 using namespace ignis;
 
-static void clearStagingBuffers(std::vector<Buffer*>& buffers) {
-	for (auto& buffer : buffers) {
-		delete buffer;
-	}
-
-	buffers.clear();
-}
-
 Command::Command(const CommandCreateInfo& info)
 	: m_device(info.device),
 	  m_queue(info.queue != nullptr ? info.queue : m_device.getQueue(0)),
@@ -34,14 +26,14 @@ Command::Command(const CommandCreateInfo& info)
 }
 
 Command::~Command() {
-	clearStagingBuffers(m_stagingBuffers);
+	m_stagingBuffers.clear();
 	vkFreeCommandBuffers(m_device.getDevice(), m_commandPool, 1, &m_commandBuffer);
 }
 
 void Command::begin(VkCommandBufferUsageFlags flags) {
-	clearStagingBuffers(m_stagingBuffers);
-
 	assert(!m_isRecording);
+
+	m_stagingBuffers.clear();
 
 	VkCommandBufferBeginInfo beginInfo{
 		.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
@@ -217,10 +209,8 @@ void Command::updateImage(const Image& image,
 		imageSize.height = image.getExtent2D().height;
 	}
 
-	Buffer* staging =
-		new Buffer(Buffer::createStagingBuffer(&m_device, image.getSize(), pixels));
-
-	m_stagingBuffers.push_back(staging);
+	auto staging = std::make_unique<Buffer>(
+		m_device.createStagingBuffer(image.getSize(), pixels));
 
 	staging->writeData(pixels);
 
@@ -233,6 +223,8 @@ void Command::updateImage(const Image& image,
 
 	vkCmdCopyBufferToImage(m_commandBuffer, staging->getHandle(), image.getHandle(),
 						   VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copyRegion);
+
+	m_stagingBuffers.push_back(std::move(staging));
 }
 
 void Command::resolveImage(const Image& src, const Image& dst) {
@@ -269,9 +261,8 @@ void Command::updateBuffer(const Buffer& buffer,
 
 	THROW_ERROR(offset + size > buffer.getSize(), "Out of bounds");
 
-	Buffer* staging = new Buffer(Buffer::createStagingBuffer(&m_device, size, data));
-
-	m_stagingBuffers.push_back(staging);
+	auto staging =
+		std::make_unique<Buffer>(m_device.createStagingBuffer(size, data));
 
 	VkBufferCopy copyRegion = {
 		.srcOffset = 0,
@@ -281,6 +272,8 @@ void Command::updateBuffer(const Buffer& buffer,
 
 	vkCmdCopyBuffer(m_commandBuffer, staging->getHandle(), buffer.getHandle(), 1,
 					&copyRegion);
+
+	m_stagingBuffers.push_back(std::move(staging));
 }
 
 void Command::bindPipeline(const Pipeline& pipeline) {

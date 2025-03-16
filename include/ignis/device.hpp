@@ -14,6 +14,7 @@ class Semaphore;
 class Fence;
 class Command;
 class Buffer;
+struct BufferCreateInfo;
 class Image;
 class Sampler;
 class Features;
@@ -35,6 +36,8 @@ constexpr std::array IGNIS_REQ_FEATURES = {
 	"DescriptorBindingPartiallyBound",
 	"RuntimeDescriptorArray",
 };
+
+typedef uint32_t BufferId;
 
 // Note 1: the library supports just 1 instance, physical and logical device
 // Note 2: we handle only graphics queues
@@ -89,9 +92,17 @@ public:
 		return m_bindlessResources.getDescriptorSet();
 	}
 
-	void registerUBO(const Buffer&, uint32_t index);
+	Buffer& getBuffer(BufferId) const;
 
-	void registerSSBO(const Buffer&, uint32_t index);
+	BufferId registerBuffer(std::unique_ptr<Buffer>);
+
+	BufferId createBuffer(const BufferCreateInfo&);
+
+	BufferId createUBO(VkDeviceSize, const void* data = nullptr);
+
+	BufferId createSSBO(VkDeviceSize, const void* data = nullptr);
+
+	Buffer createStagingBuffer(VkDeviceSize, const void* data = nullptr);
 
 	void registerSampledImage(const Image&, const Sampler&, uint32_t index);
 
@@ -121,6 +132,9 @@ private:
 	std::string m_shadersFolder;
 
 	std::unique_ptr<Features> m_features;
+
+private:
+	std::unordered_map<BufferId, std::unique_ptr<Buffer>> m_buffers;
 
 public:
 	Device(const Device&) = delete;

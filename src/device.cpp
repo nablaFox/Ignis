@@ -340,50 +340,56 @@ VkQueue Device::getQueue(uint32_t index) const {
 	return m_queues[index];
 }
 
-void Device::registerUBO(const Buffer& buffer, uint32_t index) {
-	assert((buffer.getUsage() & VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT) != 0 &&
-		   "Buffer is not a UBO");
+Buffer& Device::getBuffer(BufferId handle) const {
+	auto it = m_buffers.find(handle);
+
+	THROW_ERROR(it == m_buffers.end(), "Invalid buffer handle");
+
+	return *it->second;
+}
+
+BufferId Device::registerBuffer(std::unique_ptr<Buffer> buffer) {
+	BufferId handle = m_buffers.size();
 
 	VkDescriptorBufferInfo bufferInfo{
-		.buffer = buffer.getHandle(),
+		.buffer = buffer->getHandle(),
 		.offset = 0,
-		.range = buffer.getSize(),
+		.range = buffer->getSize(),
 	};
 
 	VkWriteDescriptorSet writeDescriptorSet{
 		.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
 		.dstSet = m_bindlessResources.getDescriptorSet(),
 		.dstBinding = IGNIS_UNIFORM_BUFFER_BINDING,
-		.dstArrayElement = index,
+		.dstArrayElement = handle,
 		.descriptorCount = 1,
 		.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
 		.pBufferInfo = &bufferInfo,
 	};
 
 	vkUpdateDescriptorSets(m_device, 1, &writeDescriptorSet, 0, nullptr);
+
+	m_buffers.insert({handle, std::move(buffer)});
+
+	return handle;
 }
 
-void Device::registerSSBO(const Buffer& buffer, uint32_t index) {
-	assert((buffer.getUsage() & VK_BUFFER_USAGE_STORAGE_BUFFER_BIT) != 0 &&
-		   "Buffer is not a SSBO");
+BufferId Device::createBuffer(const BufferCreateInfo& info) {
+	return registerBuffer(std::make_unique<Buffer>(m_allocator, info));
+}
 
-	VkDescriptorBufferInfo bufferInfo{
-		.buffer = buffer.getHandle(),
-		.offset = 0,
-		.range = buffer.getSize(),
-	};
+BufferId Device::createUBO(VkDeviceSize size, const void* data) {
+	return registerBuffer(std::make_unique<Buffer>(
+		Buffer::createUBO(m_allocator, getUboAlignment(), size, data)));
+}
 
-	VkWriteDescriptorSet writeDescriptorSet{
-		.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-		.dstSet = m_bindlessResources.getDescriptorSet(),
-		.dstBinding = IGNIS_STORAGE_BUFFER_BINDING,
-		.dstArrayElement = index,
-		.descriptorCount = 1,
-		.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,
-		.pBufferInfo = &bufferInfo,
-	};
+BufferId Device::createSSBO(VkDeviceSize size, const void* data) {
+	return registerBuffer(std::make_unique<Buffer>(
+		Buffer::createSSBO(m_allocator, getSsboAlignment(), size, data)));
+}
 
-	vkUpdateDescriptorSets(m_device, 1, &writeDescriptorSet, 0, nullptr);
+Buffer Device::createStagingBuffer(VkDeviceSize size, const void* data) {
+	return std::move(Buffer::createStagingBuffer(m_allocator, size, data));
 }
 
 void Device::registerSampledImage(const Image& image,
@@ -435,6 +441,8 @@ VkSampleCountFlagBits Device::getMaxSampleCount() const {
 
 Device::~Device() {
 	vkDeviceWaitIdle(m_device);
+
+	m_buffers.clear();
 
 	m_bindlessResources.cleanup(m_device);
 

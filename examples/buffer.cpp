@@ -12,7 +12,8 @@ using namespace ignis;
 int main(int argc, char* argv[]) {
 	Device device({});
 
-	Buffer testUbo = Buffer::createUBO(&device, sizeof(TestData));
+	BufferId testUboId = device.createUBO(sizeof(TestData));
+	Buffer& testUbo = device.getBuffer(testUboId);
 
 	print(testUbo.getSize());
 	print(sizeof(TestData));

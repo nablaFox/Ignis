@@ -4,10 +4,7 @@
 
 namespace ignis {
 
-class Device;
-
 struct BufferCreateInfo {
-	const Device* device;
 	VkBufferUsageFlags bufferUsage;
 	VkMemoryPropertyFlags memoryProperties;
 	VkDeviceSize size;
@@ -16,7 +13,7 @@ struct BufferCreateInfo {
 
 class Buffer {
 public:
-	Buffer(const BufferCreateInfo&);
+	Buffer(VmaAllocator, const BufferCreateInfo&);
 
 	~Buffer();
 
@@ -26,30 +23,32 @@ public:
 
 	VkBufferUsageFlags getUsage() const { return m_bufferUsage; }
 
-	VkDeviceAddress getDeviceAddress() const { return m_deviceAddress; }
+	VkDeviceAddress getDeviceAddress(VkDevice);
 
 	void writeData(const void* data, uint32_t offset = 0, uint32_t size = 0);
 
 	void readData(void* data, uint32_t offset = 0, uint32_t size = 0);
 
-	static Buffer createUBO(const Device*,
-							uint32_t size,
+	static Buffer createUBO(VmaAllocator,
+							VkDeviceSize alignment,
+							VkDeviceSize size,
 							const void* data = nullptr);
 
-	static Buffer createSSBO(const Device*,
-							 uint32_t size,
+	static Buffer createSSBO(VmaAllocator,
+							 VkDeviceSize alignment,
+							 VkDeviceSize size,
 							 const void* data = nullptr);
 
-	static Buffer createIndexBuffer32(const Device*,
+	static Buffer createIndexBuffer32(VmaAllocator,
 									  uint32_t elementCount,
 									  uint32_t* data = nullptr);
 
-	static Buffer createStagingBuffer(const Device*,
+	static Buffer createStagingBuffer(VmaAllocator,
 									  VkDeviceSize size,
 									  const void* data = nullptr);
 
 private:
-	const Device& m_device;
+	VmaAllocator m_allocator{nullptr};
 	VmaAllocation m_allocation{nullptr};
 	VkDeviceSize m_size;
 	VkDeviceAddress m_deviceAddress{0};
@@ -58,10 +57,11 @@ private:
 	VkMemoryPropertyFlags m_memoryProperties;
 
 public:
+	Buffer(Buffer&& other) noexcept;
+
+	Buffer& operator=(Buffer&& other) = delete;
 	Buffer(const Buffer&) = delete;
-	Buffer(Buffer&&) = delete;
 	Buffer& operator=(const Buffer&) = delete;
-	Buffer& operator=(Buffer&&) = delete;
 };
 
 }  // namespace ignis

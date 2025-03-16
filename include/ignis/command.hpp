@@ -2,6 +2,7 @@
 
 #include <vulkan/vulkan_core.h>
 #include <cassert>
+#include <memory>
 #include <vector>
 #include "pipeline.hpp"
 
@@ -40,7 +41,7 @@ struct DepthAttachment {
 // Note 7: we can only render to 1 draw attachment
 
 struct CommandCreateInfo {
-	const Device& device;
+	Device& device;
 	VkQueue queue;
 };
 
@@ -115,14 +116,14 @@ public:
 	VkCommandBuffer getHandle() const { return m_commandBuffer; }
 
 private:
-	const Device& m_device;
+	Device& m_device;
 	VkQueue m_queue;
 	VkCommandPool m_commandPool{nullptr};
 
 	VkCommandBuffer m_commandBuffer{nullptr};
 	bool m_isRecording{false};
 	bool m_pipelineBound{false};
-	std::vector<Buffer*> m_stagingBuffers;
+	std::vector<std::unique_ptr<Buffer>> m_stagingBuffers;
 
 public:
 	Command(const Command&) = delete;
