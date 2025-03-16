@@ -105,7 +105,7 @@ Swapchain::Swapchain(const SwapchainCreateInfo& info)
 	}
 
 	// 8. Create the swapchain
-	VkSwapchainCreateInfoKHR createInfo = {
+	VkSwapchainCreateInfoKHR const createInfo{
 		.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
 		.surface = surface,
 		.minImageCount = imageCount,
@@ -176,7 +176,7 @@ void Swapchain::presentCurrent(const PresentInfo& info) {
 		waitSemaphores.push_back(semaphore->getHandle());
 	}
 
-	VkPresentInfoKHR presentInfo{
+	VkPresentInfoKHR const presentInfo{
 		.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
 		.waitSemaphoreCount = static_cast<uint32_t>(waitSemaphores.size()),
 		.pWaitSemaphores = waitSemaphores.data(),

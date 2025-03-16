@@ -36,7 +36,7 @@ struct CommandCreateInfo {
 
 #define CHECK_PIPELINE_BOUND assert(m_pipelineBound && "Pipeline is not bound!");
 
-typedef uint32_t BufferId;
+typedef uint32_t BufferId;	// TEMP (maybe?)
 
 // Note 1: every command is a graphics command
 // Note 2: every command is primary

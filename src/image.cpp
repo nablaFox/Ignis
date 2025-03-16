@@ -13,7 +13,7 @@ Image::Image(const Device& device, const ImageCreateInfo& info)
 	  m_creationInfo(info) {
 	assert(info.width > 0 && info.height > 0 && "Invalid image extent");
 
-	VkImageCreateInfo imageInfo = {
+	VkImageCreateInfo const imageInfo{
 		.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
 		.imageType = VK_IMAGE_TYPE_2D,
 		.format = info.format,
@@ -27,7 +27,7 @@ Image::Image(const Device& device, const ImageCreateInfo& info)
 		.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
 	};
 
-	VmaAllocationCreateInfo allocationInfo = {
+	VmaAllocationCreateInfo const allocationInfo{
 		.usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE,
 	};
 
@@ -36,7 +36,7 @@ Image::Image(const Device& device, const ImageCreateInfo& info)
 					   &m_image, &m_allocation, nullptr),
 		"Failed to create image");
 
-	VkImageViewCreateInfo viewInfo = {
+	VkImageViewCreateInfo const viewInfo{
 		.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
 		.image = m_image,
 		.viewType = VK_IMAGE_VIEW_TYPE_2D,
@@ -80,7 +80,7 @@ Image::~Image() {
 
 Image Image::allocateDepthImage(const Device& device,
 								const DepthImageCreateInfo& info) {
-	ImageCreateInfo imageCreateInfo{
+	ImageCreateInfo const imageCreateInfo{
 		.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
 		.aspect = VK_IMAGE_ASPECT_DEPTH_BIT,
 		.width = info.width,
@@ -95,7 +95,7 @@ Image Image::allocateDepthImage(const Device& device,
 
 Image Image::allocateDrawImage(const Device& device,
 							   const DrawImageCreateInfo& info) {
-	ImageCreateInfo imageCreateInfo{
+	ImageCreateInfo const imageCreateInfo{
 		.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
 				 VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
 		.aspect = VK_IMAGE_ASPECT_COLOR_BIT,

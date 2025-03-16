@@ -378,7 +378,7 @@ static BufferId saveBuffer(
 	std::unique_ptr<BindlessResources>& bindlessResources,
 	BufferId givenId = IGNIS_INVALID_BUFFER_ID,
 	bool reg = true) {
-	static BufferId nextId = 0;
+	static BufferId nextId = 0;	 // TEMP
 
 	BufferId bufferId = givenId == IGNIS_INVALID_BUFFER_ID ? nextId++ : givenId;
 

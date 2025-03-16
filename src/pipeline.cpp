@@ -36,7 +36,7 @@ Pipeline::Pipeline(const PipelineCreateInfo& info) : m_device(*info.device) {
 		});
 	}
 
-	VkPipelineVertexInputStateCreateInfo vertexInput{
+	VkPipelineVertexInputStateCreateInfo const vertexInput{
 		.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
 		.vertexBindingDescriptionCount = 0,
 		.pVertexBindingDescriptions = nullptr,
@@ -44,19 +44,19 @@ Pipeline::Pipeline(const PipelineCreateInfo& info) : m_device(*info.device) {
 		.pVertexAttributeDescriptions = nullptr,
 	};
 
-	VkPipelineInputAssemblyStateCreateInfo inputAssembly{
+	VkPipelineInputAssemblyStateCreateInfo const inputAssembly{
 		.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
 		.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
 		.primitiveRestartEnable = VK_FALSE,
 	};
 
-	VkPipelineViewportStateCreateInfo viewportState{
+	VkPipelineViewportStateCreateInfo const viewportState{
 		.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
 		.viewportCount = 1,
 		.scissorCount = 1,
 	};
 
-	VkPipelineRasterizationStateCreateInfo rasterizer{
+	VkPipelineRasterizationStateCreateInfo const rasterizer{
 		.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
 		.depthClampEnable = VK_FALSE,
 		.rasterizerDiscardEnable = VK_FALSE,
@@ -67,14 +67,14 @@ Pipeline::Pipeline(const PipelineCreateInfo& info) : m_device(*info.device) {
 		.lineWidth = info.lineWidth,
 	};
 
-	VkPipelineMultisampleStateCreateInfo multisampling{
+	VkPipelineMultisampleStateCreateInfo const multisampling{
 		.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
 		.rasterizationSamples = info.sampleCount,
 		.sampleShadingEnable = info.sampleShadingEnable,
 		.minSampleShading = info.minSampleShading,
 	};
 
-	VkPipelineDepthStencilStateCreateInfo depthStencil{
+	VkPipelineDepthStencilStateCreateInfo const depthStencil{
 		.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
 		.depthTestEnable = VK_TRUE,
 		.depthWriteEnable = info.enableDepthWrite,
@@ -83,7 +83,7 @@ Pipeline::Pipeline(const PipelineCreateInfo& info) : m_device(*info.device) {
 		.stencilTestEnable = VK_FALSE,
 	};
 
-	VkPipelineColorBlendAttachmentState colorBlendAttachment{
+	VkPipelineColorBlendAttachmentState const colorBlendAttachment{
 		.blendEnable = info.blendEnable,
 		.srcColorBlendFactor = info.srcColorBlendFactor,
 		.dstColorBlendFactor = info.dstColorBlendFactor,
@@ -95,19 +95,19 @@ Pipeline::Pipeline(const PipelineCreateInfo& info) : m_device(*info.device) {
 						  VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
 	};
 
-	VkPipelineColorBlendStateCreateInfo colorBlending{
+	VkPipelineColorBlendStateCreateInfo const colorBlending{
 		.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
 		.logicOpEnable = VK_FALSE,
 		.attachmentCount = 1,
 		.pAttachments = &colorBlendAttachment,
 	};
 
-	std::vector<VkDynamicState> dynamicStates = {
+	std::vector<VkDynamicState> const dynamicStates{
 		VK_DYNAMIC_STATE_VIEWPORT,
 		VK_DYNAMIC_STATE_SCISSOR,
 	};
 
-	VkPipelineDynamicStateCreateInfo dynamicState{
+	VkPipelineDynamicStateCreateInfo const dynamicState{
 		.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
 		.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size()),
 		.pDynamicStates = dynamicStates.data(),
@@ -127,7 +127,7 @@ Pipeline::Pipeline(const PipelineCreateInfo& info) : m_device(*info.device) {
 		pipelineRenderingInfo.depthAttachmentFormat = vkDepthFormat;
 	}
 
-	VkGraphicsPipelineCreateInfo pipelineInfo{
+	VkGraphicsPipelineCreateInfo const pipelineInfo{
 		.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
 		.pNext = &pipelineRenderingInfo,
 		.stageCount = static_cast<uint32_t>(shaderStages.size()),

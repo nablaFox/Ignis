@@ -13,14 +13,14 @@ Buffer::Buffer(VmaAllocator allocator, const BufferCreateInfo& info)
 	assert(m_size > 0 && "Buffer size must be greater than 0");
 	assert(m_allocator && "Invalid allocator");
 
-	VkBufferCreateInfo bufferInfo{
+	VkBufferCreateInfo const bufferInfo{
 		.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
 		.size = m_size,
 		.usage = info.bufferUsage | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
 		.sharingMode = VK_SHARING_MODE_EXCLUSIVE,
 	};
 
-	VmaAllocationCreateInfo allocationInfo{
+	VmaAllocationCreateInfo const allocationInfo{
 		.requiredFlags = info.memoryProperties,
 	};
 
@@ -96,7 +96,7 @@ void Buffer::readData(void* data, uint32_t offset, uint32_t size) {
 }
 
 VkDeviceAddress Buffer::getDeviceAddress(VkDevice device) {
-	VkBufferDeviceAddressInfo addressInfo{
+	VkBufferDeviceAddressInfo const addressInfo{
 		.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO,
 		.buffer = m_buffer,
 	};

@@ -13,7 +13,7 @@ Command::Command(const CommandCreateInfo& info)
 	: m_device(info.device),
 	  m_queue(info.queue != nullptr ? info.queue : m_device.getQueue(0)),
 	  m_commandPool(m_device.getCommandPool(m_queue)) {
-	VkCommandBufferAllocateInfo allocInfo{
+	VkCommandBufferAllocateInfo const allocInfo{
 		.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
 		.commandPool = m_commandPool,
 		.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
@@ -35,7 +35,7 @@ void Command::begin(VkCommandBufferUsageFlags flags) {
 
 	m_stagingBuffers.clear();
 
-	VkCommandBufferBeginInfo beginInfo{
+	VkCommandBufferBeginInfo const beginInfo{
 		.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
 		.flags = flags,
 	};
@@ -62,7 +62,7 @@ void Command::transitionImageLayout(Image& image, VkImageLayout newLayout) {
 	TransitionInfo transitionInfo =
 		getTransitionInfo(image.m_currentLayout, newLayout);
 
-	VkImageMemoryBarrier barrier{
+	VkImageMemoryBarrier const barrier{
 		.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
 		.srcAccessMask = transitionInfo.srcAccessMask,
 		.dstAccessMask = transitionInfo.dstAccessMask,
@@ -97,21 +97,21 @@ void Command::copyImage(const Image& src,
 	assert(dst.m_currentLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL &&
 		   "Destination image is not in the correct layout");
 
-	VkImageSubresourceLayers srcSubresource{
+	VkImageSubresourceLayers const srcSubresource{
 		.aspectMask = src.getAspect(),
 		.mipLevel = 0,
 		.baseArrayLayer = 0,
 		.layerCount = 1,
 	};
 
-	VkImageSubresourceLayers dstSubresource{
+	VkImageSubresourceLayers const dstSubresource{
 		.aspectMask = dst.getAspect(),
 		.mipLevel = 0,
 		.baseArrayLayer = 0,
 		.layerCount = 1,
 	};
 
-	VkImageCopy copyRegion{
+	VkImageCopy const copyRegion{
 		.srcSubresource = srcSubresource,
 		.srcOffset = {srcOffset.x, srcOffset.y, 0},
 		.dstSubresource = dstSubresource,
@@ -156,7 +156,7 @@ void Command::blitImage(const Image& src,
 	VkOffset3D dstEnd{dstOffset.x + static_cast<int32_t>(regionWidth),
 					  dstOffset.y + static_cast<int32_t>(regionHeight), 1};
 
-	VkImageBlit2 blitRegion{
+	VkImageBlit2 const blitRegion{
 		.sType = VK_STRUCTURE_TYPE_IMAGE_BLIT_2,
 		.pNext = nullptr,
 		.srcSubresource =
@@ -177,7 +177,7 @@ void Command::blitImage(const Image& src,
 		.dstOffsets = {dstStart, dstEnd},
 	};
 
-	VkBlitImageInfo2 blitInfo{
+	VkBlitImageInfo2 const blitInfo{
 		.sType = VK_STRUCTURE_TYPE_BLIT_IMAGE_INFO_2,
 		.pNext = nullptr,
 		.srcImage = src.getHandle(),
@@ -214,7 +214,7 @@ void Command::updateImage(const Image& image,
 
 	staging->writeData(pixels);
 
-	VkBufferImageCopy copyRegion = {
+	VkBufferImageCopy const copyRegion{
 		.bufferOffset = 0,
 		.imageSubresource = {image.getAspect(), 0, 0, 1},
 		.imageOffset = {imageOffset.x, imageOffset.y, 0},
@@ -266,7 +266,7 @@ void Command::updateBuffer(BufferId bufferId,
 	auto staging =
 		std::make_unique<Buffer>(m_device.createStagingBuffer(size, data));
 
-	VkBufferCopy copyRegion = {
+	VkBufferCopy const copyRegion{
 		.srcOffset = 0,
 		.dstOffset = offset,
 		.size = size,
@@ -357,7 +357,7 @@ void Command::beginRender(const DrawAttachment* drawAttachment,
 	VkExtent2D extent = drawAttachment ? drawAttachment->drawImage->getExtent2D()
 									   : depthAttachment->depthImage->getExtent2D();
 
-	VkRenderingInfo renderingInfo{
+	VkRenderingInfo const renderingInfo{
 		.sType = VK_STRUCTURE_TYPE_RENDERING_INFO,
 		.renderArea = {{0, 0}, extent},
 		.layerCount = 1,

@@ -5,7 +5,7 @@
 using namespace ignis;
 
 Semaphore::Semaphore(const Device& device) : m_device(device) {
-	VkSemaphoreCreateInfo semaphoreInfo{
+	VkSemaphoreCreateInfo const semaphoreInfo{
 		.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
 	};
 
