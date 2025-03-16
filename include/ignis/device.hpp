@@ -6,10 +6,11 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include "bindless_resources.hpp"
+#include <array>
 
 namespace ignis {
 
+class BindlessResources;
 class Semaphore;
 class Fence;
 class Command;
@@ -19,7 +20,10 @@ class Image;
 class Sampler;
 class Features;
 
-// each command should be relative to the same queue
+#define IGNIS_STORAGE_BUFFER_BINDING 0
+#define IGNIS_UNIFORM_BUFFER_BINDING 1
+#define IGNIS_IMAGE_SAMPLER_BINDING 2
+
 struct SubmitCmdInfo {
 	const Command& command;
 	std::vector<const Semaphore*> waitSemaphores;
@@ -84,27 +88,19 @@ public:
 		return m_physicalDeviceProperties.limits.minStorageBufferOffsetAlignment;
 	}
 
-	VkPipelineLayout getPipelineLayout(uint32_t pushConstantSize) const {
-		return m_bindlessResources.getPipelinelayout(1 + (pushConstantSize / 4));
-	}
+	VkPipelineLayout getPipelineLayout(uint32_t pushConstantSize) const;
 
-	VkDescriptorSet getDescriptorSet() const {
-		return m_bindlessResources.getDescriptorSet();
-	}
+	VkDescriptorSet getDescriptorSet() const;
 
 	Buffer& getBuffer(BufferId) const;
 
-	BufferId registerBuffer(std::unique_ptr<Buffer>);
-
-	BufferId createBuffer(const BufferCreateInfo&);
+	void destroyBuffer(BufferId);
 
 	BufferId createUBO(VkDeviceSize, const void* data = nullptr);
 
 	BufferId createSSBO(VkDeviceSize, const void* data = nullptr);
 
 	Buffer createStagingBuffer(VkDeviceSize, const void* data = nullptr);
-
-	void destroyBuffer(BufferId);
 
 	void registerSampledImage(const Image&, const Sampler&, uint32_t index);
 
@@ -129,7 +125,7 @@ private:
 	std::vector<VkQueue> m_queues;
 	std::unordered_map<VkQueue, VkCommandPool> m_commandPools;
 
-	BindlessResources m_bindlessResources;
+	std::unique_ptr<BindlessResources> m_bindlessResources;
 
 	std::string m_shadersFolder;
 

@@ -10,6 +10,7 @@
 #include "image.hpp"
 #include "sampler.hpp"
 #include "vk_utils.hpp"
+#include "bindless_resources.hpp"
 
 #define VMA_IMPLEMENTATION
 #include <vk_mem_alloc.h>
@@ -35,7 +36,7 @@ debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
 			  VkDebugUtilsMessageTypeFlagsEXT messageType,
 			  const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
 			  void* pUserData) {
-	std::cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
+	std::cerr << pCallbackData->pMessage << "\n" << std::endl;
 	return VK_FALSE;
 }
 
@@ -251,7 +252,21 @@ Device::Device(const CreateInfo& createInfo)
 
 	allocateCommandPools(m_device, m_graphicsFamilyIndex, m_queues, &m_commandPools);
 
-	m_bindlessResources.initialize(m_device);
+	BindlessResourcesCreateInfo bindlessResourcesCreateInfo{
+		.device = m_device,
+		.maxStorageBuffers =
+			m_physicalDeviceProperties.limits.maxPerStageDescriptorStorageBuffers,
+		.maxUniformBuffers =
+			m_physicalDeviceProperties.limits.maxPerStageDescriptorUniformBuffers,
+		.maxImageSamplers =
+			m_physicalDeviceProperties.limits.maxPerStageDescriptorSampledImages,
+		.storageBuffersBinding = IGNIS_STORAGE_BUFFER_BINDING,
+		.uniformBuffersBinding = IGNIS_UNIFORM_BUFFER_BINDING,
+		.imageSamplersBinding = IGNIS_IMAGE_SAMPLER_BINDING,
+	};
+
+	m_bindlessResources =
+		std::make_unique<BindlessResources>(bindlessResourcesCreateInfo);
 }
 
 void Device::submitCommands(std::vector<SubmitCmdInfo> submits,
@@ -348,51 +363,6 @@ Buffer& Device::getBuffer(BufferId handle) const {
 	return *it->second;
 }
 
-// TODO: recycle buffer ids
-BufferId Device::registerBuffer(std::unique_ptr<Buffer> buffer) {
-	BufferId handle = m_buffers.size();
-
-	VkDescriptorBufferInfo bufferInfo{
-		.buffer = buffer->getHandle(),
-		.offset = 0,
-		.range = buffer->getSize(),
-	};
-
-	VkWriteDescriptorSet writeDescriptorSet{
-		.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-		.dstSet = m_bindlessResources.getDescriptorSet(),
-		.dstBinding = IGNIS_UNIFORM_BUFFER_BINDING,
-		.dstArrayElement = handle,
-		.descriptorCount = 1,
-		.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-		.pBufferInfo = &bufferInfo,
-	};
-
-	vkUpdateDescriptorSets(m_device, 1, &writeDescriptorSet, 0, nullptr);
-
-	m_buffers.insert({handle, std::move(buffer)});
-
-	return handle;
-}
-
-BufferId Device::createBuffer(const BufferCreateInfo& info) {
-	return registerBuffer(std::make_unique<Buffer>(m_allocator, info));
-}
-
-BufferId Device::createUBO(VkDeviceSize size, const void* data) {
-	return registerBuffer(std::make_unique<Buffer>(
-		Buffer::createUBO(m_allocator, getUboAlignment(), size, data)));
-}
-
-BufferId Device::createSSBO(VkDeviceSize size, const void* data) {
-	return registerBuffer(std::make_unique<Buffer>(
-		Buffer::createSSBO(m_allocator, getSsboAlignment(), size, data)));
-}
-
-Buffer Device::createStagingBuffer(VkDeviceSize size, const void* data) {
-	return std::move(Buffer::createStagingBuffer(m_allocator, size, data));
-}
-
 void Device::destroyBuffer(BufferId handle) {
 	auto it = m_buffers.find(handle);
 
@@ -401,26 +371,52 @@ void Device::destroyBuffer(BufferId handle) {
 	m_buffers.erase(it);
 }
 
+// TODO: recycle buffer ids
+static BufferId saveBuffer(
+	Buffer buffer,
+	std::unordered_map<BufferId, std::unique_ptr<Buffer>>& buffers,
+	std::unique_ptr<BindlessResources>& bindlessResources) {
+	static BufferId nextId = 0;
+
+	BufferId handle = nextId++;
+
+	bindlessResources->registerBuffer(buffer.getHandle(), buffer.getUsage(),
+									  buffer.getSize(), handle);
+
+	buffers.insert({handle, std::make_unique<Buffer>(std::move(buffer))});
+
+	return handle;
+}
+
+BufferId Device::createUBO(VkDeviceSize size, const void* data) {
+	Buffer ubo = Buffer::createUBO(m_allocator, size, getUboAlignment(), data);
+
+	return saveBuffer(std::move(ubo), m_buffers, m_bindlessResources);
+}
+
+BufferId Device::createSSBO(VkDeviceSize size, const void* data) {
+	Buffer ssbo = Buffer::createSSBO(m_allocator, getSsboAlignment(), size, data);
+
+	return saveBuffer(std::move(ssbo), m_buffers, m_bindlessResources);
+}
+
+Buffer Device::createStagingBuffer(VkDeviceSize size, const void* data) {
+	return std::move(Buffer::createStagingBuffer(m_allocator, size, data));
+}
+
 void Device::registerSampledImage(const Image& image,
 								  const Sampler& sampler,
 								  uint32_t index) {
-	VkDescriptorImageInfo imageInfo{
-		.sampler = sampler.getHandle(),
-		.imageView = image.getViewHandle(),
-		.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-	};
+	// m_bindlessResources->registerSampledImage(image.getViewHandle(),
+	// 										  sampler.getHandle(), index);
+}
 
-	VkWriteDescriptorSet writeDescriptorSet{
-		.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-		.dstSet = m_bindlessResources.getDescriptorSet(),
-		.dstBinding = IGNIS_IMAGE_SAMPLER_BINDING,
-		.dstArrayElement = index,
-		.descriptorCount = 1,
-		.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-		.pImageInfo = &imageInfo,
-	};
+VkPipelineLayout Device::getPipelineLayout(uint32_t pushConstantSize) const {
+	return m_bindlessResources->getPipelinelayout(1 + (pushConstantSize / 4));
+};
 
-	vkUpdateDescriptorSets(m_device, 1, &writeDescriptorSet, 0, nullptr);
+VkDescriptorSet Device::getDescriptorSet() const {
+	return m_bindlessResources->getDescriptorSet();
 }
 
 bool Device::isFeatureEnabled(const char* feature) const {
@@ -451,9 +447,9 @@ VkSampleCountFlagBits Device::getMaxSampleCount() const {
 Device::~Device() {
 	vkDeviceWaitIdle(m_device);
 
-	m_buffers.clear();
+	m_bindlessResources.reset();
 
-	m_bindlessResources.cleanup(m_device);
+	m_buffers.clear();
 
 	for (auto queue : m_queues)
 		vkQueueWaitIdle(queue);
