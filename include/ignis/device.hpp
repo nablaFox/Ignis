@@ -10,7 +10,7 @@
 
 namespace ignis {
 
-class BindlessResources;
+class GpuResources;
 class Semaphore;
 class Fence;
 class Command;
@@ -133,7 +133,7 @@ private:
 	std::vector<VkQueue> m_queues;
 	std::unordered_map<VkQueue, VkCommandPool> m_commandPools;
 
-	std::unique_ptr<BindlessResources> m_bindlessResources;
+	std::unique_ptr<GpuResources> m_bindlessResources;
 
 	std::string m_shadersFolder;
 

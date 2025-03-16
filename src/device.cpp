@@ -10,7 +10,7 @@
 #include "image.hpp"
 #include "sampler.hpp"
 #include "vk_utils.hpp"
-#include "bindless_resources.hpp"
+#include "gpu_resources.hpp"
 
 #define VMA_IMPLEMENTATION
 #include <vk_mem_alloc.h>
@@ -266,7 +266,7 @@ Device::Device(const CreateInfo& createInfo)
 	};
 
 	m_bindlessResources =
-		std::make_unique<BindlessResources>(bindlessResourcesCreateInfo);
+		std::make_unique<GpuResources>(bindlessResourcesCreateInfo);
 }
 
 void Device::submitCommands(std::vector<SubmitCmdInfo> submits,

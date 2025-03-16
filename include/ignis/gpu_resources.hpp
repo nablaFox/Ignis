@@ -18,9 +18,9 @@ struct BindlessResourcesCreateInfo {
 	uint32_t imageSamplersBinding{2};
 };
 
-struct BindlessResources {
-	BindlessResources(const BindlessResourcesCreateInfo&);
-	~BindlessResources();
+struct GpuResources {
+	GpuResources(const BindlessResourcesCreateInfo&);
+	~GpuResources();
 
 	VkPipelineLayout getPipelinelayout(uint32_t pushConstantSize) const {
 		return m_pipelineLayouts.at(pushConstantSize);
@@ -46,10 +46,10 @@ private:
 	std::array<VkPipelineLayout, PIPELINE_LAYOUT_COUNT> m_pipelineLayouts{};
 
 public:
-	BindlessResources(const BindlessResources&) = delete;
-	BindlessResources(BindlessResources&&) = delete;
-	BindlessResources& operator=(const BindlessResources&) = delete;
-	BindlessResources& operator=(BindlessResources&&) = delete;
+	GpuResources(const GpuResources&) = delete;
+	GpuResources(GpuResources&&) = delete;
+	GpuResources& operator=(const GpuResources&) = delete;
+	GpuResources& operator=(GpuResources&&) = delete;
 };
 
 }  // namespace ignis

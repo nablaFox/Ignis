@@ -1,11 +1,11 @@
 #include <cassert>
 #include <vector>
-#include "bindless_resources.hpp"
+#include "gpu_resources.hpp"
 #include "exceptions.hpp"
 
 using namespace ignis;
 
-BindlessResources::BindlessResources(const BindlessResourcesCreateInfo& info)
+GpuResources::GpuResources(const BindlessResourcesCreateInfo& info)
 	: m_creationInfo(info) {
 	assert(info.device && "Invalid device");
 	assert(info.maxStorageBuffers && "Invalid max storage buffers");
@@ -157,10 +157,10 @@ BindlessResources::BindlessResources(const BindlessResourcesCreateInfo& info)
 	}
 }
 
-void BindlessResources::registerBuffer(VkBuffer buffer,
-									   VkBufferUsageFlags usage,
-									   VkDeviceSize size,
-									   uint32_t binding) const {
+void GpuResources::registerBuffer(VkBuffer buffer,
+								  VkBufferUsageFlags usage,
+								  VkDeviceSize size,
+								  uint32_t binding) const {
 	bool isStorageBuffer = (usage & VK_BUFFER_USAGE_STORAGE_BUFFER_BIT) != 0;
 	bool isUniformBuffer = (usage & VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT) != 0;
 
@@ -188,7 +188,7 @@ void BindlessResources::registerBuffer(VkBuffer buffer,
 						   nullptr);
 };
 
-BindlessResources::~BindlessResources() {
+GpuResources::~GpuResources() {
 	vkDestroyDescriptorSetLayout(m_creationInfo.device, m_descriptorSetLayout,
 								 nullptr);
 	vkDestroyDescriptorPool(m_creationInfo.device, m_descriptorPool, nullptr);
