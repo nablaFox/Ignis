@@ -271,11 +271,12 @@ int main(int argc, char* argv[]) {
 	});
 
 	Image drawImage =
-		Image::allocateDrawImage(device, {
-											 .width = WINDOW_WIDTH,
-											 .height = WINDOW_HEIGHT,
-											 .sampleCount = VK_SAMPLE_COUNT_1_BIT,
-										 });
+		Image::allocateDrawImage(device.getDevice(), device.getAllocator(),
+								 {
+									 .width = WINDOW_WIDTH,
+									 .height = WINDOW_HEIGHT,
+									 .sampleCount = VK_SAMPLE_COUNT_1_BIT,
+								 });
 
 	Screen screen{};
 

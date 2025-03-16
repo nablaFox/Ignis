@@ -27,6 +27,8 @@ class Features;
 
 #define IGNIS_INVALID_BUFFER_ID UINT32_MAX
 
+typedef uint32_t BufferId;
+
 struct SubmitCmdInfo {
 	const Command& command;
 	std::vector<const Semaphore*> waitSemaphores;
@@ -44,8 +46,6 @@ constexpr std::array IGNIS_REQ_FEATURES = {
 	"RuntimeDescriptorArray",
 };
 
-typedef uint32_t BufferId;
-
 // Note 1: the library supports just 1 instance, physical and logical device
 // Note 2: we handle only graphics queues
 // Note 3: the library works only in vulkan 1.3 with dynamic rendering and other
@@ -55,7 +55,6 @@ typedef uint32_t BufferId;
 // Note 6: we allocate a command pool for each queue
 // Note 7: only combined image samplers are supported
 
-// PONDER probaly device should inherit a pointer class
 class Device {
 public:
 	struct CreateInfo {
@@ -95,29 +94,6 @@ public:
 
 	VkDescriptorSet getDescriptorSet() const;
 
-	Buffer& getBuffer(BufferId) const;
-
-	void destroyBuffer(BufferId);
-
-	// will not be registered
-	BufferId createBuffer(const BufferCreateInfo&,
-						  BufferId = IGNIS_INVALID_BUFFER_ID);
-
-	// will not be registered
-	BufferId createIndexBuffer32(uint32_t elementCount,
-								 BufferId = IGNIS_INVALID_BUFFER_ID);
-
-	BufferId createUBO(VkDeviceSize,
-					   const void* data = nullptr,
-					   BufferId = IGNIS_INVALID_BUFFER_ID);
-
-	BufferId createSSBO(VkDeviceSize, BufferId = IGNIS_INVALID_BUFFER_ID);
-
-	// will not be saved or registered
-	Buffer createStagingBuffer(VkDeviceSize, const void* data = nullptr);
-
-	void registerSampledImage(const Image&, const Sampler&, uint32_t index);
-
 	bool isFeatureEnabled(const char* featureName) const;
 
 	VkSampleCountFlagBits getMaxSampleCount() const;
@@ -125,6 +101,28 @@ public:
 	VmaAllocator getAllocator() const { return m_allocator; }
 
 	std::string getShadersFolder() const { return m_shadersFolder; };
+
+public:
+	// will always be registered (the binding will depend if ubo or ssbo)
+	// it will be asserted that ubo or ssbo
+	BufferId createBuffer(const BufferCreateInfo&,
+						  BufferId = IGNIS_INVALID_BUFFER_ID);
+
+	// ubo with default specs
+	BufferId createUBO(VkDeviceSize size,
+					   const void* data = nullptr,
+					   BufferId = IGNIS_INVALID_BUFFER_ID);
+
+	// ssbo with default specs
+	BufferId createSSBO(VkDeviceSize size,
+						const void* data = nullptr,
+						BufferId = IGNIS_INVALID_BUFFER_ID);
+
+	Buffer createStagingBuffer(VkDeviceSize, const void* data = nullptr);
+
+	Buffer& getBuffer(BufferId) const;
+
+	void destroyBuffer(BufferId);
 
 private:
 	VkInstance m_instance{nullptr};

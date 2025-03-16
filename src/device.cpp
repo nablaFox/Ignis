@@ -372,63 +372,30 @@ void Device::destroyBuffer(BufferId handle) {
 }
 
 // TODO: recycle buffer ids
-static BufferId saveBuffer(
-	Buffer buffer,
-	std::unordered_map<BufferId, std::unique_ptr<Buffer>>& buffers,
-	std::unique_ptr<BindlessResources>& bindlessResources,
-	BufferId givenId = IGNIS_INVALID_BUFFER_ID,
-	bool reg = true) {
-	static BufferId nextId = 0;	 // TEMP
+BufferId Device::createBuffer(const BufferCreateInfo& createInfo, BufferId givenId) {
+	Buffer buffer(m_allocator, createInfo);
 
+	static BufferId nextId = 0;	 // TEMP
 	BufferId bufferId = givenId == IGNIS_INVALID_BUFFER_ID ? nextId++ : givenId;
 
-	if (reg) {
-		bindlessResources->registerBuffer(buffer.getHandle(), buffer.getUsage(),
-										  buffer.getSize(), bufferId);
-	}
+	m_bindlessResources->registerBuffer(buffer.getHandle(), buffer.getUsage(),
+										buffer.getSize(), bufferId);
 
-	buffers.insert({bufferId, std::make_unique<Buffer>(std::move(buffer))});
+	m_buffers.insert({bufferId, std::make_unique<Buffer>(std::move(buffer))});
 
 	return bufferId;
 }
 
-BufferId Device::createBuffer(const BufferCreateInfo& createInfo,
-							  BufferId bufferId) {
-	Buffer buffer(m_allocator, createInfo);
-
-	return saveBuffer(std::move(buffer), m_buffers, m_bindlessResources, bufferId,
-					  false);
+BufferId Device::createUBO(VkDeviceSize size, const void* data, BufferId givenId) {
+	return createBuffer(Buffer::uboDesc(getUboAlignment(), size, data), givenId);
 }
 
-BufferId Device::createUBO(VkDeviceSize size, const void* data, BufferId bufferId) {
-	Buffer ubo = Buffer::createUBO(m_allocator, size, getUboAlignment(), data);
-
-	return saveBuffer(std::move(ubo), m_buffers, m_bindlessResources, bufferId);
-}
-
-BufferId Device::createSSBO(VkDeviceSize size, BufferId bufferId) {
-	Buffer ssbo = Buffer::createSSBO(m_allocator, getSsboAlignment(), size, nullptr);
-
-	return saveBuffer(std::move(ssbo), m_buffers, m_bindlessResources, bufferId);
-}
-
-BufferId Device::createIndexBuffer32(uint32_t elementCount, BufferId bufferId) {
-	Buffer indexBuffer =
-		Buffer::createIndexBuffer32(m_allocator, elementCount, nullptr);
-
-	return saveBuffer(std::move(indexBuffer), m_buffers, m_bindlessResources,
-					  bufferId, false);
+BufferId Device::createSSBO(VkDeviceSize size, const void* data, BufferId givenId) {
+	return createBuffer(Buffer::ssboDesc(getSsboAlignment(), size, data), givenId);
 }
 
 Buffer Device::createStagingBuffer(VkDeviceSize size, const void* data) {
-	return std::move(Buffer::createStagingBuffer(m_allocator, size, data));
-}
-
-void Device::registerSampledImage(const Image& image,
-								  const Sampler& sampler,
-								  uint32_t index) {
-	// m_bindlessResources->registerSampledImage(image.getViewHandle(),
-	// 										  sampler.getHandle(), index);
+	return Buffer(m_allocator, Buffer::stagingBufferDesc(size, data));
 }
 
 VkPipelineLayout Device::getPipelineLayout(uint32_t pushConstantSize) const {

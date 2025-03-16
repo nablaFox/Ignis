@@ -139,7 +139,7 @@ Swapchain::Swapchain(const SwapchainCreateInfo& info)
 	m_images.reserve(actualImageCount);
 
 	for (const auto& handle : imageHandles) {
-		ImageCreateInfo info{
+		ImageCreateInfo const info{
 			.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
 					 VK_IMAGE_USAGE_TRANSFER_DST_BIT,
 			.width = swapExtent.width,
@@ -148,7 +148,7 @@ Swapchain::Swapchain(const SwapchainCreateInfo& info)
 			.optimalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
 		};
 
-		m_images.push_back(std::make_unique<Image>(m_device, handle, nullptr, info));
+		m_images.push_back(std::make_unique<Image>(handle, nullptr, info));
 	}
 }
 

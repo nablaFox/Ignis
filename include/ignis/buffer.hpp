@@ -29,23 +29,19 @@ public:
 
 	void readData(void* data, uint32_t offset = 0, uint32_t size = 0);
 
-	static Buffer createUBO(VmaAllocator,
-							VkDeviceSize alignment,
-							VkDeviceSize size,
-							const void* data = nullptr);
+	static BufferCreateInfo uboDesc(VkDeviceSize alignment,
+									VkDeviceSize size,
+									const void* data = nullptr);
 
-	static Buffer createSSBO(VmaAllocator,
-							 VkDeviceSize alignment,
-							 VkDeviceSize size,
-							 const void* data = nullptr);
+	static BufferCreateInfo ssboDesc(VkDeviceSize alignment,
+									 VkDeviceSize size,
+									 const void* data = nullptr);
 
-	static Buffer createIndexBuffer32(VmaAllocator,
-									  uint32_t elementCount,
-									  uint32_t* data = nullptr);
+	static BufferCreateInfo indexBuffer32Desc(uint32_t elementCount,
+											  uint32_t* data = nullptr);
 
-	static Buffer createStagingBuffer(VmaAllocator,
-									  VkDeviceSize size,
-									  const void* data = nullptr);
+	static BufferCreateInfo stagingBufferDesc(VkDeviceSize size,
+											  const void* data = nullptr);
 
 private:
 	VmaAllocator m_allocator{nullptr};

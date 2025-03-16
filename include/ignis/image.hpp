@@ -1,11 +1,8 @@
 #pragma once
 
-#include <vulkan/vulkan_core.h>
 #include <vk_mem_alloc.h>
 
 namespace ignis {
-
-class Device;
 
 enum class DepthFormat {
 	D16_UNORM = VK_FORMAT_D16_UNORM,
@@ -49,10 +46,10 @@ struct Image {
 
 public:
 	// wrapper
-	Image(const Device&, VkImage, VkImageView, const ImageCreateInfo&);
+	Image(VkImage, VkImageView, const ImageCreateInfo&);
 
-	// gpu allocated
-	Image(const Device&, const ImageCreateInfo&);
+	// gpu allocated (the allocator should be relative to the device passed here)
+	Image(VkDevice, VmaAllocator, const ImageCreateInfo&);
 
 	~Image();
 
@@ -91,12 +88,17 @@ public:
 	}
 
 public:
-	static Image allocateDepthImage(const Device&, const DepthImageCreateInfo&);
+	static Image allocateDepthImage(VkDevice,
+									VmaAllocator,
+									const DepthImageCreateInfo&);
 
-	static Image allocateDrawImage(const Device&, const DrawImageCreateInfo&);
+	static Image allocateDrawImage(VkDevice,
+								   VmaAllocator,
+								   const DrawImageCreateInfo&);
 
 private:
-	const Device& m_device;
+	VkDevice m_device{nullptr};
+	VmaAllocator m_allocator{nullptr};
 	VmaAllocation m_allocation{nullptr};
 	VkImage m_image{nullptr};
 	VkImageView m_view{nullptr};
@@ -105,10 +107,11 @@ private:
 	ImageCreateInfo m_creationInfo;
 
 public:
-	Image(const Image&) = delete;
+	Image(Image&&) noexcept;
 	Image& operator=(const Image&) = delete;
-	Image(Image&&) = delete;
+	Image(const Image&) = delete;
 	Image& operator=(Image&&) = delete;
 };
 
 }  // namespace ignis
+

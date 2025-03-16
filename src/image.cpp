@@ -2,15 +2,17 @@
 #include "command.hpp"
 #include "device.hpp"
 #include "exceptions.hpp"
-#include "fence.hpp"
 #include "vk_utils.hpp"
 
 using namespace ignis;
 
-Image::Image(const Device& device, const ImageCreateInfo& info)
+Image::Image(VkDevice device, VmaAllocator allocator, const ImageCreateInfo& info)
 	: m_device(device),
+	  m_allocator(allocator),
 	  m_pixelSize(::getPixelSize(info.format)),
 	  m_creationInfo(info) {
+	assert(m_device && "Invalid device");
+	assert(m_allocator && "Invalid allocator");
 	assert(info.width > 0 && info.height > 0 && "Invalid image extent");
 
 	VkImageCreateInfo const imageInfo{
@@ -31,12 +33,11 @@ Image::Image(const Device& device, const ImageCreateInfo& info)
 		.usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE,
 	};
 
-	THROW_VULKAN_ERROR(
-		vmaCreateImage(m_device.getAllocator(), &imageInfo, &allocationInfo,
-					   &m_image, &m_allocation, nullptr),
-		"Failed to create image");
+	THROW_VULKAN_ERROR(vmaCreateImage(m_allocator, &imageInfo, &allocationInfo,
+									  &m_image, &m_allocation, nullptr),
+					   "Failed to create image");
 
-	VkImageViewCreateInfo const viewInfo{
+	VkImageViewCreateInfo viewInfo{
 		.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
 		.image = m_image,
 		.viewType = VK_IMAGE_VIEW_TYPE_2D,
@@ -51,18 +52,13 @@ Image::Image(const Device& device, const ImageCreateInfo& info)
 			},
 	};
 
-	THROW_VULKAN_ERROR(
-		vkCreateImageView(m_device.getDevice(), &viewInfo, nullptr, &m_view),
-		"Failed to create image view");
+	THROW_VULKAN_ERROR(vkCreateImageView(m_device, &viewInfo, nullptr, &m_view),
+					   "Failed to create image view");
 }
 
-Image::Image(const Device& device,
-			 VkImage image,
-			 VkImageView view,
-			 const ImageCreateInfo& info)
+Image::Image(VkImage image, VkImageView view, const ImageCreateInfo& info)
 	: m_image(image),
 	  m_view(view),
-	  m_device(device),
 	  m_creationInfo(info),
 	  m_pixelSize(::getPixelSize(info.format)) {
 	assert(info.width > 0 && info.height > 0 && "Invalid image extent");
@@ -70,15 +66,28 @@ Image::Image(const Device& device,
 }
 
 Image::~Image() {
-	// TEMP: now we are using m_view to check if the image was created
-	// as a wrapper or as an allocation
-	if (m_view != nullptr) {
-		vkDestroyImageView(m_device.getDevice(), m_view, nullptr);
-		vmaDestroyImage(m_device.getAllocator(), m_image, m_allocation);
+	if (m_allocator == nullptr || m_device == nullptr) {
+		return;
 	}
+
+	vkDestroyImageView(m_device, m_view, nullptr);
+	vmaDestroyImage(m_allocator, m_image, m_allocation);
 }
 
-Image Image::allocateDepthImage(const Device& device,
+Image::Image(Image&& other) noexcept
+	: m_device(other.m_device),
+	  m_allocator(other.m_allocator),
+	  m_image(other.m_image),
+	  m_view(other.m_view),
+	  m_pixelSize(other.m_pixelSize),
+	  m_creationInfo(other.m_creationInfo) {
+	other.m_image = VK_NULL_HANDLE;
+	other.m_view = VK_NULL_HANDLE;
+	other.m_allocation = VK_NULL_HANDLE;
+}
+
+Image Image::allocateDepthImage(VkDevice device,
+								VmaAllocator allocator,
 								const DepthImageCreateInfo& info) {
 	ImageCreateInfo const imageCreateInfo{
 		.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
@@ -90,10 +99,11 @@ Image Image::allocateDepthImage(const Device& device,
 		.sampleCount = info.sampleCount,
 	};
 
-	return Image(device, imageCreateInfo);
+	return Image(device, allocator, imageCreateInfo);
 }
 
-Image Image::allocateDrawImage(const Device& device,
+Image Image::allocateDrawImage(VkDevice device,
+							   VmaAllocator allocator,
 							   const DrawImageCreateInfo& info) {
 	ImageCreateInfo const imageCreateInfo{
 		.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
@@ -106,5 +116,6 @@ Image Image::allocateDrawImage(const Device& device,
 		.sampleCount = info.sampleCount,
 	};
 
-	return Image(device, imageCreateInfo);
+	return Image(device, allocator, imageCreateInfo);
 }
+

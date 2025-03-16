@@ -104,64 +104,50 @@ VkDeviceAddress Buffer::getDeviceAddress(VkDevice device) {
 	return vkGetBufferDeviceAddress(device, &addressInfo);
 }
 
-Buffer Buffer::createUBO(VmaAllocator allocator,
-						 VkDeviceSize alignment,
-						 VkDeviceSize size,
-						 const void* data) {
+BufferCreateInfo Buffer::uboDesc(VkDeviceSize alignment,
+								 VkDeviceSize size,
+								 const void* data) {
 	VkDeviceSize bufferSize = (size + alignment - 1) & ~(alignment - 1);
 
-	BufferCreateInfo info{
+	return {
 		.bufferUsage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
 		.memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
 							VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
 		.size = bufferSize,
 		.initialData = data,
 	};
-
-	return Buffer(allocator, std::move(info));
 }
 
-Buffer Buffer::createSSBO(VmaAllocator allocator,
-						  VkDeviceSize alignment,
-						  VkDeviceSize size,
-						  const void* data) {
+BufferCreateInfo Buffer::ssboDesc(VkDeviceSize alignment,
+								  VkDeviceSize size,
+								  const void* data) {
 	VkDeviceSize bufferSize = (size + alignment - 1) & ~(alignment - 1);
 
-	BufferCreateInfo info{
+	return {
 		.bufferUsage =
 			VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
 		.memoryProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
 		.size = bufferSize,
 		.initialData = data,
 	};
-
-	return Buffer(allocator, std::move(info));
 }
 
-Buffer Buffer::createIndexBuffer32(VmaAllocator allocator,
-								   uint32_t elementCount,
-								   uint32_t* data) {
-	BufferCreateInfo info{
+BufferCreateInfo Buffer::indexBuffer32Desc(uint32_t elementCount, uint32_t* data) {
+	return {
 		.bufferUsage =
 			VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
 		.memoryProperties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
 		.size = sizeof(uint32_t) * elementCount,
 		.initialData = data,
 	};
-
-	return Buffer(allocator, std::move(info));
 }
 
-Buffer Buffer::createStagingBuffer(VmaAllocator allocator,
-								   VkDeviceSize size,
-								   const void* data) {
-	BufferCreateInfo info{
+BufferCreateInfo Buffer::stagingBufferDesc(VkDeviceSize size, const void* data) {
+	return {
 		.bufferUsage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
 		.memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
 							VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
 		.size = size,
 		.initialData = data,
 	};
-
-	return Buffer(allocator, std::move(info));
 }
