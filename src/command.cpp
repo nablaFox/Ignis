@@ -389,11 +389,9 @@ void Command::setScissor(VkRect2D scissor) {
 	vkCmdSetScissor(m_commandBuffer, 0, 1, &scissor);
 }
 
-void Command::bindIndexBuffer(BufferId indexBufferId, VkDeviceSize offset) {
+void Command::bindIndexBuffer(const Buffer& indexBuffer, VkDeviceSize offset) {
 	CHECK_IS_RECORDING;
 	CHECK_PIPELINE_BOUND;
-
-	auto& indexBuffer = m_device.getBuffer(indexBufferId);
 
 	assert((indexBuffer.getUsage() & VK_BUFFER_USAGE_INDEX_BUFFER_BIT) != 0 &&
 		   "Buffer is not an index buffer");

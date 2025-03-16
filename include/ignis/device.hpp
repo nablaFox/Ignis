@@ -102,6 +102,8 @@ public:
 
 	Buffer createStagingBuffer(VkDeviceSize, const void* data = nullptr);
 
+	Buffer createIndexBuffer32(uint32_t elementCount, uint32_t* data = nullptr);
+
 	void registerSampledImage(const Image&, const Sampler&, uint32_t index);
 
 	bool isFeatureEnabled(const char* featureName) const;

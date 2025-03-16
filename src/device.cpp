@@ -400,6 +400,10 @@ BufferId Device::createSSBO(VkDeviceSize size, const void* data) {
 	return saveBuffer(std::move(ssbo), m_buffers, m_bindlessResources);
 }
 
+Buffer Device::createIndexBuffer32(uint32_t elementCount, uint32_t* data) {
+	return Buffer::createIndexBuffer32(m_allocator, elementCount, data);
+}
+
 Buffer Device::createStagingBuffer(VkDeviceSize size, const void* data) {
 	return std::move(Buffer::createStagingBuffer(m_allocator, size, data));
 }
