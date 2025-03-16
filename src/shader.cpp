@@ -9,7 +9,7 @@
 using namespace ignis;
 
 Shader::Shader(const Device& device, std::string shaderPath) : m_device(device) {
-	std::string fullShaderPath = device.getFullShaderPath(shaderPath);
+	std::string fullShaderPath = device.getShadersFolder() + "/" + shaderPath;
 
 	std::ifstream file(fullShaderPath, std::ios::ate | std::ios::binary);
 

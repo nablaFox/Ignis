@@ -408,13 +408,6 @@ void Device::registerSampledImage(const Image& image,
 	vkUpdateDescriptorSets(m_device, 1, &writeDescriptorSet, 0, nullptr);
 }
 
-std::string Device::getFullShaderPath(std::string shaderPath) const {
-	if (shaderPath[0] == '/')
-		return shaderPath;
-
-	return m_shadersFolder + "/" + shaderPath;
-}
-
 bool Device::isFeatureEnabled(const char* feature) const {
 	return m_features->isFeatureEnabled(feature, m_phyiscalDevice);
 }

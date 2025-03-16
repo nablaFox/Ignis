@@ -32,11 +32,11 @@ public:
 
 	void readData(void* data, uint32_t offset = 0, uint32_t size = 0);
 
-	static Buffer createUBO(const Device* device,
+	static Buffer createUBO(const Device*,
 							uint32_t size,
 							const void* data = nullptr);
 
-	static Buffer createSSBO(const Device* device,
+	static Buffer createSSBO(const Device*,
 							 uint32_t size,
 							 const void* data = nullptr);
 
@@ -44,7 +44,7 @@ public:
 									  uint32_t elementCount,
 									  uint32_t* data = nullptr);
 
-	static Buffer createStagingBuffer(const Device* device,
+	static Buffer createStagingBuffer(const Device*,
 									  VkDeviceSize size,
 									  const void* data = nullptr);
 

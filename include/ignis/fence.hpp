@@ -20,6 +20,8 @@ public:
 
 	void wait() const;
 
+	void waitAndReset() const;
+
 private:
 	const Device& m_device;
 	VkFence m_fence{nullptr};

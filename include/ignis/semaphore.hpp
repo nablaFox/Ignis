@@ -8,7 +8,7 @@ class Device;
 
 class Semaphore {
 public:
-	Semaphore(const Device& device);
+	Semaphore(const Device&);
 	~Semaphore();
 
 	VkSemaphore getHandle() const { return m_semaphore; }

@@ -32,3 +32,8 @@ void Fence::reset() const {
 	THROW_VULKAN_ERROR(vkResetFences(m_device.getDevice(), 1, &m_fence),
 					   "Failed to reset fence");
 }
+
+void Fence::waitAndReset() const {
+	wait();
+	reset();
+}

@@ -89,21 +89,19 @@ public:
 		return m_bindlessResources.getDescriptorSet();
 	}
 
-	void registerUBO(const Buffer& buffer, uint32_t index);
+	void registerUBO(const Buffer&, uint32_t index);
 
-	void registerSSBO(const Buffer& buffer, uint32_t index);
+	void registerSSBO(const Buffer&, uint32_t index);
 
-	void registerSampledImage(const Image& image,
-							  const Sampler& sampler,
-							  uint32_t index);
+	void registerSampledImage(const Image&, const Sampler&, uint32_t index);
 
-	bool isFeatureEnabled(const char* feature) const;
+	bool isFeatureEnabled(const char* featureName) const;
 
 	VkSampleCountFlagBits getMaxSampleCount() const;
 
 	VmaAllocator getAllocator() const { return m_allocator; }
 
-	std::string getFullShaderPath(std::string shaderPath) const;
+	std::string getShadersFolder() const { return m_shadersFolder; };
 
 private:
 	VkInstance m_instance{nullptr};
