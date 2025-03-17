@@ -14,6 +14,7 @@ Image::Image(VkDevice device, VmaAllocator allocator, const ImageCreateInfo& inf
 	assert(m_device && "Invalid device");
 	assert(m_allocator && "Invalid allocator");
 	assert(info.width > 0 && info.height > 0 && "Invalid image extent");
+	assert(info.usage != 0 && "Invalid image usage");
 
 	VkImageCreateInfo const imageInfo{
 		.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,

@@ -142,6 +142,7 @@ Swapchain::Swapchain(const SwapchainCreateInfo& info)
 		ImageCreateInfo const info{
 			.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
 					 VK_IMAGE_USAGE_TRANSFER_DST_BIT,
+			.aspect = VK_IMAGE_ASPECT_COLOR_BIT,
 			.width = swapExtent.width,
 			.height = swapExtent.height,
 			.format = chosenFormat.format,

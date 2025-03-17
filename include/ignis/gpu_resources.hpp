@@ -38,6 +38,7 @@ struct GpuResources {
 							  uint32_t binding);
 
 private:
+	VkDevice m_device;
 	BindlessResourcesCreateInfo m_creationInfo;
 
 	VkDescriptorSetLayout m_descriptorSetLayout{nullptr};

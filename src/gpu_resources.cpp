@@ -6,8 +6,8 @@
 using namespace ignis;
 
 GpuResources::GpuResources(const BindlessResourcesCreateInfo& info)
-	: m_creationInfo(info) {
-	assert(info.device && "Invalid device");
+	: m_creationInfo(info), m_device(info.device) {
+	assert(m_device && "Invalid device");
 	assert(info.maxStorageBuffers && "Invalid max storage buffers");
 	assert(info.maxUniformBuffers && "Invalid max uniform buffers");
 	assert(info.maxImageSamplers && "Invalid max image samplers");
@@ -70,7 +70,7 @@ GpuResources::GpuResources(const BindlessResourcesCreateInfo& info)
 		.pBindings = bindings.data(),
 	};
 
-	THROW_VULKAN_ERROR(vkCreateDescriptorSetLayout(info.device, &createInfo, nullptr,
+	THROW_VULKAN_ERROR(vkCreateDescriptorSetLayout(m_device, &createInfo, nullptr,
 												   &m_descriptorSetLayout),
 					   "Failed to create descriptor set layout");
 
@@ -107,7 +107,7 @@ GpuResources::GpuResources(const BindlessResourcesCreateInfo& info)
 	};
 
 	THROW_VULKAN_ERROR(
-		vkCreateDescriptorPool(info.device, &vk_descriptor_pool_create_info, nullptr,
+		vkCreateDescriptorPool(m_device, &vk_descriptor_pool_create_info, nullptr,
 							   &m_descriptorPool),
 		"Failed to create descriptor pool");
 
@@ -120,10 +120,9 @@ GpuResources::GpuResources(const BindlessResourcesCreateInfo& info)
 		.pSetLayouts = &m_descriptorSetLayout,
 	};
 
-	THROW_VULKAN_ERROR(
-		vkAllocateDescriptorSets(info.device, &descriptorSetAllocateInfo,
-								 &m_descriptorSet),
-		"Failed to allocate descriptor set");
+	THROW_VULKAN_ERROR(vkAllocateDescriptorSets(m_device, &descriptorSetAllocateInfo,
+												&m_descriptorSet),
+					   "Failed to allocate descriptor set");
 
 	// create pipeline layout without push constants
 	VkPipelineLayoutCreateInfo pipelineLayoutInfo{
@@ -136,8 +135,8 @@ GpuResources::GpuResources(const BindlessResourcesCreateInfo& info)
 		.pPushConstantRanges = nullptr,
 	};
 
-	THROW_VULKAN_ERROR(vkCreatePipelineLayout(info.device, &pipelineLayoutInfo,
-											  nullptr, m_pipelineLayouts.data()),
+	THROW_VULKAN_ERROR(vkCreatePipelineLayout(m_device, &pipelineLayoutInfo, nullptr,
+											  m_pipelineLayouts.data()),
 					   "Failed to create pipeline layout");
 
 	// create other pipeline layouts
@@ -151,7 +150,7 @@ GpuResources::GpuResources(const BindlessResourcesCreateInfo& info)
 		pipelineLayoutInfo.pushConstantRangeCount = 1;
 		pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
 
-		THROW_VULKAN_ERROR(vkCreatePipelineLayout(info.device, &pipelineLayoutInfo,
+		THROW_VULKAN_ERROR(vkCreatePipelineLayout(m_device, &pipelineLayoutInfo,
 												  nullptr, &m_pipelineLayouts.at(i)),
 						   "Failed to create pipeline layout");
 	}
@@ -184,16 +183,14 @@ void GpuResources::registerBuffer(VkBuffer buffer,
 		.pBufferInfo = &bufferInfo,
 	};
 
-	vkUpdateDescriptorSets(m_creationInfo.device, 1, &writeDescriptorSet, 0,
-						   nullptr);
+	vkUpdateDescriptorSets(m_device, 1, &writeDescriptorSet, 0, nullptr);
 };
 
 GpuResources::~GpuResources() {
-	vkDestroyDescriptorSetLayout(m_creationInfo.device, m_descriptorSetLayout,
-								 nullptr);
-	vkDestroyDescriptorPool(m_creationInfo.device, m_descriptorPool, nullptr);
+	vkDestroyDescriptorSetLayout(m_device, m_descriptorSetLayout, nullptr);
+	vkDestroyDescriptorPool(m_device, m_descriptorPool, nullptr);
 
 	for (auto layout : m_pipelineLayouts) {
-		vkDestroyPipelineLayout(m_creationInfo.device, layout, nullptr);
+		vkDestroyPipelineLayout(m_device, layout, nullptr);
 	}
 }

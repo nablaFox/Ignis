@@ -1,7 +1,6 @@
 #pragma once
 
 #include <stdint.h>
-#include <array>
 
 #define IGNIS_STORAGE_BUFFER_BINDING 0
 #define IGNIS_UNIFORM_BUFFER_BINDING 1
@@ -12,14 +11,3 @@
 
 typedef uint32_t BufferId;
 typedef uint32_t ImageId;
-
-inline constexpr std::array IGNIS_REQ_FEATURES = {
-	"BufferDeviceAddress",
-	"DynamicRendering",
-	"Synchronization2",
-	"DescriptorBindingUniformBufferUpdateAfterBind",
-	"DescriptorBindingSampledImageUpdateAfterBind",
-	"DescriptorBindingStorageBufferUpdateAfterBind",
-	"DescriptorBindingPartiallyBound",
-	"RuntimeDescriptorArray",
-};

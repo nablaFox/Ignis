@@ -6,6 +6,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <array>
 #include "types.hpp"
 
 namespace ignis {
@@ -27,6 +28,17 @@ struct SubmitCmdInfo {
 	const Command& command;
 	std::vector<const Semaphore*> waitSemaphores;
 	std::vector<const Semaphore*> signalSemaphores;
+};
+
+inline constexpr std::array IGNIS_REQ_FEATURES = {
+	"BufferDeviceAddress",
+	"DynamicRendering",
+	"Synchronization2",
+	"DescriptorBindingUniformBufferUpdateAfterBind",
+	"DescriptorBindingSampledImageUpdateAfterBind",
+	"DescriptorBindingStorageBufferUpdateAfterBind",
+	"DescriptorBindingPartiallyBound",
+	"RuntimeDescriptorArray",
 };
 
 // Note 1: the library supports just 1 instance, physical and logical device
@@ -53,37 +65,30 @@ public:
 
 	~Device();
 
-	void submitCommands(std::vector<SubmitCmdInfo>, const Fence* fence) const;
+	auto getPhysicalDevice() const { return m_phyiscalDevice; }
 
-	VkPhysicalDevice getPhysicalDevice() const { return m_phyiscalDevice; }
+	auto getInstance() const { return m_instance; }
 
-	VkInstance getInstance() const { return m_instance; }
+	auto getDevice() const { return m_device; }
 
-	VkDevice getDevice() const { return m_device; }
+	auto getAllocator() const { return m_allocator; }
 
+	auto getPhysicalDeviceProperties() const { return m_physicalDeviceProperties; }
+
+	auto getShadersFolder() const { return m_shadersFolder; };
+
+public:
 	VkQueue getQueue(uint32_t index) const;
 
 	VkCommandPool getCommandPool(VkQueue) const;
 
-	VkDeviceSize getUboAlignment() const {
-		return m_physicalDeviceProperties.limits.minUniformBufferOffsetAlignment;
-	}
-
-	VkDeviceSize getSsboAlignment() const {
-		return m_physicalDeviceProperties.limits.minStorageBufferOffsetAlignment;
-	}
-
-	VkPipelineLayout getPipelineLayout(uint32_t pushConstantSize) const;
-
-	VkDescriptorSet getDescriptorSet() const;
-
-	bool isFeatureEnabled(const char* featureName) const;
+	void submitCommands(std::vector<SubmitCmdInfo>, const Fence* fence) const;
 
 	VkSampleCountFlagBits getMaxSampleCount() const;
 
-	VmaAllocator getAllocator() const { return m_allocator; }
+	bool isFeatureEnabled(const char* featureName) const;
 
-	std::string getShadersFolder() const { return m_shadersFolder; };
+	Buffer createStagingBuffer(VkDeviceSize, const void* data = nullptr) const;
 
 public:
 	// will always be registered (the binding will depend if ubo or ssbo)
@@ -101,24 +106,23 @@ public:
 						const void* data = nullptr,
 						BufferId = IGNIS_INVALID_BUFFER_ID);
 
-	Buffer createStagingBuffer(VkDeviceSize, const void* data = nullptr);
-
-	Buffer& getBuffer(BufferId) const;
-
-	void destroyBuffer(BufferId);
-
-public:
-	// it will be registered only if storage or sampled
 	ImageId createImage(const ImageCreateInfo&, ImageId = IGNIS_INVALID_IMAGE_ID);
 
 	ImageId createDrawImage(const DrawImageCreateInfo&);
 
 	ImageId createDepthImage(const DepthImageCreateInfo&);
 
-	// will assert that the image is registered
+	Buffer& getBuffer(BufferId) const;
+
 	Image& getImage(ImageId) const;
 
+	void destroyBuffer(BufferId);
+
 	void destroyImage(ImageId);
+
+	VkPipelineLayout getPipelineLayout(uint32_t pushConstantSize) const;
+
+	VkDescriptorSet getDescriptorSet() const;
 
 private:
 	VkInstance m_instance{nullptr};
@@ -127,17 +131,15 @@ private:
 	VkPhysicalDeviceProperties m_physicalDeviceProperties{};
 	VkDevice m_device{nullptr};
 	VmaAllocator m_allocator{nullptr};
+	std::unique_ptr<Features> m_features;
+	std::unique_ptr<GpuResources> m_bindlessResources;
 
 	uint32_t m_graphicsFamilyIndex{0};
 	uint32_t m_graphicsQueuesCount{0};
 	std::vector<VkQueue> m_queues;
 	std::unordered_map<VkQueue, VkCommandPool> m_commandPools;
 
-	std::unique_ptr<GpuResources> m_bindlessResources;
-
 	std::string m_shadersFolder;
-
-	std::unique_ptr<Features> m_features;
 
 private:
 	std::unordered_map<BufferId, std::unique_ptr<Buffer>> m_buffers;

@@ -269,6 +269,48 @@ Device::Device(const CreateInfo& createInfo)
 		std::make_unique<GpuResources>(bindlessResourcesCreateInfo);
 }
 
+Device::~Device() {
+	vkDeviceWaitIdle(m_device);
+
+	m_bindlessResources.reset();
+
+	m_buffers.clear();
+
+	m_images.clear();
+
+	for (auto queue : m_queues)
+		vkQueueWaitIdle(queue);
+
+	for (const auto& [_, commandPool] : m_commandPools)
+		vkDestroyCommandPool(m_device, commandPool, nullptr);
+
+	vmaDestroyAllocator(m_allocator);
+
+	vkDestroyDevice(m_device, nullptr);
+
+#ifndef NDEBUG
+	auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(
+		m_instance, "vkDestroyDebugUtilsMessengerEXT");
+	if (func)
+		func(m_instance, m_debugMessenger, nullptr);
+#endif
+
+	vkDestroyInstance(m_instance, nullptr);
+}
+
+VkQueue Device::getQueue(uint32_t index) const {
+	THROW_ERROR(index >= m_queues.size(), "Invalid queue index");
+	return m_queues[index];
+}
+
+VkCommandPool Device::getCommandPool(VkQueue queue) const {
+	auto it = m_commandPools.find(queue);
+
+	THROW_ERROR(it == m_commandPools.end(), "Invalid queue");
+
+	return it->second;
+}
+
 void Device::submitCommands(std::vector<SubmitCmdInfo> submits,
 							const Fence* fence) const {
 	VkQueue queue = submits[0].command.getQueue();
@@ -342,33 +384,33 @@ void Device::submitCommands(std::vector<SubmitCmdInfo> submits,
 				   submitInfos.data(), fence ? fence->getHandle() : nullptr);
 }
 
-VkCommandPool Device::getCommandPool(VkQueue queue) const {
-	auto it = m_commandPools.find(queue);
+VkSampleCountFlagBits Device::getMaxSampleCount() const {
+	VkSampleCountFlags counts =
+		m_physicalDeviceProperties.limits.framebufferColorSampleCounts &
+		m_physicalDeviceProperties.limits.framebufferDepthSampleCounts;
 
-	THROW_ERROR(it == m_commandPools.end(), "Invalid queue");
+	if (counts & VK_SAMPLE_COUNT_64_BIT)
+		return VK_SAMPLE_COUNT_64_BIT;
+	if (counts & VK_SAMPLE_COUNT_32_BIT)
+		return VK_SAMPLE_COUNT_32_BIT;
+	if (counts & VK_SAMPLE_COUNT_16_BIT)
+		return VK_SAMPLE_COUNT_16_BIT;
+	if (counts & VK_SAMPLE_COUNT_8_BIT)
+		return VK_SAMPLE_COUNT_8_BIT;
+	if (counts & VK_SAMPLE_COUNT_4_BIT)
+		return VK_SAMPLE_COUNT_4_BIT;
+	if (counts & VK_SAMPLE_COUNT_2_BIT)
+		return VK_SAMPLE_COUNT_2_BIT;
 
-	return it->second;
+	return VK_SAMPLE_COUNT_1_BIT;
 }
 
-VkQueue Device::getQueue(uint32_t index) const {
-	THROW_ERROR(index >= m_queues.size(), "Invalid queue index");
-	return m_queues[index];
+bool Device::isFeatureEnabled(const char* feature) const {
+	return m_features->isFeatureEnabled(feature, m_phyiscalDevice);
 }
 
-Buffer& Device::getBuffer(BufferId handle) const {
-	auto it = m_buffers.find(handle);
-
-	THROW_ERROR(it == m_buffers.end(), "Invalid buffer handle");
-
-	return *it->second;
-}
-
-void Device::destroyBuffer(BufferId handle) {
-	auto it = m_buffers.find(handle);
-
-	THROW_ERROR(it == m_buffers.end(), "Invalid buffer handle");
-
-	m_buffers.erase(it);
+Buffer Device::createStagingBuffer(VkDeviceSize size, const void* data) const {
+	return Buffer(m_allocator, Buffer::stagingBufferDesc(size, data));
 }
 
 // TODO: recycle buffer ids
@@ -387,27 +429,19 @@ BufferId Device::createBuffer(const BufferCreateInfo& createInfo, BufferId given
 }
 
 BufferId Device::createUBO(VkDeviceSize size, const void* data, BufferId givenId) {
-	return createBuffer(Buffer::uboDesc(getUboAlignment(), size, data), givenId);
+	return createBuffer(
+		Buffer::uboDesc(
+			m_physicalDeviceProperties.limits.minUniformBufferOffsetAlignment, size,
+			data),
+		givenId);
 }
 
 BufferId Device::createSSBO(VkDeviceSize size, const void* data, BufferId givenId) {
-	return createBuffer(Buffer::ssboDesc(getSsboAlignment(), size, data), givenId);
-}
-
-Buffer Device::createStagingBuffer(VkDeviceSize size, const void* data) {
-	return Buffer(m_allocator, Buffer::stagingBufferDesc(size, data));
-}
-
-VkPipelineLayout Device::getPipelineLayout(uint32_t pushConstantSize) const {
-	return m_bindlessResources->getPipelinelayout(1 + (pushConstantSize / 4));
-};
-
-VkDescriptorSet Device::getDescriptorSet() const {
-	return m_bindlessResources->getDescriptorSet();
-}
-
-bool Device::isFeatureEnabled(const char* feature) const {
-	return m_features->isFeatureEnabled(feature, m_phyiscalDevice);
+	return createBuffer(
+		Buffer::ssboDesc(
+			m_physicalDeviceProperties.limits.minStorageBufferOffsetAlignment, size,
+			data),
+		givenId);
 }
 
 ImageId Device::createImage(const ImageCreateInfo& info, ImageId givenId) {
@@ -431,6 +465,14 @@ ImageId Device::createDepthImage(const DepthImageCreateInfo& info) {
 	return createImage(Image::depthImageDesc(info), IGNIS_INVALID_IMAGE_ID);
 }
 
+Buffer& Device::getBuffer(BufferId handle) const {
+	auto it = m_buffers.find(handle);
+
+	THROW_ERROR(it == m_buffers.end(), "Invalid buffer handle");
+
+	return *it->second;
+}
+
 Image& Device::getImage(ImageId handle) const {
 	auto it = m_images.find(handle);
 
@@ -439,52 +481,18 @@ Image& Device::getImage(ImageId handle) const {
 	return *it->second;
 }
 
-VkSampleCountFlagBits Device::getMaxSampleCount() const {
-	VkSampleCountFlags counts =
-		m_physicalDeviceProperties.limits.framebufferColorSampleCounts &
-		m_physicalDeviceProperties.limits.framebufferDepthSampleCounts;
+void Device::destroyBuffer(BufferId handle) {
+	auto it = m_buffers.find(handle);
 
-	if (counts & VK_SAMPLE_COUNT_64_BIT)
-		return VK_SAMPLE_COUNT_64_BIT;
-	if (counts & VK_SAMPLE_COUNT_32_BIT)
-		return VK_SAMPLE_COUNT_32_BIT;
-	if (counts & VK_SAMPLE_COUNT_16_BIT)
-		return VK_SAMPLE_COUNT_16_BIT;
-	if (counts & VK_SAMPLE_COUNT_8_BIT)
-		return VK_SAMPLE_COUNT_8_BIT;
-	if (counts & VK_SAMPLE_COUNT_4_BIT)
-		return VK_SAMPLE_COUNT_4_BIT;
-	if (counts & VK_SAMPLE_COUNT_2_BIT)
-		return VK_SAMPLE_COUNT_2_BIT;
+	THROW_ERROR(it == m_buffers.end(), "Invalid buffer handle");
 
-	return VK_SAMPLE_COUNT_1_BIT;
+	m_buffers.erase(it);
 }
 
-Device::~Device() {
-	vkDeviceWaitIdle(m_device);
+VkPipelineLayout Device::getPipelineLayout(uint32_t pushConstantSize) const {
+	return m_bindlessResources->getPipelinelayout(1 + (pushConstantSize / 4));
+};
 
-	m_bindlessResources.reset();
-
-	m_buffers.clear();
-
-	m_images.clear();
-
-	for (auto queue : m_queues)
-		vkQueueWaitIdle(queue);
-
-	for (const auto& [_, commandPool] : m_commandPools)
-		vkDestroyCommandPool(m_device, commandPool, nullptr);
-
-	vmaDestroyAllocator(m_allocator);
-
-	vkDestroyDevice(m_device, nullptr);
-
-#ifndef NDEBUG
-	auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(
-		m_instance, "vkDestroyDebugUtilsMessengerEXT");
-	if (func)
-		func(m_instance, m_debugMessenger, nullptr);
-#endif
-
-	vkDestroyInstance(m_instance, nullptr);
+VkDescriptorSet Device::getDescriptorSet() const {
+	return m_bindlessResources->getDescriptorSet();
 }

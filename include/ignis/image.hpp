@@ -17,12 +17,11 @@ enum class ColorFormat {
 };
 
 struct ImageCreateInfo {
-	VkImageUsageFlags usage{VK_IMAGE_USAGE_TRANSFER_DST_BIT |
-							VK_IMAGE_USAGE_SAMPLED_BIT};
-	VkImageAspectFlags aspect{VK_IMAGE_ASPECT_COLOR_BIT};
+	VkImageUsageFlags usage{0};
+	VkImageAspectFlags aspect{VK_IMAGE_ASPECT_NONE};
 	uint32_t width{0};
 	uint32_t height{0};
-	VkFormat format{VK_FORMAT_R8G8B8A8_UNORM};
+	VkFormat format{VK_FORMAT_UNDEFINED};
 	VkImageLayout optimalLayout{VK_IMAGE_LAYOUT_UNDEFINED};
 	VkSampleCountFlagBits sampleCount{VK_SAMPLE_COUNT_1_BIT};
 };

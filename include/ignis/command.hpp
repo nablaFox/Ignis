@@ -27,7 +27,7 @@ struct DepthAttachment {
 };
 
 struct CommandCreateInfo {
-	Device& device;
+	const Device& device;
 	VkQueue queue;
 };
 
@@ -124,7 +124,7 @@ public:
 	VkCommandBuffer getHandle() const { return m_commandBuffer; }
 
 private:
-	Device& m_device;
+	const Device& m_device;
 	VkQueue m_queue;
 	VkCommandPool m_commandPool{nullptr};
 
