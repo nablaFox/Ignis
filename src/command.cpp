@@ -332,7 +332,9 @@ void Command::beginRender(const DrawAttachment* drawAttachment,
 	VkExtent2D extent{};
 
 	if (drawAttachment != nullptr) {
-		Image& drawImage = m_device.getImage(drawAttachment->drawImage);
+		assert(drawAttachment->drawImage != nullptr && "Draw image is invalid");
+
+		Image& drawImage = *drawAttachment->drawImage;
 
 		assert(isColorFormat(drawImage.getFormat()) &&
 			   "Draw image format is not a color format");
@@ -358,7 +360,9 @@ void Command::beginRender(const DrawAttachment* drawAttachment,
 	};
 
 	if (depthAttachment != nullptr) {
-		Image& depthImage = m_device.getImage(depthAttachment->depthImage);
+		assert(depthAttachment->depthImage != nullptr && "Depth image is invalid");
+
+		Image& depthImage = *depthAttachment->depthImage;
 
 		assert(isDepthFormat(depthImage.getFormat()) &&
 			   "Depth image format is not a depth format");

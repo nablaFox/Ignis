@@ -52,44 +52,46 @@ public:
 
 	~Image();
 
-	VkImage getHandle() const { return m_image; }
+	auto getHandle() const { return m_image; }
 
-	VkImageUsageFlags getUsage() const { return m_creationInfo.usage; }
+	auto getUsage() const { return m_creationInfo.usage; }
 
-	VkImageAspectFlags getAspect() const { return m_creationInfo.aspect; }
+	auto getAspect() const { return m_creationInfo.aspect; }
 
-	VkImageLayout getOptimalLayout() const { return m_creationInfo.optimalLayout; }
+	auto getOptimalLayout() const { return m_creationInfo.optimalLayout; }
 
-	VkImageLayout getCurrentLayout() const { return m_currentLayout; }
+	auto getCurrentLayout() const { return m_currentLayout; }
 
-	VkExtent3D getExtent() const {
+	auto getExtent() const -> VkExtent3D {
 		return {m_creationInfo.width, m_creationInfo.height, 1};
 	}
 
-	VkExtent2D getExtent2D() const {
+	auto getExtent2D() const -> VkExtent2D {
 		return {m_creationInfo.width, m_creationInfo.height};
 	}
 
-	VkFormat getFormat() const { return m_creationInfo.format; }
+	auto getFormat() const { return m_creationInfo.format; }
 
-	VkDeviceSize getPixelSize() const { return m_pixelSize; }
+	auto getPixelSize() const { return m_pixelSize; }
 
-	VkDeviceSize getSize() const {
+	auto getSize() const {
 		return static_cast<VkDeviceSize>(m_creationInfo.width *
 										 m_creationInfo.height) *
 			   m_pixelSize;
 	}
 
-	VkImageView getViewHandle() const { return m_view; }
+	auto getViewHandle() const { return m_view; }
 
-	VkSampleCountFlagBits getSampleCount() const {
-		return m_creationInfo.sampleCount;
-	}
+	auto getSampleCount() const { return m_creationInfo.sampleCount; }
 
 public:
-	static ImageCreateInfo drawImageDesc(const DrawImageCreateInfo&);
+	static Image allocateDrawImage(VkDevice,
+								   VmaAllocator,
+								   const DrawImageCreateInfo&);
 
-	static ImageCreateInfo depthImageDesc(const DepthImageCreateInfo&);
+	static Image allocateDepthImage(VkDevice,
+									VmaAllocator,
+									const DepthImageCreateInfo&);
 
 private:
 	VkDevice m_device{nullptr};

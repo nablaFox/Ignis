@@ -1,5 +1,8 @@
 #include <vulkan/vulkan_core.h>
 #include <array>
+#include <memory>
+#include <unordered_map>
+#include "types.hpp"
 
 namespace ignis {
 
@@ -18,24 +21,31 @@ struct BindlessResourcesCreateInfo {
 	uint32_t imageSamplersBinding{2};
 };
 
+class Buffer;
+class Image;
+
 struct GpuResources {
 	GpuResources(const BindlessResourcesCreateInfo&);
+
 	~GpuResources();
 
-	VkPipelineLayout getPipelinelayout(uint32_t pushConstantSize) const {
+	auto getPipelinelayout(uint32_t pushConstantSize) const {
 		return m_pipelineLayouts.at(pushConstantSize);
 	}
 
-	VkDescriptorSet getDescriptorSet() const { return m_descriptorSet; }
+	auto getDescriptorSet() const { return m_descriptorSet; }
 
-	void registerBuffer(VkBuffer buffer,
-						VkBufferUsageFlags usage,
-						VkDeviceSize size,
-						uint32_t binding) const;
+	BufferId registerBuffer(Buffer buffer, BufferId = IGNIS_INVALID_BUFFER_ID);
 
-	void registerSampledImage(VkImageView imageView,
-							  VkSampler sampler,
-							  uint32_t binding);
+	ImageId registerImage(Image image, ImageId = IGNIS_INVALID_IMAGE_ID);
+
+	Buffer& getBuffer(BufferId) const;
+
+	Image& getImage(ImageId) const;
+
+	void destroyBuffer(BufferId&);
+
+	void destroyImage(ImageId&);
 
 private:
 	VkDevice m_device;
@@ -45,6 +55,11 @@ private:
 	VkDescriptorPool m_descriptorPool{nullptr};
 	VkDescriptorSet m_descriptorSet{nullptr};
 	std::array<VkPipelineLayout, PIPELINE_LAYOUT_COUNT> m_pipelineLayouts{};
+
+	std::unordered_map<BufferId, std::unique_ptr<Buffer>> m_buffers;
+	std::unordered_map<ImageId, std::unique_ptr<Image>> m_images;
+	BufferId nextBufferId{0};
+	ImageId nextImageId{0};
 
 public:
 	GpuResources(const GpuResources&) = delete;

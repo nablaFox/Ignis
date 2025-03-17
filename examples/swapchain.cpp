@@ -270,7 +270,7 @@ int main(int argc, char* argv[]) {
 		.surface = surface,
 	});
 
-	ImageId drawImage = device.createDrawImage({
+	Image drawImage = device.createDrawAttachmentImage({
 		.width = WINDOW_WIDTH,
 		.height = WINDOW_HEIGHT,
 		.sampleCount = VK_SAMPLE_COUNT_1_BIT,
@@ -362,7 +362,7 @@ int main(int argc, char* argv[]) {
 		blitCmd.transitionImageLayout(swapchainImage,
 									  VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
-		blitCmd.blitImage(device.getImage(drawImage), swapchainImage);
+		blitCmd.blitImage(drawImage, swapchainImage);
 
 		blitCmd.transitionToOptimalLayout(swapchainImage);
 		blitCmd.transitionToOptimalLayout(drawImage);

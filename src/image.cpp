@@ -90,8 +90,10 @@ Image::Image(Image&& other) noexcept
 	other.m_device = nullptr;
 }
 
-ImageCreateInfo Image::depthImageDesc(const DepthImageCreateInfo& info) {
-	return {
+Image Image::allocateDepthImage(VkDevice device,
+								VmaAllocator allocator,
+								const DepthImageCreateInfo& info) {
+	ImageCreateInfo const imageCreateInfo{
 		.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
 		.aspect = VK_IMAGE_ASPECT_DEPTH_BIT,
 		.width = info.width,
@@ -100,10 +102,14 @@ ImageCreateInfo Image::depthImageDesc(const DepthImageCreateInfo& info) {
 		.optimalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
 		.sampleCount = info.sampleCount,
 	};
+
+	return Image(device, allocator, imageCreateInfo);
 }
 
-ImageCreateInfo Image::drawImageDesc(const DrawImageCreateInfo& info) {
-	return {
+Image Image::allocateDrawImage(VkDevice device,
+							   VmaAllocator allocator,
+							   const DrawImageCreateInfo& info) {
+	ImageCreateInfo const imageCreateInfo{
 		.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
 				 VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
 		.aspect = VK_IMAGE_ASPECT_COLOR_BIT,
@@ -113,4 +119,6 @@ ImageCreateInfo Image::drawImageDesc(const DrawImageCreateInfo& info) {
 		.optimalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
 		.sampleCount = info.sampleCount,
 	};
+
+	return Image(device, allocator, imageCreateInfo);
 }

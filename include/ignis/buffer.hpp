@@ -17,31 +17,36 @@ public:
 
 	~Buffer();
 
-	VkDeviceSize getSize() const { return m_size; }
+	auto getSize() const { return m_size; }
 
-	VkBuffer getHandle() const { return m_buffer; }
+	auto getHandle() const { return m_buffer; }
 
-	VkBufferUsageFlags getUsage() const { return m_bufferUsage; }
+	auto getUsage() const { return m_bufferUsage; }
 
-	VkDeviceAddress getDeviceAddress(VkDevice);
-
+public:
 	void writeData(const void* data, uint32_t offset = 0, uint32_t size = 0);
 
 	void readData(void* data, uint32_t offset = 0, uint32_t size = 0);
 
-	static BufferCreateInfo uboDesc(VkDeviceSize alignment,
-									VkDeviceSize size,
-									const void* data = nullptr);
+	VkDeviceAddress getDeviceAddress(VkDevice);
 
-	static BufferCreateInfo ssboDesc(VkDeviceSize alignment,
-									 VkDeviceSize size,
-									 const void* data = nullptr);
+	static Buffer allocateUBO(VmaAllocator,
+							  VkDeviceSize alignment,
+							  VkDeviceSize size,
+							  const void* data = nullptr);
 
-	static BufferCreateInfo indexBuffer32Desc(uint32_t elementCount,
-											  uint32_t* data = nullptr);
+	static Buffer allocateSSBO(VmaAllocator,
+							   VkDeviceSize alignment,
+							   VkDeviceSize size,
+							   const void* data = nullptr);
 
-	static BufferCreateInfo stagingBufferDesc(VkDeviceSize size,
-											  const void* data = nullptr);
+	static Buffer allocateIndexBuffer32(VmaAllocator,
+										uint32_t elementCount,
+										uint32_t* data = nullptr);
+
+	static Buffer allocateStagingBuffer(VmaAllocator,
+										VkDeviceSize size,
+										const void* data = nullptr);
 
 private:
 	VmaAllocator m_allocator{nullptr};

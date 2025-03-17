@@ -90,27 +90,22 @@ public:
 
 	Buffer createStagingBuffer(VkDeviceSize, const void* data = nullptr) const;
 
-public:
-	// will always be registered (the binding will depend if ubo or ssbo)
-	// it will be asserted that ubo or ssbo
-	BufferId createBuffer(const BufferCreateInfo&,
-						  BufferId = IGNIS_INVALID_BUFFER_ID);
+	Image createDrawAttachmentImage(const DrawImageCreateInfo&) const;
 
-	// ubo with default specs
+	Image createDepthAttachmentImage(const DepthImageCreateInfo&) const;
+
+public:
 	BufferId createUBO(VkDeviceSize size,
 					   const void* data = nullptr,
 					   BufferId = IGNIS_INVALID_BUFFER_ID);
 
-	// ssbo with default specs
 	BufferId createSSBO(VkDeviceSize size,
 						const void* data = nullptr,
 						BufferId = IGNIS_INVALID_BUFFER_ID);
 
-	ImageId createImage(const ImageCreateInfo&, ImageId = IGNIS_INVALID_IMAGE_ID);
+	ImageId createStorageImage(const ImageCreateInfo&);
 
-	ImageId createDrawImage(const DrawImageCreateInfo&);
-
-	ImageId createDepthImage(const DepthImageCreateInfo&);
+	ImageId createSampledImage(const ImageCreateInfo&);
 
 	Buffer& getBuffer(BufferId) const;
 
@@ -132,7 +127,7 @@ private:
 	VkDevice m_device{nullptr};
 	VmaAllocator m_allocator{nullptr};
 	std::unique_ptr<Features> m_features;
-	std::unique_ptr<GpuResources> m_bindlessResources;
+	std::unique_ptr<GpuResources> m_gpuResources;
 
 	uint32_t m_graphicsFamilyIndex{0};
 	uint32_t m_graphicsQueuesCount{0};

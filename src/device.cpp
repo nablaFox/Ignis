@@ -265,14 +265,13 @@ Device::Device(const CreateInfo& createInfo)
 		.imageSamplersBinding = IGNIS_IMAGE_SAMPLER_BINDING,
 	};
 
-	m_bindlessResources =
-		std::make_unique<GpuResources>(bindlessResourcesCreateInfo);
+	m_gpuResources = std::make_unique<GpuResources>(bindlessResourcesCreateInfo);
 }
 
 Device::~Device() {
 	vkDeviceWaitIdle(m_device);
 
-	m_bindlessResources.reset();
+	m_gpuResources.reset();
 
 	m_buffers.clear();
 
@@ -410,59 +409,51 @@ bool Device::isFeatureEnabled(const char* feature) const {
 }
 
 Buffer Device::createStagingBuffer(VkDeviceSize size, const void* data) const {
-	return Buffer(m_allocator, Buffer::stagingBufferDesc(size, data));
+	return Buffer::allocateStagingBuffer(m_allocator, size, data);
 }
 
-// TODO: recycle buffer ids
-BufferId Device::createBuffer(const BufferCreateInfo& createInfo, BufferId givenId) {
-	Buffer buffer(m_allocator, createInfo);
+Image Device::createDrawAttachmentImage(const DrawImageCreateInfo& info) const {
+	return Image::allocateDrawImage(m_device, m_allocator, info);
+}
 
-	static BufferId nextId = 0;	 // TEMP
-	BufferId bufferId = givenId == IGNIS_INVALID_BUFFER_ID ? nextId++ : givenId;
-
-	m_bindlessResources->registerBuffer(buffer.getHandle(), buffer.getUsage(),
-										buffer.getSize(), bufferId);
-
-	m_buffers.insert({bufferId, std::make_unique<Buffer>(std::move(buffer))});
-
-	return bufferId;
+Image Device::createDepthAttachmentImage(const DepthImageCreateInfo& info) const {
+	return Image::allocateDepthImage(m_device, m_allocator, info);
 }
 
 BufferId Device::createUBO(VkDeviceSize size, const void* data, BufferId givenId) {
-	return createBuffer(
-		Buffer::uboDesc(
-			m_physicalDeviceProperties.limits.minUniformBufferOffsetAlignment, size,
-			data),
-		givenId);
+	Buffer ubo = Buffer::allocateUBO(
+		m_allocator,
+		m_physicalDeviceProperties.limits.minUniformBufferOffsetAlignment, size,
+		data);
+
+	return m_gpuResources->registerBuffer(std::move(ubo), givenId);
 }
 
 BufferId Device::createSSBO(VkDeviceSize size, const void* data, BufferId givenId) {
-	return createBuffer(
-		Buffer::ssboDesc(
-			m_physicalDeviceProperties.limits.minStorageBufferOffsetAlignment, size,
-			data),
-		givenId);
+	Buffer ssbo = Buffer::allocateSSBO(
+		m_allocator,
+		m_physicalDeviceProperties.limits.minStorageBufferOffsetAlignment, size,
+		data);
+
+	return m_gpuResources->registerBuffer(std::move(ssbo), givenId);
 }
 
-ImageId Device::createImage(const ImageCreateInfo& info, ImageId givenId) {
-	static ImageId nextId = 0;	// TEMP
-	ImageId imageId = givenId == IGNIS_INVALID_BUFFER_ID ? nextId++ : givenId;
+ImageId Device::createStorageImage(const ImageCreateInfo& info) {
+	ImageCreateInfo actualInfo = info;
+	actualInfo.usage |= VK_IMAGE_USAGE_STORAGE_BIT;
 
-	Image image(m_device, m_allocator, info);
+	Image image(m_device, m_allocator, actualInfo);
 
-	// m_bindlessResources->registerImage(buffer.getHandle(), buffer.getUsage())
-
-	m_images.insert({imageId, std::make_unique<Image>(std::move(image))});
-
-	return imageId;
+	return m_gpuResources->registerImage(std::move(image));
 }
 
-ImageId Device::createDrawImage(const DrawImageCreateInfo& info) {
-	return createImage(Image::drawImageDesc(info), IGNIS_INVALID_IMAGE_ID);
-}
+ImageId Device::createSampledImage(const ImageCreateInfo& info) {
+	ImageCreateInfo actualInfo = info;
+	actualInfo.usage |= VK_IMAGE_USAGE_SAMPLED_BIT;
 
-ImageId Device::createDepthImage(const DepthImageCreateInfo& info) {
-	return createImage(Image::depthImageDesc(info), IGNIS_INVALID_IMAGE_ID);
+	Image image(m_device, m_allocator, actualInfo);
+
+	return m_gpuResources->registerImage(std::move(image));
 }
 
 Buffer& Device::getBuffer(BufferId handle) const {
@@ -490,9 +481,9 @@ void Device::destroyBuffer(BufferId handle) {
 }
 
 VkPipelineLayout Device::getPipelineLayout(uint32_t pushConstantSize) const {
-	return m_bindlessResources->getPipelinelayout(1 + (pushConstantSize / 4));
+	return m_gpuResources->getPipelinelayout(1 + (pushConstantSize / 4));
 };
 
 VkDescriptorSet Device::getDescriptorSet() const {
-	return m_bindlessResources->getDescriptorSet();
+	return m_gpuResources->getDescriptorSet();
 }

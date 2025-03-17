@@ -1,6 +1,8 @@
 #include <cassert>
 #include <vector>
 #include "gpu_resources.hpp"
+#include "buffer.hpp"
+#include "image.hpp"
 #include "exceptions.hpp"
 
 using namespace ignis;
@@ -156,36 +158,6 @@ GpuResources::GpuResources(const BindlessResourcesCreateInfo& info)
 	}
 }
 
-void GpuResources::registerBuffer(VkBuffer buffer,
-								  VkBufferUsageFlags usage,
-								  VkDeviceSize size,
-								  uint32_t binding) const {
-	bool isStorageBuffer = (usage & VK_BUFFER_USAGE_STORAGE_BUFFER_BIT) != 0;
-	bool isUniformBuffer = (usage & VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT) != 0;
-
-	assert((isStorageBuffer || isUniformBuffer) && "Invalid buffer usage");
-
-	VkDescriptorBufferInfo const bufferInfo{
-		.buffer = buffer,
-		.offset = 0,
-		.range = size,
-	};
-
-	VkWriteDescriptorSet const writeDescriptorSet{
-		.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-		.dstSet = m_descriptorSet,
-		.dstBinding = isStorageBuffer ? m_creationInfo.storageBuffersBinding
-									  : m_creationInfo.uniformBuffersBinding,
-		.dstArrayElement = binding,
-		.descriptorCount = 1,
-		.descriptorType = isStorageBuffer ? VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
-										  : VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-		.pBufferInfo = &bufferInfo,
-	};
-
-	vkUpdateDescriptorSets(m_device, 1, &writeDescriptorSet, 0, nullptr);
-};
-
 GpuResources::~GpuResources() {
 	vkDestroyDescriptorSetLayout(m_device, m_descriptorSetLayout, nullptr);
 	vkDestroyDescriptorPool(m_device, m_descriptorPool, nullptr);
@@ -193,4 +165,92 @@ GpuResources::~GpuResources() {
 	for (auto layout : m_pipelineLayouts) {
 		vkDestroyPipelineLayout(m_device, layout, nullptr);
 	}
+}
+
+// TODO: recycle buffer ids
+BufferId GpuResources::registerBuffer(Buffer buffer, BufferId givenBinding) {
+	const bool isStorageBuffer =
+		(buffer.getUsage() & VK_BUFFER_USAGE_STORAGE_BUFFER_BIT) != 0;
+	const bool isUniformBuffer =
+		(buffer.getUsage() & VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT) != 0;
+
+	assert((isStorageBuffer || isUniformBuffer) && "Invalid buffer usage");
+
+	BufferId id =
+		givenBinding == IGNIS_INVALID_BUFFER_ID ? nextBufferId++ : givenBinding;
+
+	VkDescriptorBufferInfo const bufferInfo{
+		.buffer = buffer.getHandle(),
+		.offset = 0,
+		.range = buffer.getSize(),
+	};
+
+	VkWriteDescriptorSet const writeDescriptorSet{
+		.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+		.dstSet = m_descriptorSet,
+		.dstBinding = isStorageBuffer ? m_creationInfo.storageBuffersBinding
+									  : m_creationInfo.uniformBuffersBinding,
+		.dstArrayElement = id,
+		.descriptorCount = 1,
+		.descriptorType = isStorageBuffer ? VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
+										  : VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+		.pBufferInfo = &bufferInfo,
+	};
+
+	vkUpdateDescriptorSets(m_device, 1, &writeDescriptorSet, 0, nullptr);
+
+	m_buffers.insert({id, std::make_unique<Buffer>(std::move(buffer))});
+
+	return id;
+};
+
+// TODO: recycle image ids
+BufferId GpuResources::registerImage(Image image, ImageId givenBinding) {
+	const bool isStorageImage = (image.getUsage() & VK_IMAGE_USAGE_STORAGE_BIT) != 0;
+	const bool isSampledImage = (image.getUsage() & VK_IMAGE_USAGE_SAMPLED_BIT) != 0;
+
+	assert((isStorageImage || isSampledImage) && "Invalid image usage");
+
+	ImageId id =
+		givenBinding == IGNIS_INVALID_IMAGE_ID ? nextImageId++ : givenBinding;
+
+	// TODO: implement
+
+	return id;
+}
+
+Buffer& GpuResources::getBuffer(BufferId id) const {
+	auto it = m_buffers.find(id);
+
+	THROW_ERROR(it == m_buffers.end(), "Invalid buffer handle");
+
+	return *it->second;
+}
+
+Image& GpuResources::getImage(ImageId id) const {
+	auto it = m_images.find(id);
+
+	THROW_ERROR(it == m_images.end(), "Invalid image handle");
+
+	return *it->second;
+}
+
+void GpuResources::destroyBuffer(BufferId& id) {
+	auto it = m_buffers.find(id);
+
+	THROW_ERROR(it == m_buffers.end(), "Invalid buffer handle");
+
+	m_buffers.erase(it);
+
+	id = IGNIS_INVALID_BUFFER_ID;
+}
+
+void GpuResources::destroyImage(ImageId& id) {
+	auto it = m_images.find(id);
+
+	THROW_ERROR(it == m_images.end(), "Invalid image handle");
+
+	m_images.erase(it);
+
+	id = IGNIS_INVALID_IMAGE_ID;
 }
