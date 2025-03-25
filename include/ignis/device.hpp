@@ -94,6 +94,9 @@ public:
 
 	Buffer createStagingBuffer(VkDeviceSize, const void* data = nullptr) const;
 
+	Buffer createIndexBuffer32(uint32_t elementCount,
+							   const uint32_t* data = nullptr) const;
+
 	Image createDrawAttachmentImage(const DrawImageCreateInfo&) const;
 
 	Image createDepthAttachmentImage(const DepthImageCreateInfo&) const;
@@ -102,9 +105,6 @@ public:
 	BufferId createUBO(VkDeviceSize, const void* data = nullptr) const;
 
 	BufferId createSSBO(VkDeviceSize, const void* data = nullptr) const;
-
-	BufferId createIndexBuffer32(uint32_t elementCount,
-								 const uint32_t* data = nullptr) const;
 
 	ImageId createStorageImage(const ImageCreateInfo&) const;
 

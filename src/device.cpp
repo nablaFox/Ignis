@@ -412,6 +412,11 @@ Buffer Device::createStagingBuffer(VkDeviceSize size, const void* data) const {
 	return Buffer::allocateStagingBuffer(m_allocator, size, data);
 }
 
+Buffer Device::createIndexBuffer32(uint32_t elementCount,
+								   const uint32_t* data) const {
+	return Buffer::allocateIndexBuffer32(m_allocator, elementCount, data);
+}
+
 Image Device::createDrawAttachmentImage(const DrawImageCreateInfo& info) const {
 	return Image::allocateDrawImage(m_device, m_allocator, info);
 }
@@ -436,14 +441,6 @@ BufferId Device::createSSBO(VkDeviceSize size, const void* data) const {
 		data);
 
 	return m_gpuResources->registerBuffer(std::move(ssbo));
-}
-
-BufferId Device::createIndexBuffer32(uint32_t elementCount,
-									 const uint32_t* data) const {
-	Buffer indexBuffer =
-		Buffer::allocateIndexBuffer32(m_allocator, elementCount, data);
-
-	return m_gpuResources->registerBuffer(std::move(indexBuffer));
 }
 
 ImageId Device::createStorageImage(const ImageCreateInfo& info) const {

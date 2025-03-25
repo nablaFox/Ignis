@@ -107,10 +107,15 @@ public:
 					  uint32_t offset = 0,
 					  uint32_t size = 0);
 
+	void updateBuffer(const Buffer& buffer,
+					  const void* data,
+					  uint32_t offset = 0,
+					  uint32_t size = 0);
+
 	void setViewport(VkViewport);
 	void setScissor(VkRect2D);
 
-	void bindIndexBuffer(BufferId, VkDeviceSize offset = 0);
+	void bindIndexBuffer(const Buffer&, VkDeviceSize offset = 0);
 
 	void draw(uint32_t indexCount, uint32_t firstIndex = 0);
 

@@ -246,7 +246,6 @@ void Command::updateImage(ImageId imageId,
 						  VkOffset2D imageOffset,
 						  VkExtent2D imageSize) {
 	auto& image = m_device.getImage(imageId);
-
 	updateImage(image, pixels, imageOffset, imageSize);
 }
 
@@ -272,13 +271,11 @@ void Command::resolveImage(const Image& src, const Image& dst) {
 					  VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &resolveRegion);
 }
 
-void Command::updateBuffer(BufferId bufferId,
+void Command::updateBuffer(const Buffer& buffer,
 						   const void* data,
 						   uint32_t offset,
 						   uint32_t size) {
 	CHECK_IS_RECORDING;
-
-	auto& buffer = m_device.getBuffer(bufferId);
 
 	if (!size) {
 		size = buffer.getSize() - offset;
@@ -299,6 +296,14 @@ void Command::updateBuffer(BufferId bufferId,
 					&copyRegion);
 
 	m_stagingBuffers.push_back(std::move(staging));
+}
+
+void Command::updateBuffer(BufferId bufferId,
+						   const void* data,
+						   uint32_t offset,
+						   uint32_t size) {
+	auto& buffer = m_device.getBuffer(bufferId);
+	updateBuffer(buffer, data, offset, size);
 }
 
 void Command::bindPipeline(const Pipeline& pipeline) {
@@ -416,11 +421,9 @@ void Command::setScissor(VkRect2D scissor) {
 	vkCmdSetScissor(m_commandBuffer, 0, 1, &scissor);
 }
 
-void Command::bindIndexBuffer(BufferId bufferId, VkDeviceSize offset) {
+void Command::bindIndexBuffer(const Buffer& indexBuffer, VkDeviceSize offset) {
 	CHECK_IS_RECORDING;
 	CHECK_PIPELINE_BOUND;
-
-	auto& indexBuffer = m_device.getBuffer(bufferId);
 
 	assert((indexBuffer.getUsage() & VK_BUFFER_USAGE_INDEX_BUFFER_BIT) != 0 &&
 		   "Buffer is not an index buffer");
