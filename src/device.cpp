@@ -273,10 +273,6 @@ Device::~Device() {
 
 	m_gpuResources.reset();
 
-	m_buffers.clear();
-
-	m_images.clear();
-
 	for (auto queue : m_queues)
 		vkQueueWaitIdle(queue);
 
@@ -469,27 +465,19 @@ ImageId Device::createSampledImage(const ImageCreateInfo& info) const {
 }
 
 Buffer& Device::getBuffer(BufferId handle) const {
-	auto it = m_buffers.find(handle);
-
-	THROW_ERROR(it == m_buffers.end(), "Invalid buffer handle");
-
-	return *it->second;
+	return m_gpuResources->getBuffer(handle);
 }
 
 Image& Device::getImage(ImageId handle) const {
-	auto it = m_images.find(handle);
-
-	THROW_ERROR(it == m_images.end(), "Invalid image handle");
-
-	return *it->second;
+	return m_gpuResources->getImage(handle);
 }
 
 void Device::destroyBuffer(BufferId handle) {
-	auto it = m_buffers.find(handle);
+	m_gpuResources->destroyBuffer(handle);
+}
 
-	THROW_ERROR(it == m_buffers.end(), "Invalid buffer handle");
-
-	m_buffers.erase(it);
+void Device::destroyImage(ImageId handle) {
+	m_gpuResources->destroyImage(handle);
 }
 
 VkPipelineLayout Device::getPipelineLayout(uint32_t pushConstantSize) const {

@@ -139,10 +139,6 @@ private:
 
 	std::string m_shadersFolder;
 
-private:
-	std::unordered_map<BufferId, std::unique_ptr<Buffer>> m_buffers;
-	std::unordered_map<ImageId, std::unique_ptr<Image>> m_images;
-
 public:
 	Device(const Device&) = delete;
 	Device(Device&&) = delete;
