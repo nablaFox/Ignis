@@ -408,6 +408,10 @@ bool Device::isFeatureEnabled(const char* feature) const {
 	return m_features->isFeatureEnabled(feature, m_phyiscalDevice);
 }
 
+void Device::waitIdle() const {
+	vkDeviceWaitIdle(m_device);
+}
+
 Buffer Device::createStagingBuffer(VkDeviceSize size, const void* data) const {
 	return Buffer::allocateStagingBuffer(m_allocator, size, data);
 }
@@ -420,7 +424,9 @@ Image Device::createDepthAttachmentImage(const DepthImageCreateInfo& info) const
 	return Image::allocateDepthImage(m_device, m_allocator, info);
 }
 
-BufferId Device::createUBO(VkDeviceSize size, const void* data, BufferId givenId) {
+BufferId Device::createUBO(VkDeviceSize size,
+						   const void* data,
+						   BufferId givenId) const {
 	Buffer ubo = Buffer::allocateUBO(
 		m_allocator,
 		m_physicalDeviceProperties.limits.minUniformBufferOffsetAlignment, size,
@@ -429,7 +435,9 @@ BufferId Device::createUBO(VkDeviceSize size, const void* data, BufferId givenId
 	return m_gpuResources->registerBuffer(std::move(ubo), givenId);
 }
 
-BufferId Device::createSSBO(VkDeviceSize size, const void* data, BufferId givenId) {
+BufferId Device::createSSBO(VkDeviceSize size,
+							const void* data,
+							BufferId givenId) const {
 	Buffer ssbo = Buffer::allocateSSBO(
 		m_allocator,
 		m_physicalDeviceProperties.limits.minStorageBufferOffsetAlignment, size,
@@ -438,7 +446,16 @@ BufferId Device::createSSBO(VkDeviceSize size, const void* data, BufferId givenI
 	return m_gpuResources->registerBuffer(std::move(ssbo), givenId);
 }
 
-ImageId Device::createStorageImage(const ImageCreateInfo& info) {
+BufferId Device::createIndexBuffer32(uint32_t elementCount,
+									 const uint32_t* data,
+									 BufferId givenId) const {
+	Buffer indexBuffer =
+		Buffer::allocateIndexBuffer32(m_allocator, elementCount, data);
+
+	return m_gpuResources->registerBuffer(std::move(indexBuffer), givenId);
+}
+
+ImageId Device::createStorageImage(const ImageCreateInfo& info) const {
 	ImageCreateInfo actualInfo = info;
 	actualInfo.usage |= VK_IMAGE_USAGE_STORAGE_BIT;
 
@@ -447,7 +464,7 @@ ImageId Device::createStorageImage(const ImageCreateInfo& info) {
 	return m_gpuResources->registerImage(std::move(image));
 }
 
-ImageId Device::createSampledImage(const ImageCreateInfo& info) {
+ImageId Device::createSampledImage(const ImageCreateInfo& info) const {
 	ImageCreateInfo actualInfo = info;
 	actualInfo.usage |= VK_IMAGE_USAGE_SAMPLED_BIT;
 

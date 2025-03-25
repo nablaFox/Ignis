@@ -42,7 +42,7 @@ public:
 
 	static Buffer allocateIndexBuffer32(VmaAllocator,
 										uint32_t elementCount,
-										uint32_t* data = nullptr);
+										const uint32_t* data = nullptr);
 
 	static Buffer allocateStagingBuffer(VmaAllocator,
 										VkDeviceSize size,

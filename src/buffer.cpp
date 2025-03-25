@@ -140,7 +140,7 @@ Buffer Buffer::allocateSSBO(VmaAllocator allocator,
 
 Buffer Buffer::allocateIndexBuffer32(VmaAllocator allocator,
 									 uint32_t elementCount,
-									 uint32_t* data) {
+									 const uint32_t* data) {
 	BufferCreateInfo info{
 		.bufferUsage =
 			VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,

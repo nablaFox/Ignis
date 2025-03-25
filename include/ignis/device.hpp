@@ -77,6 +77,8 @@ public:
 
 	auto getShadersFolder() const { return m_shadersFolder; };
 
+	auto getQueueCount() const { return m_graphicsQueuesCount; }
+
 public:
 	VkQueue getQueue(uint32_t index) const;
 
@@ -88,6 +90,8 @@ public:
 
 	bool isFeatureEnabled(const char* featureName) const;
 
+	void waitIdle() const;
+
 	Buffer createStagingBuffer(VkDeviceSize, const void* data = nullptr) const;
 
 	Image createDrawAttachmentImage(const DrawImageCreateInfo&) const;
@@ -97,15 +101,19 @@ public:
 public:
 	BufferId createUBO(VkDeviceSize size,
 					   const void* data = nullptr,
-					   BufferId = IGNIS_INVALID_BUFFER_ID);
+					   BufferId = IGNIS_INVALID_BUFFER_ID) const;
 
 	BufferId createSSBO(VkDeviceSize size,
 						const void* data = nullptr,
-						BufferId = IGNIS_INVALID_BUFFER_ID);
+						BufferId = IGNIS_INVALID_BUFFER_ID) const;
 
-	ImageId createStorageImage(const ImageCreateInfo&);
+	BufferId createIndexBuffer32(uint32_t elementCount,
+								 const uint32_t* data = nullptr,
+								 BufferId = IGNIS_INVALID_BUFFER_ID) const;
 
-	ImageId createSampledImage(const ImageCreateInfo&);
+	ImageId createStorageImage(const ImageCreateInfo&) const;
+
+	ImageId createSampledImage(const ImageCreateInfo&) const;
 
 	Buffer& getBuffer(BufferId) const;
 

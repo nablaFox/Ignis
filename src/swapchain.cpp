@@ -155,7 +155,7 @@ Swapchain::Swapchain(const SwapchainCreateInfo& info)
 
 Swapchain::~Swapchain() {
 	vkDestroySwapchainKHR(m_device.getDevice(), m_swapchain, nullptr);
-	vkDestroySurfaceKHR(m_device.getInstance(), m_surface, nullptr);
+	// vkDestroySurfaceKHR(m_device.getInstance(), m_surface, nullptr);
 }
 
 Image& Swapchain::acquireNextImage(const Semaphore* signalSemaphore) {

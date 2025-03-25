@@ -7,3 +7,4 @@
 #include "semaphore.hpp"
 #include "pipeline.hpp"
 #include "swapchain.hpp"
+#include "image.hpp"
