@@ -99,17 +99,12 @@ public:
 	Image createDepthAttachmentImage(const DepthImageCreateInfo&) const;
 
 public:
-	BufferId createUBO(VkDeviceSize size,
-					   const void* data = nullptr,
-					   BufferId = IGNIS_INVALID_BUFFER_ID) const;
+	BufferId createUBO(VkDeviceSize, const void* data = nullptr) const;
 
-	BufferId createSSBO(VkDeviceSize size,
-						const void* data = nullptr,
-						BufferId = IGNIS_INVALID_BUFFER_ID) const;
+	BufferId createSSBO(VkDeviceSize, const void* data = nullptr) const;
 
 	BufferId createIndexBuffer32(uint32_t elementCount,
-								 const uint32_t* data = nullptr,
-								 BufferId = IGNIS_INVALID_BUFFER_ID) const;
+								 const uint32_t* data = nullptr) const;
 
 	ImageId createStorageImage(const ImageCreateInfo&) const;
 

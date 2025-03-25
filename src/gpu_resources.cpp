@@ -168,7 +168,7 @@ GpuResources::~GpuResources() {
 }
 
 // TODO: recycle buffer ids
-BufferId GpuResources::registerBuffer(Buffer buffer, BufferId givenBinding) {
+BufferId GpuResources::registerBuffer(Buffer buffer) {
 	const bool isStorageBuffer =
 		(buffer.getUsage() & VK_BUFFER_USAGE_STORAGE_BUFFER_BIT) != 0;
 	const bool isUniformBuffer =
@@ -176,8 +176,7 @@ BufferId GpuResources::registerBuffer(Buffer buffer, BufferId givenBinding) {
 
 	assert((isStorageBuffer || isUniformBuffer) && "Invalid buffer usage");
 
-	BufferId id =
-		givenBinding == IGNIS_INVALID_BUFFER_ID ? nextBufferId++ : givenBinding;
+	BufferId id = nextBufferId++;
 
 	VkDescriptorBufferInfo const bufferInfo{
 		.buffer = buffer.getHandle(),
@@ -205,14 +204,13 @@ BufferId GpuResources::registerBuffer(Buffer buffer, BufferId givenBinding) {
 };
 
 // TODO: recycle image ids
-BufferId GpuResources::registerImage(Image image, ImageId givenBinding) {
+BufferId GpuResources::registerImage(Image image) {
 	const bool isStorageImage = (image.getUsage() & VK_IMAGE_USAGE_STORAGE_BIT) != 0;
 	const bool isSampledImage = (image.getUsage() & VK_IMAGE_USAGE_SAMPLED_BIT) != 0;
 
 	assert((isStorageImage || isSampledImage) && "Invalid image usage");
 
-	ImageId id =
-		givenBinding == IGNIS_INVALID_IMAGE_ID ? nextImageId++ : givenBinding;
+	ImageId id = nextImageId++;
 
 	// TODO: implement
 

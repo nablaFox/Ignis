@@ -35,9 +35,9 @@ struct GpuResources {
 
 	auto getDescriptorSet() const { return m_descriptorSet; }
 
-	BufferId registerBuffer(Buffer buffer, BufferId = IGNIS_INVALID_BUFFER_ID);
+	BufferId registerBuffer(Buffer buffer);
 
-	ImageId registerImage(Image image, ImageId = IGNIS_INVALID_IMAGE_ID);
+	ImageId registerImage(Image image);
 
 	Buffer& getBuffer(BufferId) const;
 

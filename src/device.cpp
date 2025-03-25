@@ -424,35 +424,30 @@ Image Device::createDepthAttachmentImage(const DepthImageCreateInfo& info) const
 	return Image::allocateDepthImage(m_device, m_allocator, info);
 }
 
-BufferId Device::createUBO(VkDeviceSize size,
-						   const void* data,
-						   BufferId givenId) const {
+BufferId Device::createUBO(VkDeviceSize size, const void* data) const {
 	Buffer ubo = Buffer::allocateUBO(
 		m_allocator,
 		m_physicalDeviceProperties.limits.minUniformBufferOffsetAlignment, size,
 		data);
 
-	return m_gpuResources->registerBuffer(std::move(ubo), givenId);
+	return m_gpuResources->registerBuffer(std::move(ubo));
 }
 
-BufferId Device::createSSBO(VkDeviceSize size,
-							const void* data,
-							BufferId givenId) const {
+BufferId Device::createSSBO(VkDeviceSize size, const void* data) const {
 	Buffer ssbo = Buffer::allocateSSBO(
 		m_allocator,
 		m_physicalDeviceProperties.limits.minStorageBufferOffsetAlignment, size,
 		data);
 
-	return m_gpuResources->registerBuffer(std::move(ssbo), givenId);
+	return m_gpuResources->registerBuffer(std::move(ssbo));
 }
 
 BufferId Device::createIndexBuffer32(uint32_t elementCount,
-									 const uint32_t* data,
-									 BufferId givenId) const {
+									 const uint32_t* data) const {
 	Buffer indexBuffer =
 		Buffer::allocateIndexBuffer32(m_allocator, elementCount, data);
 
-	return m_gpuResources->registerBuffer(std::move(indexBuffer), givenId);
+	return m_gpuResources->registerBuffer(std::move(indexBuffer));
 }
 
 ImageId Device::createStorageImage(const ImageCreateInfo& info) const {
