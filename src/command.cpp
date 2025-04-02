@@ -328,10 +328,9 @@ void Command::beginRender(const DrawAttachment* drawAttachment,
 	assert(drawAttachment != nullptr ||
 		   depthAttachment != nullptr && "Both attachments are nullptr");
 
-	VkRenderingAttachmentInfo colorAttachment{
+	VkRenderingAttachmentInfo drawAttachmentInfo{
 		.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
 		.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-		.clearValue = {.color = drawAttachment->clearColor},
 	};
 
 	VkExtent2D extent{};
@@ -352,9 +351,10 @@ void Command::beginRender(const DrawAttachment* drawAttachment,
 
 		assert(drawImage.getViewHandle() != nullptr);
 
-		colorAttachment.imageView = drawImage.getViewHandle();
-		colorAttachment.loadOp = drawAttachment->loadAction;
-		colorAttachment.storeOp = drawAttachment->storeAction;
+		drawAttachmentInfo.imageView = drawImage.getViewHandle();
+		drawAttachmentInfo.loadOp = drawAttachment->loadAction;
+		drawAttachmentInfo.storeOp = drawAttachment->storeAction;
+		drawAttachmentInfo.clearValue = {.color = drawAttachment->clearColor};
 		extent = drawImage.getExtent2D();
 	}
 
@@ -393,8 +393,8 @@ void Command::beginRender(const DrawAttachment* drawAttachment,
 		.sType = VK_STRUCTURE_TYPE_RENDERING_INFO,
 		.renderArea = {{0, 0}, extent},
 		.layerCount = 1,
-		.colorAttachmentCount = 1,
-		.pColorAttachments = drawAttachment ? &colorAttachment : nullptr,
+		.colorAttachmentCount = drawAttachment != nullptr ? 1u : 0,
+		.pColorAttachments = drawAttachment ? &drawAttachmentInfo : nullptr,
 		.pDepthAttachment = depthAttachment ? &depthAttachmentInfo : nullptr,
 	};
 

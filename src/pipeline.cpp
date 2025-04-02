@@ -118,7 +118,7 @@ Pipeline::Pipeline(const PipelineCreateInfo& info) : m_device(*info.device) {
 
 	VkPipelineRenderingCreateInfo pipelineRenderingInfo{
 		.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO,
-		.colorAttachmentCount = 1,
+		.colorAttachmentCount = info.renderColor ? 1u : 0,
 		.pColorAttachmentFormats = &vkColorFormat,
 		.stencilAttachmentFormat = VK_FORMAT_UNDEFINED,
 	};

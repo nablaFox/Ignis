@@ -252,7 +252,7 @@ Device::Device(const CreateInfo& createInfo)
 
 	allocateCommandPools(m_device, m_graphicsFamilyIndex, m_queues, &m_commandPools);
 
-	BindlessResourcesCreateInfo bindlessResourcesCreateInfo{
+	BindlessResourcesCreateInfo const bindlessResourcesCreateInfo{
 		.device = m_device,
 		.maxStorageBuffers =
 			m_physicalDeviceProperties.limits.maxPerStageDescriptorStorageBuffers,

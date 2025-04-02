@@ -15,6 +15,7 @@ struct PipelineCreateInfo {
 	const Device* device{nullptr};
 	std::vector<std::string> shaders;
 	ColorFormat colorFormat;
+	bool renderColor{true};
 	DepthFormat depthFormat;
 	VkCullModeFlagBits cullMode{VK_CULL_MODE_BACK_BIT};
 	VkFrontFace frontFace{VK_FRONT_FACE_CLOCKWISE};
