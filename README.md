@@ -18,7 +18,7 @@ Ignis is a C++ 20 API abstraction over Vulkan.
 - Vulkan SDK
 - CMake 3.14
 - [SPIRV-Cross](https://github.com/KhronosGroup/SPIRV-Cross)
-- [VMA](https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator) (temporary)
+- [VMA](https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator)
 
 ## Building
 
