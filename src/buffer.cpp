@@ -48,7 +48,7 @@ Buffer::Buffer(Buffer&& other) noexcept
 	other.m_allocation = VK_NULL_HANDLE;
 }
 
-void Buffer::writeData(const void* data, uint32_t offset, uint32_t size) {
+void Buffer::writeData(const void* data, VkDeviceSize offset, uint32_t size) {
 	THROW_ERROR(!(m_memoryProperties & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT),
 				"Writing to non-host visible buffer");
 
@@ -72,7 +72,7 @@ void Buffer::writeData(const void* data, uint32_t offset, uint32_t size) {
 	vmaUnmapMemory(m_allocator, m_allocation);
 }
 
-void Buffer::readData(void* data, uint32_t offset, uint32_t size) {
+void Buffer::readData(void* data, VkDeviceSize offset, uint32_t size) {
 	THROW_ERROR(!(m_memoryProperties & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT),
 				"Reading from non-host visible buffer");
 

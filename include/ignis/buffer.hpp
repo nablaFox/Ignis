@@ -24,9 +24,9 @@ public:
 	auto getUsage() const { return m_bufferUsage; }
 
 public:
-	void writeData(const void* data, uint32_t offset = 0, uint32_t size = 0);
+	void writeData(const void* data, VkDeviceSize offset = 0, uint32_t size = 0);
 
-	void readData(void* data, uint32_t offset = 0, uint32_t size = 0);
+	void readData(void* data, VkDeviceSize offset = 0, uint32_t size = 0);
 
 	VkDeviceAddress getDeviceAddress(VkDevice);
 

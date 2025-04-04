@@ -118,6 +118,11 @@ public:
 
 	void destroyImage(ImageId);
 
+	void updateBuffer(BufferId,
+					  const void* data,
+					  VkDeviceSize offset = 0,
+					  VkDeviceSize size = 0) const;
+
 	VkPipelineLayout getPipelineLayout(uint32_t pushConstantSize) const;
 
 	VkDescriptorSet getDescriptorSet() const;

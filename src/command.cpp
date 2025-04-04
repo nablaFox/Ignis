@@ -443,13 +443,13 @@ void Command::draw(uint32_t indexCount, uint32_t firstVertex) {
 	vkCmdDrawIndexed(m_commandBuffer, indexCount, 1, firstVertex, 0, 0);
 }
 
-void Command::drawInstanced(uint32_t vertexCount,
+void Command::drawInstanced(uint32_t indexCount,
 							uint32_t instanceCount,
-							uint32_t firstVertex,
+							uint32_t firstIndex,
 							uint32_t firstInstance) {
 	CHECK_IS_RECORDING;
 	CHECK_PIPELINE_BOUND;
 
-	vkCmdDrawIndexed(m_commandBuffer, vertexCount, instanceCount, firstVertex, 0,
+	vkCmdDrawIndexed(m_commandBuffer, indexCount, instanceCount, firstIndex, 0,
 					 firstInstance);
 }

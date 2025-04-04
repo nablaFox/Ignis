@@ -119,9 +119,9 @@ public:
 
 	void draw(uint32_t indexCount, uint32_t firstIndex = 0);
 
-	void drawInstanced(uint32_t vertexCount,
+	void drawInstanced(uint32_t indexCount,
 					   uint32_t instanceCount,
-					   uint32_t firstVertex = 0,
+					   uint32_t firstIndex = 0,
 					   uint32_t firstInstance = 0);
 
 	VkQueue getQueue() const { return m_queue; }

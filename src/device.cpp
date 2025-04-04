@@ -477,6 +477,14 @@ void Device::destroyImage(ImageId handle) {
 	m_gpuResources->destroyImage(handle);
 }
 
+void Device::updateBuffer(BufferId handle,
+						  const void* data,
+						  VkDeviceSize offset,
+						  VkDeviceSize size) const {
+	Buffer& buffer = m_gpuResources->getBuffer(handle);
+	buffer.writeData(data, offset, size);
+}
+
 VkPipelineLayout Device::getPipelineLayout(uint32_t pushConstantSize) const {
 	return m_gpuResources->getPipelinelayout(1 + (pushConstantSize / 4));
 };
