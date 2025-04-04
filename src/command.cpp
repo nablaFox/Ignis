@@ -413,6 +413,30 @@ void Command::setViewport(VkViewport viewport) {
 	vkCmdSetViewport(m_commandBuffer, 0, 1, &viewport);
 }
 
+void Command::clearViewport(uint32_t x,
+							uint32_t y,
+							uint32_t width,
+							uint32_t height,
+							VkClearColorValue clearColorValue) {
+	CHECK_IS_RECORDING;
+
+	const VkClearRect clearRect{
+		.rect =
+			{
+				{(int32_t)x, (int32_t)y},
+				{width, height},
+			},
+		.layerCount = 1,
+	};
+
+	const VkClearAttachment clearAtt{
+		.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+		.clearValue = {clearColorValue},
+	};
+
+	vkCmdClearAttachments(m_commandBuffer, 1, &clearAtt, 1, &clearRect);
+}
+
 void Command::setScissor(VkRect2D scissor) {
 	CHECK_IS_RECORDING;
 	CHECK_PIPELINE_BOUND;
