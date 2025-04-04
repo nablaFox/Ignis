@@ -7,7 +7,6 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 option(IGNIS_BUILD_EXAMPLES "Build ignis examples" ON)
-option(IGNIS_INSTALL "Install the library" OFF)
 
 find_package(Vulkan REQUIRED)
 
@@ -34,16 +33,4 @@ if (IGNIS_INSTALL)
 		LIBRARY DESTINATION lib
 		INCLUDES DESTINATION include
 	)
-endif()
-
-if (IGNIS_BUILD_EXAMPLES)
-	find_package(glfw3 REQUIRED)
-
-	file(GLOB EXAMPLES_SRC "examples/*.cpp")
-
-	foreach(EXAMPLE_SRC ${EXAMPLES_SRC})
-	  get_filename_component(EXAMPLE_NAME ${EXAMPLE_SRC} NAME_WE)
-	  add_executable(${EXAMPLE_NAME} ${EXAMPLE_SRC})
-	  target_link_libraries(${EXAMPLE_NAME} PRIVATE Ignis::Ignis glfw)
-	endforeach()
 endif()

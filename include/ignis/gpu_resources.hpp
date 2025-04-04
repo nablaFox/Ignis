@@ -29,7 +29,7 @@ struct GpuResources {
 
 	~GpuResources();
 
-	VkPipelineLayout getPipelinelayout(uint32_t pushConstantSize) const;
+	VkPipelineLayout getPipelinelayout(VkDeviceSize pushConstantSize) const;
 
 	auto getDescriptorSet() const { return m_descriptorSet; }
 

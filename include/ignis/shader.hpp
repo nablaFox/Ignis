@@ -6,16 +6,12 @@
 
 namespace ignis {
 
-struct ShaderCreateInfo {
-	VkDevice device;
-	std::string shaderPath;
-	uint32_t pushConstantSize{0};
-	VkShaderStageFlagBits stage{VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM};
-};
-
 class Shader {
 public:
-	Shader(const ShaderCreateInfo&);
+	Shader(const VkDevice,
+		   const std::string& shaderPath,
+		   VkShaderStageFlagBits,
+		   VkDeviceSize pushConstantsSize);
 
 	~Shader();
 

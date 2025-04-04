@@ -24,7 +24,6 @@ struct DepthImageCreateInfo;
 class Sampler;
 class Features;
 class Shader;
-struct ShaderCreateInfo;
 
 struct SubmitCmdInfo {
 	const Command& command;
@@ -100,7 +99,9 @@ public:
 
 	Image createDepthAttachmentImage(const DepthImageCreateInfo&) const;
 
-	Shader createShader(const ShaderCreateInfo&) const;
+	Shader createShader(const std::string& shaderPath,
+						VkShaderStageFlagBits,
+						size_t pushConstansSize = 0) const;
 
 public:
 	BufferId createUBO(VkDeviceSize, const void* data = nullptr) const;
@@ -124,7 +125,7 @@ public:
 					  VkDeviceSize offset = 0,
 					  VkDeviceSize size = 0) const;
 
-	VkPipelineLayout getPipelineLayout(uint32_t pushConstantSize) const;
+	VkPipelineLayout getPipelineLayout(VkDeviceSize pushConstantSize) const;
 
 	VkDescriptorSet getDescriptorSet() const;
 

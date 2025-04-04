@@ -424,8 +424,10 @@ Image Device::createDepthAttachmentImage(const DepthImageCreateInfo& info) const
 	return Image::allocateDepthImage(m_device, m_allocator, info);
 }
 
-Shader Device::createShader(const ShaderCreateInfo& info) const {
-	return Shader(info);
+Shader Device::createShader(const std::string& shaderPath,
+							VkShaderStageFlagBits stage,
+							size_t pushConstantsSize) const {
+	return Shader(m_device, shaderPath, stage, pushConstantsSize);
 }
 
 BufferId Device::createUBO(VkDeviceSize size, const void* data) const {
@@ -488,8 +490,8 @@ void Device::updateBuffer(BufferId handle,
 	buffer.writeData(data, offset, size);
 }
 
-VkPipelineLayout Device::getPipelineLayout(uint32_t pushConstantSize) const {
-	return m_gpuResources->getPipelinelayout(1 + (pushConstantSize / 4));
+VkPipelineLayout Device::getPipelineLayout(size_t pushConstantSize) const {
+	return m_gpuResources->getPipelinelayout(pushConstantSize);
 };
 
 VkDescriptorSet Device::getDescriptorSet() const {

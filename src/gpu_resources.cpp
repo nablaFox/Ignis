@@ -217,11 +217,13 @@ BufferId GpuResources::registerImage(Image image) {
 	return id;
 }
 
-VkPipelineLayout GpuResources::getPipelinelayout(uint32_t pushConstantSize) const {
-	THROW_ERROR(pushConstantSize > MAX_PUSH_CONSTANT_WORD_SIZE,
-				"Invalid push constant size");
+VkPipelineLayout GpuResources::getPipelinelayout(
+	VkDeviceSize pushConstantSize) const {
+	THROW_ERROR(
+		static_cast<uint32_t>(pushConstantSize) > 4 * MAX_PUSH_CONSTANT_WORD_SIZE,
+		"Invalid push constant size");
 
-	return m_pipelineLayouts.at(pushConstantSize);
+	return m_pipelineLayouts.at(1 + (pushConstantSize / 4));
 }
 
 Buffer& GpuResources::getBuffer(BufferId id) const {
