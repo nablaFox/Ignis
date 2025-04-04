@@ -23,6 +23,8 @@ struct DrawImageCreateInfo;
 struct DepthImageCreateInfo;
 class Sampler;
 class Features;
+class Shader;
+struct ShaderCreateInfo;
 
 struct SubmitCmdInfo {
 	const Command& command;
@@ -54,7 +56,6 @@ class Device {
 public:
 	struct CreateInfo {
 		std::string appName{"Ignis App"};
-		std::string shadersFolder{"shaders"};
 		std::vector<const char*> extensions{};
 		std::vector<const char*> instanceExtensions{};
 		std::vector<const char*> requiredFeatures{};
@@ -74,8 +75,6 @@ public:
 	auto getAllocator() const { return m_allocator; }
 
 	auto getPhysicalDeviceProperties() const { return m_physicalDeviceProperties; }
-
-	auto getShadersFolder() const { return m_shadersFolder; };
 
 	auto getQueueCount() const { return m_graphicsQueuesCount; }
 
@@ -100,6 +99,8 @@ public:
 	Image createDrawAttachmentImage(const DrawImageCreateInfo&) const;
 
 	Image createDepthAttachmentImage(const DepthImageCreateInfo&) const;
+
+	Shader createShader(const ShaderCreateInfo&) const;
 
 public:
 	BufferId createUBO(VkDeviceSize, const void* data = nullptr) const;
@@ -141,8 +142,6 @@ private:
 	uint32_t m_graphicsQueuesCount{0};
 	std::vector<VkQueue> m_queues;
 	std::unordered_map<VkQueue, VkCommandPool> m_commandPools;
-
-	std::string m_shadersFolder;
 
 public:
 	Device(const Device&) = delete;

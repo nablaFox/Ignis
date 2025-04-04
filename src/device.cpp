@@ -221,8 +221,7 @@ static void allocateCommandPools(
 	}
 }
 
-Device::Device(const CreateInfo& createInfo)
-	: m_shadersFolder(createInfo.shadersFolder) {
+Device::Device(const CreateInfo& createInfo) {
 	createInstance(createInfo.appName, createInfo.instanceExtensions, &m_instance);
 
 #ifndef NDEBUG
@@ -423,6 +422,10 @@ Image Device::createDrawAttachmentImage(const DrawImageCreateInfo& info) const {
 
 Image Device::createDepthAttachmentImage(const DepthImageCreateInfo& info) const {
 	return Image::allocateDepthImage(m_device, m_allocator, info);
+}
+
+Shader Device::createShader(const ShaderCreateInfo& info) const {
+	return Shader(info);
 }
 
 BufferId Device::createUBO(VkDeviceSize size, const void* data) const {

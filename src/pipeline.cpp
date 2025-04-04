@@ -1,33 +1,20 @@
 #include <cassert>
-#include <memory>
 #include "pipeline.hpp"
-#include "shader.hpp"
 #include "device.hpp"
 #include "exceptions.hpp"
 
 using namespace ignis;
 
 Pipeline::Pipeline(const PipelineCreateInfo& info) : m_device(*info.device) {
-	std::vector<std::unique_ptr<Shader>> shaders;
-
 	assert(!info.shaders.empty() && "No shaders provided");
 
-	for (const auto& shaderPath : info.shaders) {
-		shaders.emplace_back(std::make_unique<Shader>(m_device, shaderPath));
-	}
-
-	ShaderResources resources{};
-
-	for (const auto& shader : shaders) {
-		Shader::getMergedResources(shader->getResources(), &resources);
-	}
-
-	m_pipelineLayout = m_device.getPipelineLayout(resources.pushConstants.size);
+	m_pipelineLayout =
+		m_device.getPipelineLayout(Shader::getMergedPushConstantSize(info.shaders));
 
 	std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
 	shaderStages.reserve(info.shaders.size());
 
-	for (const auto& shader : shaders) {
+	for (const auto& shader : info.shaders) {
 		shaderStages.push_back({
 			.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
 			.stage = shader->getStage(),

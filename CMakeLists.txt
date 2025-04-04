@@ -6,7 +6,7 @@ include(cmake/CPM.cmake)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-option(IGNIS_BUILD_EXAMPLES "Build the examples" ON)
+option(IGNIS_BUILD_EXAMPLES "Build ignis examples" ON)
 option(IGNIS_INSTALL "Install the library" OFF)
 
 find_package(Vulkan REQUIRED)
@@ -23,25 +23,9 @@ CPMAddPackage(
   GIT_TAG v3.2.0
 )
 
-CPMAddPackage(
-  NAME SPIRV-Cross
-  GITHUB_REPOSITORY KhronosGroup/SPIRV-Cross
-  GIT_TAG 2021-01-15
-  OPTIONS
-    "SPIRV_CROSS_CLI OFF"
-    "SPIRV_CROSS_ENABLE_TESTS OFF"
-    "SPIRV_CROSS_ENABLE_HLSL OFF"
-    "SPIRV_CROSS_ENABLE_MSL OFF"
-	"SPIRV_CROSS_ENABLE_C_API OFF"
-    "SPIRV_CROSS_ENABLE_REFLECT OFF"
-    "SPIRV_CROSS_ENABLE_UTIL OFF"
-	"SPIRV_CROSS_SKIP_INSTALL ON"
-)
-
 target_link_libraries(ignis PUBLIC
   Vulkan::Vulkan
   GPUOpen::VulkanMemoryAllocator
-  spirv-cross-cpp
 )
 
 if (IGNIS_INSTALL)

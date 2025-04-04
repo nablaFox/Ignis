@@ -1,19 +1,18 @@
 #pragma once
 
 #include <vulkan/vulkan_core.h>
-#include <string>
 #include <vector>
+#include "shader.hpp"
 
 namespace ignis {
 
 class Device;
-class Shader;
 enum class ColorFormat;
 enum class DepthFormat;
 
 struct PipelineCreateInfo {
 	const Device* device{nullptr};
-	std::vector<std::string> shaders;
+	std::vector<Shader*> shaders;
 	ColorFormat colorFormat;
 	bool renderColor{true};
 	DepthFormat depthFormat;
@@ -39,7 +38,6 @@ struct PipelineCreateInfo {
 // Note 1: for now we handle only graphics pipelines
 // Note 2: we can't render to multiple images, just to a single one
 // Note 3: dynamic rendering only
-// Note 4: vertexInput, inputAssembly & dynamicStates are not configurable
 
 class Pipeline {
 public:

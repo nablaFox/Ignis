@@ -3,7 +3,6 @@
 #include "device.hpp"
 #include "image.hpp"
 #include "sampler.hpp"
-#include "shader.hpp"
 #include "vk_utils.hpp"
 #include "exceptions.hpp"
 
