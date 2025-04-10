@@ -15,11 +15,11 @@ public:
 
 	~Shader();
 
-	VkShaderModule getModule() const { return m_module; }
+	auto getModule() const { return m_module; }
 
-	VkShaderStageFlagBits getStage() const { return m_stage; }
+	auto getStage() const { return m_stage; }
 
-	uint32_t getPushConstantSize() const { return m_pushConstantSize; }
+	auto getPushConstantSize() const { return m_pushConstantSize; }
 
 	static uint32_t getMergedPushConstantSize(const std::vector<Shader*>&);
 

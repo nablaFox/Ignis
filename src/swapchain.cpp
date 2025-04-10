@@ -4,19 +4,16 @@
 #include "exceptions.hpp"
 #include "image.hpp"
 #include "semaphore.hpp"
-#include "fence.hpp"
 
 using namespace ignis;
 
-// the user should provide the correct instance & device extensions
-// when creating the device so here we don't do any check
-// (if it throws, it's the user's fault)
-Swapchain::Swapchain(const SwapchainCreateInfo& info)
-	: m_device(*info.device), m_surface(info.surface) {
+Swapchain::Swapchain(const VkDevice device,
+					 const VkPhysicalDevice physicalDevice,
+					 const SwapchainCreateInfo& info)
+	: m_device(device), m_surface(info.surface) {
 	assert(info.extent.width > 0 && info.extent.height > 0 &&
 		   "Invalid swapchain extent");
 
-	VkPhysicalDevice physicalDevice = m_device.getPhysicalDevice();
 	VkSurfaceKHR surface = info.surface;
 
 	// 1. Query the surface capabilities.VkSurfaceCapabilitiesKHR capabilities;
@@ -123,17 +120,16 @@ Swapchain::Swapchain(const SwapchainCreateInfo& info)
 		.oldSwapchain = VK_NULL_HANDLE,
 	};
 
-	THROW_ERROR(vkCreateSwapchainKHR(m_device.getDevice(), &createInfo, nullptr,
-									 &m_swapchain) != VK_SUCCESS,
+	THROW_ERROR(vkCreateSwapchainKHR(m_device, &createInfo, nullptr, &m_swapchain) !=
+					VK_SUCCESS,
 				"Failed to create swapchain");
 
 	// 9. Get the swapchain images
 	uint32_t actualImageCount = 0;
-	vkGetSwapchainImagesKHR(m_device.getDevice(), m_swapchain, &actualImageCount,
-							nullptr);
+	vkGetSwapchainImagesKHR(m_device, m_swapchain, &actualImageCount, nullptr);
 
 	std::vector<VkImage> imageHandles(actualImageCount);
-	vkGetSwapchainImagesKHR(m_device.getDevice(), m_swapchain, &actualImageCount,
+	vkGetSwapchainImagesKHR(m_device, m_swapchain, &actualImageCount,
 							imageHandles.data());
 
 	m_images.reserve(actualImageCount);
@@ -154,12 +150,11 @@ Swapchain::Swapchain(const SwapchainCreateInfo& info)
 }
 
 Swapchain::~Swapchain() {
-	vkDestroySwapchainKHR(m_device.getDevice(), m_swapchain, nullptr);
-	// vkDestroySurfaceKHR(m_device.getInstance(), m_surface, nullptr);
+	vkDestroySwapchainKHR(m_device, m_swapchain, nullptr);
 }
 
 Image& Swapchain::acquireNextImage(const Semaphore* signalSemaphore) {
-	THROW_ERROR(vkAcquireNextImageKHR(m_device.getDevice(), m_swapchain, UINT64_MAX,
+	THROW_ERROR(vkAcquireNextImageKHR(m_device, m_swapchain, UINT64_MAX,
 									  signalSemaphore->getHandle(), VK_NULL_HANDLE,
 									  &m_currentImageIndex) != VK_SUCCESS,
 				"Failed to acquire next image");
@@ -167,9 +162,8 @@ Image& Swapchain::acquireNextImage(const Semaphore* signalSemaphore) {
 	return *m_images[m_currentImageIndex];
 }
 
-void Swapchain::presentCurrent(const PresentInfo& info) {
-	VkQueue presentationQueue =
-		info.presentationQueue ? info.presentationQueue : m_device.getQueue(0);
+void Swapchain::presentCurrent(const PresentInfo& info) const {
+	assert(info.presentationQueue != nullptr && "Presentation queue is not set");
 
 	std::vector<VkSemaphore> waitSemaphores;
 
@@ -186,6 +180,6 @@ void Swapchain::presentCurrent(const PresentInfo& info) {
 		.pImageIndices = &m_currentImageIndex,
 	};
 
-	THROW_VULKAN_ERROR(vkQueuePresentKHR(presentationQueue, &presentInfo),
+	THROW_VULKAN_ERROR(vkQueuePresentKHR(info.presentationQueue, &presentInfo),
 					   "Failed to present swapchain image");
 }

@@ -95,7 +95,7 @@ void Buffer::readData(void* data, VkDeviceSize offset, uint32_t size) {
 	}
 }
 
-VkDeviceAddress Buffer::getDeviceAddress(VkDevice device) {
+VkDeviceAddress Buffer::getDeviceAddress(VkDevice device) const {
 	VkBufferDeviceAddressInfo const addressInfo{
 		.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO,
 		.buffer = m_buffer,

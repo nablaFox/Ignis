@@ -7,6 +7,7 @@
 #include <unordered_map>
 #include <vector>
 #include <array>
+#include "swapchain.hpp"
 #include "types.hpp"
 
 namespace ignis {
@@ -24,6 +25,8 @@ struct DepthImageCreateInfo;
 class Sampler;
 class Features;
 class Shader;
+class Swapchain;
+struct SwapchainCreateInfo;
 
 struct SubmitCmdInfo {
 	const Command& command;
@@ -46,10 +49,9 @@ inline constexpr std::array IGNIS_REQ_FEATURES = {
 // Note 2: we handle only graphics queues
 // Note 3: the library works only in vulkan 1.3 with dynamic rendering and other
 // required features
-// Note 4: we don't handle optional features
-// Note 5: command pools are relative to a single thread
-// Note 6: we allocate a command pool for each queue
-// Note 7: only combined image samplers are supported
+// Note 4: command pools are relative to a single thread
+// Note 5: we allocate a command pool for each queue
+// Note 6: only combined image samplers are supported
 
 class Device {
 public:
@@ -102,6 +104,12 @@ public:
 	Shader createShader(const std::string& shaderPath,
 						VkShaderStageFlagBits,
 						size_t pushConstansSize = 0) const;
+
+	Fence createFence(bool signaled = false) const;
+
+	Semaphore createSemaphore() const;
+
+	Swapchain createSwapchain(const SwapchainCreateInfo&) const;
 
 public:
 	BufferId createUBO(VkDeviceSize, const void* data = nullptr) const;

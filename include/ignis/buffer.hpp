@@ -28,7 +28,7 @@ public:
 
 	void readData(void* data, VkDeviceSize offset = 0, uint32_t size = 0);
 
-	VkDeviceAddress getDeviceAddress(VkDevice);
+	VkDeviceAddress getDeviceAddress(VkDevice) const;
 
 	static Buffer allocateUBO(VmaAllocator,
 							  VkDeviceSize alignment,

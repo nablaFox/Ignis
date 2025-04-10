@@ -430,6 +430,18 @@ Shader Device::createShader(const std::string& shaderPath,
 	return Shader(m_device, shaderPath, stage, pushConstantsSize);
 }
 
+Fence Device::createFence(bool signaled) const {
+	return Fence(m_device, signaled);
+}
+
+Semaphore Device::createSemaphore() const {
+	return Semaphore(m_device);
+}
+
+Swapchain Device::createSwapchain(const SwapchainCreateInfo& info) const {
+	return Swapchain(m_device, m_phyiscalDevice, info);
+}
+
 BufferId Device::createUBO(VkDeviceSize size, const void* data) const {
 	Buffer ubo = Buffer::allocateUBO(
 		m_allocator,

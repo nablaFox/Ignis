@@ -10,14 +10,10 @@
 
 namespace ignis {
 
-class Device;
-class Image;
 class Semaphore;
-class Fence;
 enum class ColorFormat;
 
 struct SwapchainCreateInfo {
-	const Device* device{nullptr};
 	VkExtent2D extent{0, 0};
 	ColorFormat format{VK_FORMAT_R8G8B8A8_UNORM};
 	VkColorSpaceKHR colorSpace{VK_COLOR_SPACE_SRGB_NONLINEAR_KHR};
@@ -26,13 +22,13 @@ struct SwapchainCreateInfo {
 };
 
 struct PresentInfo {
-	VkQueue presentationQueue;
+	VkQueue presentationQueue{nullptr};
 	std::vector<const Semaphore*> waitSemaphores;
 };
 
 class Swapchain {
 public:
-	Swapchain(const SwapchainCreateInfo&);
+	Swapchain(const VkDevice, const VkPhysicalDevice, const SwapchainCreateInfo&);
 
 	~Swapchain();
 
@@ -42,10 +38,10 @@ public:
 
 	uint32_t getImagesCount() const { return m_images.size(); }
 
-	void presentCurrent(const PresentInfo&);
+	void presentCurrent(const PresentInfo&) const;
 
 private:
-	const Device& m_device;
+	const VkDevice m_device;
 	VkSwapchainKHR m_swapchain{nullptr};
 	VkSurfaceKHR m_surface;
 	std::vector<std::unique_ptr<Image>> m_images;

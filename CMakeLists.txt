@@ -6,7 +6,7 @@ include(cmake/CPM.cmake)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-option(IGNIS_BUILD_EXAMPLES "Build ignis examples" ON)
+option(IGNIS_INSTALL "Install ignis" OFF)
 
 find_package(Vulkan REQUIRED)
 
