@@ -1,50 +1,31 @@
-# Ignis
+## Ignis
 
 > The essence of Vulkan
 
-Ignis is a C++ 20 API abstraction over Vulkan.
+Ignis is a C++20 API layer for Vulkan 1.3 targeting modern GPU workflows.
 
-## Features
+### Features
 
 1. Ergonomic API in a declarative style.
 
 2. 100% RAII compliant design.
 
-3. Simplicity as a core value in the development.
+3. Minimalism and simplicity as core values.
 
-## Dependencies
+### Dependencies
 
 - C++ 20 standard library
-- Vulkan SDK
 - CMake 3.14
+- Vulkan Headers & Loader
 - [VMA](https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator)
 
-## Building
-
-Currently, the only officially supported platform is Linux. 
-
-Run:
+### Building
 
 ```sh
-cmake -S . -B build
+cmake -Bbuild -DCMAKE_BUILD_TYPE=Release
 cmake --build build
 ```
 
-You'll find the compiled library at `build/libignis.a`.
+### Documentation
 
-## Usage with CPM.cmake
-
-Add to your `CMakeLists.txt`:
-
-```cmake
-CPMAddPackage(
-  NAME Ignis
-  GITHUB_REPOSITORY nablaFox/Ignis
-)
-
-target_link_libraries(YourGameEngine PRIVATE Ignis::Ignis)
-```
-
-## Documentation
-
-Work in progress
+Work in progress.

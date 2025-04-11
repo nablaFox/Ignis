@@ -1,5 +1,5 @@
-#include "semaphore.hpp"
-#include "exceptions.hpp"
+#include "ignis/semaphore.hpp"
+#include "ignis/exceptions.hpp"
 
 using namespace ignis;
 

@@ -1,9 +1,9 @@
 #include <cassert>
 #include <vector>
-#include "gpu_resources.hpp"
-#include "buffer.hpp"
-#include "image.hpp"
-#include "exceptions.hpp"
+#include "ignis/gpu_resources.hpp"
+#include "ignis/buffer.hpp"
+#include "ignis/image.hpp"
+#include "ignis/exceptions.hpp"
 
 using namespace ignis;
 

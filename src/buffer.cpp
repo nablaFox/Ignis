@@ -1,7 +1,7 @@
 #include <cassert>
 #include <cstring>
-#include "buffer.hpp"
-#include "exceptions.hpp"
+#include "ignis/buffer.hpp"
+#include "ignis/exceptions.hpp"
 
 using namespace ignis;
 
