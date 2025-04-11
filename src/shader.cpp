@@ -1,5 +1,5 @@
 #include "ignis/shader.hpp"
-#include "ignis/exceptions.hpp"
+#include "exceptions.hpp"
 
 #include <fstream>
 

@@ -7,12 +7,9 @@
 #include <unordered_map>
 #include <vector>
 #include <array>
-#include "swapchain.hpp"
-#include "types.hpp"
 
 namespace ignis {
 
-class GpuResources;
 class Semaphore;
 class Fence;
 class Command;
@@ -23,7 +20,6 @@ struct ImageCreateInfo;
 struct DrawImageCreateInfo;
 struct DepthImageCreateInfo;
 class Sampler;
-class Features;
 class Shader;
 class Swapchain;
 struct SwapchainCreateInfo;
@@ -44,6 +40,16 @@ inline constexpr std::array IGNIS_REQ_FEATURES = {
 	"DescriptorBindingPartiallyBound",
 	"RuntimeDescriptorArray",
 };
+
+#define IGNIS_STORAGE_BUFFER_BINDING 0
+#define IGNIS_UNIFORM_BUFFER_BINDING 1
+#define IGNIS_IMAGE_SAMPLER_BINDING 2
+
+#define IGNIS_INVALID_BUFFER_ID UINT32_MAX
+#define IGNIS_INVALID_IMAGE_ID UINT32_MAX
+
+typedef uint32_t BufferId;
+typedef uint32_t ImageId;
 
 // Note 1: the library supports just 1 instance, physical and logical device
 // Note 2: we handle only graphics queues
@@ -149,7 +155,11 @@ private:
 	VkPhysicalDeviceProperties m_physicalDeviceProperties{};
 	VkDevice m_device{nullptr};
 	VmaAllocator m_allocator{nullptr};
+
+	class Features;
 	std::unique_ptr<Features> m_features;
+
+	class GpuResources;
 	std::unique_ptr<GpuResources> m_gpuResources;
 
 	uint32_t m_graphicsFamilyIndex{0};

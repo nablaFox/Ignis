@@ -1,8 +1,4 @@
-#include <vulkan/vulkan_core.h>
-#include <array>
-#include <memory>
-#include <unordered_map>
-#include "types.hpp"
+#include "ignis/device.hpp"
 
 namespace ignis {
 
@@ -24,7 +20,8 @@ struct BindlessResourcesCreateInfo {
 class Buffer;
 class Image;
 
-struct GpuResources {
+class Device::GpuResources {
+public:
 	GpuResources(const BindlessResourcesCreateInfo&);
 
 	~GpuResources();

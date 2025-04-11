@@ -1,8 +1,8 @@
 #include "ignis/image.hpp"
 #include "ignis/command.hpp"
 #include "ignis/device.hpp"
-#include "ignis/exceptions.hpp"
-#include "ignis/vk_utils.hpp"
+#include "exceptions.hpp"
+#include "vk_utils.hpp"
 
 using namespace ignis;
 

@@ -1,7 +1,6 @@
 #pragma once
 
-#include <vulkan/vulkan_core.h>
-#include <vector>
+#include "ignis/device.hpp"
 
 namespace ignis {
 
@@ -16,18 +15,23 @@ struct FeaturesChain {
 	VkPhysicalDeviceFeatures2 physicalDeviceFeatures{};
 };
 
-class Features {
+class Device::Features {
 public:
 	Features(std::vector<const char*> requiredFeatures,
 			 std::vector<const char*> optionalFeatures);
 
-	bool checkCompatibility(VkPhysicalDevice device);
-
 	static bool isFeatureEnabled(const char* feature, VkPhysicalDevice);
+
+	bool checkCompatibility(VkPhysicalDevice device) const;
 
 	VkPhysicalDeviceFeatures2 getFeatures() const {
 		return chain.physicalDeviceFeatures;
 	}
+
+	void pickPhysicalDevice(const VkInstance,
+							const std::vector<const char*>& requiredExtensions,
+							VkPhysicalDevice*,
+							VkPhysicalDeviceProperties*) const;
 
 private:
 	FeaturesChain chain;

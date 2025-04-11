@@ -1,33 +1,6 @@
 #include <cstring>
-#include "ignis/vk_utils.hpp"
-#include "ignis/exceptions.hpp"
-
-bool ignis::checkExtensionsCompatibility(
-	VkPhysicalDevice device,
-	const std::vector<const char*>& requiredExtensions) {
-	uint32_t extensionCount = 0;
-	vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
-
-	std::vector<VkExtensionProperties> availableExtensions(extensionCount);
-	vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount,
-										 availableExtensions.data());
-
-	for (const auto& requiredExt : requiredExtensions) {
-		bool found = false;
-		for (const auto& availableExt : availableExtensions) {
-			if (strcmp(requiredExt, availableExt.extensionName) == 0) {
-				found = true;
-				break;
-			}
-		}
-
-		if (!found) {
-			return false;
-		}
-	}
-
-	return true;
-}
+#include "vk_utils.hpp"
+#include "exceptions.hpp"
 
 ignis::TransitionInfo ignis::getTransitionInfo(VkImageLayout oldLayout,
 											   VkImageLayout newLayout) {

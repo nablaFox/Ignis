@@ -3,8 +3,8 @@
 #include "ignis/device.hpp"
 #include "ignis/image.hpp"
 #include "ignis/sampler.hpp"
-#include "ignis/vk_utils.hpp"
-#include "ignis/exceptions.hpp"
+#include "exceptions.hpp"
+#include "vk_utils.hpp"
 
 using namespace ignis;
 

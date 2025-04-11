@@ -1,7 +1,7 @@
 #include <cassert>
 #include "ignis/pipeline.hpp"
 #include "ignis/device.hpp"
-#include "ignis/exceptions.hpp"
+#include "exceptions.hpp"
 
 using namespace ignis;
 
