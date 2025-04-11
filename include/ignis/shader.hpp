@@ -9,9 +9,15 @@ namespace ignis {
 class Shader {
 public:
 	Shader(const VkDevice,
-		   const std::string& shaderPath,
+		   const void*,
+		   VkDeviceSize codeSize,
 		   VkShaderStageFlagBits,
-		   VkDeviceSize pushConstantsSize);
+		   VkDeviceSize pushConstantsSize = 0);
+
+	static Shader fromFile(VkDevice device,
+						   const std::string& path,
+						   VkShaderStageFlagBits stage,
+						   VkDeviceSize pushConstantSize = 0);
 
 	~Shader();
 

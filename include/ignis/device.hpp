@@ -105,6 +105,11 @@ public:
 						VkShaderStageFlagBits,
 						size_t pushConstansSize = 0) const;
 
+	Shader createShader(const void* shaderCode,
+						VkDeviceSize codeSize,
+						VkShaderStageFlagBits stage,
+						size_t pushConstantSize = 0) const;
+
 	Fence createFence(bool signaled = false) const;
 
 	Semaphore createSemaphore() const;

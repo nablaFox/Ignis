@@ -427,7 +427,14 @@ Image Device::createDepthAttachmentImage(const DepthImageCreateInfo& info) const
 Shader Device::createShader(const std::string& shaderPath,
 							VkShaderStageFlagBits stage,
 							size_t pushConstantsSize) const {
-	return Shader(m_device, shaderPath, stage, pushConstantsSize);
+	return Shader::fromFile(m_device, shaderPath, stage, pushConstantsSize);
+}
+
+Shader Device::createShader(const void* shaderCode,
+							VkDeviceSize codeSize,
+							VkShaderStageFlagBits stage,
+							size_t pushConstantsSize) const {
+	return Shader(m_device, shaderCode, codeSize, stage, pushConstantsSize);
 }
 
 Fence Device::createFence(bool signaled) const {
