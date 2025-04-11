@@ -2,18 +2,18 @@
 #include <iostream>
 #include "ignis/device.hpp"
 #include "ignis/command.hpp"
-#include "ignis/exceptions.hpp"
-#include "ignis/features.hpp"
 #include "ignis/fence.hpp"
 #include "ignis/semaphore.hpp"
 #include "ignis/buffer.hpp"
 #include "ignis/image.hpp"
 #include "ignis/sampler.hpp"
-#include "ignis/vk_utils.hpp"
-#include "ignis/gpu_resources.hpp"
+#include "ignis/swapchain.hpp"
+#include "gpu_resources.hpp"
+#include "features.hpp"
+#include "exceptions.hpp"
 
 #define VMA_IMPLEMENTATION
-#include <vk_mem_alloc.h>
+#include "vk_mem_alloc.h"
 
 using namespace ignis;
 
@@ -98,35 +98,6 @@ static void createInstance(std::string appName,
 
 	THROW_VULKAN_ERROR(vkCreateInstance(&createInstanceInfo, nullptr, instance),
 					   "Failed to create instance");
-}
-
-static void getPhysicalDevice(VkInstance instance,
-							  const std::vector<const char*>& requiredExtensions,
-							  Features& features,
-							  VkPhysicalDevice* device,
-							  VkPhysicalDeviceProperties* properties) {
-	uint32_t deviceCount = 0;
-	vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
-
-	THROW_ERROR(!deviceCount, "Failed to find a GPU with Vulkan support");
-
-	std::vector<VkPhysicalDevice> physicalDevices(deviceCount);
-	vkEnumeratePhysicalDevices(instance, &deviceCount, physicalDevices.data());
-
-	for (const auto& physicalDevice : physicalDevices) {
-		if (!features.checkCompatibility(physicalDevice))
-			continue;
-
-		if (!checkExtensionsCompatibility(physicalDevice, requiredExtensions))
-			continue;
-
-		*device = physicalDevice;
-	}
-
-	// TODO: show what are the incompatibilies
-	THROW_ERROR(*device == VK_NULL_HANDLE, "Failed to find a suitable GPU");
-
-	vkGetPhysicalDeviceProperties(*device, properties);
 }
 
 static void getGraphicsFamily(VkPhysicalDevice device,
@@ -237,8 +208,11 @@ Device::Device(const CreateInfo& createInfo) {
 	auto m_features =
 		std::make_unique<Features>(requiredFeatures, createInfo.optionalFeatures);
 
-	::getPhysicalDevice(m_instance, createInfo.extensions, *m_features,
-						&m_phyiscalDevice, &m_physicalDeviceProperties);
+	m_features->pickPhysicalDevice(m_instance, createInfo.extensions,
+								   &m_phyiscalDevice, &m_physicalDeviceProperties);
+
+	// ::getPhysicalDevice(m_instance, createInfo.extensions, *m_features,
+	// 					&m_phyiscalDevice, &m_physicalDeviceProperties);
 
 	getGraphicsFamily(m_phyiscalDevice, &m_graphicsQueuesCount,
 					  &m_graphicsFamilyIndex);

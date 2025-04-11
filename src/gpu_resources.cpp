@@ -1,13 +1,13 @@
 #include <cassert>
-#include <vector>
-#include "ignis/gpu_resources.hpp"
+#include "gpu_resources.hpp"
+#include "exceptions.hpp"
 #include "ignis/buffer.hpp"
+#include "ignis/device.hpp"
 #include "ignis/image.hpp"
-#include "ignis/exceptions.hpp"
 
 using namespace ignis;
 
-GpuResources::GpuResources(const BindlessResourcesCreateInfo& info)
+Device::GpuResources::GpuResources(const BindlessResourcesCreateInfo& info)
 	: m_creationInfo(info), m_device(info.device) {
 	assert(m_device && "Invalid device");
 	assert(info.maxStorageBuffers && "Invalid max storage buffers");
@@ -158,7 +158,7 @@ GpuResources::GpuResources(const BindlessResourcesCreateInfo& info)
 	}
 }
 
-GpuResources::~GpuResources() {
+Device::GpuResources::~GpuResources() {
 	vkDestroyDescriptorSetLayout(m_device, m_descriptorSetLayout, nullptr);
 	vkDestroyDescriptorPool(m_device, m_descriptorPool, nullptr);
 
@@ -168,7 +168,7 @@ GpuResources::~GpuResources() {
 }
 
 // TODO: recycle buffer ids
-BufferId GpuResources::registerBuffer(Buffer buffer) {
+BufferId Device::GpuResources::registerBuffer(Buffer buffer) {
 	const bool isStorageBuffer =
 		(buffer.getUsage() & VK_BUFFER_USAGE_STORAGE_BUFFER_BIT) != 0;
 	const bool isUniformBuffer =
@@ -204,7 +204,7 @@ BufferId GpuResources::registerBuffer(Buffer buffer) {
 };
 
 // TODO: recycle image ids
-BufferId GpuResources::registerImage(Image image) {
+BufferId Device::GpuResources::registerImage(Image image) {
 	const bool isStorageImage = (image.getUsage() & VK_IMAGE_USAGE_STORAGE_BIT) != 0;
 	const bool isSampledImage = (image.getUsage() & VK_IMAGE_USAGE_SAMPLED_BIT) != 0;
 
@@ -217,7 +217,7 @@ BufferId GpuResources::registerImage(Image image) {
 	return id;
 }
 
-VkPipelineLayout GpuResources::getPipelinelayout(
+VkPipelineLayout Device::GpuResources::getPipelinelayout(
 	VkDeviceSize pushConstantSize) const {
 	THROW_ERROR(
 		static_cast<uint32_t>(pushConstantSize) > 4 * MAX_PUSH_CONSTANT_WORD_SIZE,
@@ -226,7 +226,7 @@ VkPipelineLayout GpuResources::getPipelinelayout(
 	return m_pipelineLayouts.at(1 + (pushConstantSize / 4));
 }
 
-Buffer& GpuResources::getBuffer(BufferId id) const {
+Buffer& Device::GpuResources::getBuffer(BufferId id) const {
 	auto it = m_buffers.find(id);
 
 	THROW_ERROR(it == m_buffers.end(), "Invalid buffer handle");
@@ -234,7 +234,7 @@ Buffer& GpuResources::getBuffer(BufferId id) const {
 	return *it->second;
 }
 
-Image& GpuResources::getImage(ImageId id) const {
+Image& Device::GpuResources::getImage(ImageId id) const {
 	auto it = m_images.find(id);
 
 	THROW_ERROR(it == m_images.end(), "Invalid image handle");
@@ -242,7 +242,7 @@ Image& GpuResources::getImage(ImageId id) const {
 	return *it->second;
 }
 
-void GpuResources::destroyBuffer(BufferId& id) {
+void Device::GpuResources::destroyBuffer(BufferId& id) {
 	auto it = m_buffers.find(id);
 
 	THROW_ERROR(it == m_buffers.end(), "Invalid buffer handle");
@@ -252,7 +252,7 @@ void GpuResources::destroyBuffer(BufferId& id) {
 	id = IGNIS_INVALID_BUFFER_ID;
 }
 
-void GpuResources::destroyImage(ImageId& id) {
+void Device::GpuResources::destroyImage(ImageId& id) {
 	auto it = m_images.find(id);
 
 	THROW_ERROR(it == m_images.end(), "Invalid image handle");

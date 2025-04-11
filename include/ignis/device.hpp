@@ -1,18 +1,16 @@
 #pragma once
 
-#include <vk_mem_alloc.h>
 #include <vulkan/vulkan_core.h>
 #include <memory>
 #include <string>
 #include <unordered_map>
 #include <vector>
 #include <array>
-#include "swapchain.hpp"
+#include "vk_mem_alloc.h"
 #include "types.hpp"
 
 namespace ignis {
 
-class GpuResources;
 class Semaphore;
 class Fence;
 class Command;
@@ -23,7 +21,6 @@ struct ImageCreateInfo;
 struct DrawImageCreateInfo;
 struct DepthImageCreateInfo;
 class Sampler;
-class Features;
 class Shader;
 class Swapchain;
 struct SwapchainCreateInfo;
@@ -149,7 +146,11 @@ private:
 	VkPhysicalDeviceProperties m_physicalDeviceProperties{};
 	VkDevice m_device{nullptr};
 	VmaAllocator m_allocator{nullptr};
+
+	class Features;
 	std::unique_ptr<Features> m_features;
+
+	class GpuResources;
 	std::unique_ptr<GpuResources> m_gpuResources;
 
 	uint32_t m_graphicsFamilyIndex{0};

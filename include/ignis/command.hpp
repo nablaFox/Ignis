@@ -1,14 +1,13 @@
 #pragma once
 
-#include <vulkan/vulkan_core.h>
 #include <cassert>
 #include <memory>
-#include "types.hpp"
+#include "vulkan/vulkan_core.h"
 #include "pipeline.hpp"
+#include "device.hpp"
 
 namespace ignis {
 
-class Device;
 class Buffer;
 class Image;
 class Pipeline;

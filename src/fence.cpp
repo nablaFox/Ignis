@@ -1,5 +1,5 @@
-#include "ignis/exceptions.hpp"
 #include "ignis/fence.hpp"
+#include "exceptions.hpp"
 
 using namespace ignis;
 

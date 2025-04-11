@@ -1,5 +1,6 @@
 #include <cstring>
-#include "ignis/features.hpp"
+#include "features.hpp"
+#include "exceptions.hpp"
 
 using namespace ignis;
 
@@ -30,8 +31,8 @@ FeaturesChain::FeaturesChain() {
 	};
 }
 
-Features::Features(std::vector<const char*> requiredFeatures,
-				   std::vector<const char*> optionalFeatures)
+Device::Features::Features(std::vector<const char*> requiredFeatures,
+						   std::vector<const char*> optionalFeatures)
 	: m_requiredFeatures(requiredFeatures) {
 	for (const char* feature : optionalFeatures) {
 		requiredFeatures.push_back(feature);
@@ -87,7 +88,7 @@ Features::Features(std::vector<const char*> requiredFeatures,
 	};
 }
 
-bool Features::checkCompatibility(VkPhysicalDevice device) {
+bool Device::Features::checkCompatibility(VkPhysicalDevice device) const {
 	for (const char* feature : m_requiredFeatures) {
 		if (!isFeatureEnabled(feature, device)) {
 			return false;
@@ -97,7 +98,8 @@ bool Features::checkCompatibility(VkPhysicalDevice device) {
 	return true;
 }
 
-bool Features::isFeatureEnabled(const char* feature, VkPhysicalDevice device) {
+bool Device::Features::isFeatureEnabled(const char* feature,
+										VkPhysicalDevice device) {
 	FeaturesChain chain{};
 
 	vkGetPhysicalDeviceFeatures2(device, &chain.physicalDeviceFeatures);
@@ -146,4 +148,60 @@ bool Features::isFeatureEnabled(const char* feature, VkPhysicalDevice device) {
 	}
 
 	return false;
+}
+
+static bool checkExtensionsCompatibility(
+	VkPhysicalDevice device,
+	const std::vector<const char*>& requiredExtensions) {
+	uint32_t extensionCount = 0;
+	vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
+
+	std::vector<VkExtensionProperties> availableExtensions(extensionCount);
+	vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount,
+										 availableExtensions.data());
+
+	for (const auto& requiredExt : requiredExtensions) {
+		bool found = false;
+		for (const auto& availableExt : availableExtensions) {
+			if (strcmp(requiredExt, availableExt.extensionName) == 0) {
+				found = true;
+				break;
+			}
+		}
+
+		if (!found) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+void Device::Features::pickPhysicalDevice(
+	const VkInstance instance,
+	const std::vector<const char*>& requiredExtensions,
+	VkPhysicalDevice* device,
+	VkPhysicalDeviceProperties* properties) const {
+	uint32_t deviceCount{0};
+	vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
+
+	THROW_ERROR(!deviceCount, "Failed to find a GPU with Vulkan support");
+
+	std::vector<VkPhysicalDevice> physicalDevices(deviceCount);
+	vkEnumeratePhysicalDevices(instance, &deviceCount, physicalDevices.data());
+
+	for (const auto& physicalDevice : physicalDevices) {
+		if (!checkCompatibility(physicalDevice))
+			continue;
+
+		if (!checkExtensionsCompatibility(physicalDevice, requiredExtensions))
+			continue;
+
+		*device = physicalDevice;
+	}
+
+	// TODO: show what are the incompatibilies
+	THROW_ERROR(*device == VK_NULL_HANDLE, "Failed to find a suitable GPU");
+
+	vkGetPhysicalDeviceProperties(*device, properties);
 }
