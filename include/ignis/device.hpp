@@ -31,7 +31,7 @@ struct SubmitCmdInfo {
 	std::vector<const Semaphore*> signalSemaphores;
 };
 
-inline constexpr std::array IGNIS_REQ_FEATURES = {
+inline constexpr std::array IGNIS_REQ_FEATURES{
 	"BufferDeviceAddress",
 	"DynamicRendering",
 	"Synchronization2",

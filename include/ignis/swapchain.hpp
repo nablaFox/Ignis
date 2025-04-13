@@ -15,7 +15,7 @@ enum class ColorFormat;
 
 struct SwapchainCreateInfo {
 	VkExtent2D extent{0, 0};
-	ColorFormat format{VK_FORMAT_R8G8B8A8_UNORM};
+	ColorFormat format{ColorFormat::RGBA8};
 	VkColorSpaceKHR colorSpace{VK_COLOR_SPACE_SRGB_NONLINEAR_KHR};
 	VkSurfaceKHR surface{VK_NULL_HANDLE};
 	VkPresentModeKHR presentMode{VK_PRESENT_MODE_FIFO_KHR};

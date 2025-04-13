@@ -14,8 +14,7 @@ Ignis is a C++20 API layer for Vulkan 1.3 targeting modern GPU workflows.
 
 ### Dependencies
 
-- C++ 20 standard library
-- CMake 3.14
+- C++ standard library
 - Vulkan Headers & Loader
 - [VMA](https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator)
 
