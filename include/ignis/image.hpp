@@ -1,6 +1,9 @@
 #pragma once
 
-#include "vk_mem_alloc.h"
+#include <vulkan/vulkan_core.h>
+
+struct VmaAllocator_T;
+struct VmaAllocation_T;
 
 namespace ignis {
 
@@ -48,7 +51,7 @@ public:
 	Image(VkImage, VkImageView, const ImageCreateInfo&);
 
 	// gpu allocated (the allocator should be relative to the device passed here)
-	Image(VkDevice, VmaAllocator, const ImageCreateInfo&);
+	Image(VkDevice, VmaAllocator_T*, const ImageCreateInfo&);
 
 	~Image();
 
@@ -86,17 +89,17 @@ public:
 
 public:
 	static Image allocateDrawImage(VkDevice,
-								   VmaAllocator,
+								   VmaAllocator_T*,
 								   const DrawImageCreateInfo&);
 
 	static Image allocateDepthImage(VkDevice,
-									VmaAllocator,
+									VmaAllocator_T*,
 									const DepthImageCreateInfo&);
 
 private:
 	VkDevice m_device{nullptr};
-	VmaAllocator m_allocator{nullptr};
-	VmaAllocation m_allocation{nullptr};
+	VmaAllocator_T* m_allocator{nullptr};
+	VmaAllocation_T* m_allocation{nullptr};
 	VkImage m_image{nullptr};
 	VkImageView m_view{nullptr};
 	VkImageLayout m_currentLayout{VK_IMAGE_LAYOUT_UNDEFINED};

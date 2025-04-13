@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
-project(Ignis)
+project(ignis)
 
 include(cmake/CPM.cmake)
 
@@ -12,12 +12,12 @@ option(IGNIS_INSTALL "Install the library" ${PROJECT_IS_TOP_LEVEL})
 file(GLOB IGNIS_SRC "src/*.cpp")
 
 if (BUILD_SHARED)
-  add_library(Ignis SHARED ${IGNIS_SRC})
+  add_library(ignis SHARED ${IGNIS_SRC})
 else()
-  add_library(Ignis STATIC ${IGNIS_SRC})
+  add_library(ignis STATIC ${IGNIS_SRC})
 endif()
 
-target_include_directories(Ignis PUBLIC 
+target_include_directories(ignis PUBLIC 
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 )
 
@@ -29,15 +29,23 @@ CPMAddPackage(
   GIT_TAG v3.2.0
 )
 
-target_link_libraries(Ignis PUBLIC
+target_link_libraries(ignis PUBLIC
   Vulkan::Vulkan
+)
+
+target_link_libraries(ignis PRIVATE
   GPUOpen::VulkanMemoryAllocator
 )
 
 if (IGNIS_INSTALL)
-  install(DIRECTORY include/ignis DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+  install(TARGETS ignis
+    EXPORT ignisTargets
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+    INCLUDES DESTINATION include
+  )
 
-  install(FILES ${Vma_SOURCE_DIR}/include/vk_mem_alloc.h
+  install(DIRECTORY include/ignis 
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
   )
 endif()

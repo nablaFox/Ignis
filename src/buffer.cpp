@@ -2,6 +2,7 @@
 #include <cstring>
 #include "ignis/buffer.hpp"
 #include "exceptions.hpp"
+#include "vk_mem_alloc.h"
 
 using namespace ignis;
 

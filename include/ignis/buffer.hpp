@@ -1,6 +1,9 @@
 #pragma once
 
-#include "vk_mem_alloc.h"
+#include <vulkan/vulkan_core.h>
+
+struct VmaAllocator_T;
+struct VmaAllocation_T;
 
 namespace ignis {
 
@@ -13,7 +16,7 @@ struct BufferCreateInfo {
 
 class Buffer {
 public:
-	Buffer(VmaAllocator, const BufferCreateInfo&);
+	Buffer(VmaAllocator_T*, const BufferCreateInfo&);
 
 	~Buffer();
 
@@ -30,27 +33,27 @@ public:
 
 	VkDeviceAddress getDeviceAddress(VkDevice) const;
 
-	static Buffer allocateUBO(VmaAllocator,
+	static Buffer allocateUBO(VmaAllocator_T*,
 							  VkDeviceSize alignment,
 							  VkDeviceSize size,
 							  const void* data = nullptr);
 
-	static Buffer allocateSSBO(VmaAllocator,
+	static Buffer allocateSSBO(VmaAllocator_T*,
 							   VkDeviceSize alignment,
 							   VkDeviceSize size,
 							   const void* data = nullptr);
 
-	static Buffer allocateIndexBuffer32(VmaAllocator,
+	static Buffer allocateIndexBuffer32(VmaAllocator_T*,
 										uint32_t elementCount,
 										const uint32_t* data = nullptr);
 
-	static Buffer allocateStagingBuffer(VmaAllocator,
+	static Buffer allocateStagingBuffer(VmaAllocator_T*,
 										VkDeviceSize size,
 										const void* data = nullptr);
 
 private:
-	VmaAllocator m_allocator{nullptr};
-	VmaAllocation m_allocation{nullptr};
+	VmaAllocator_T* m_allocator{nullptr};
+	VmaAllocation_T* m_allocation{nullptr};
 	VkDeviceSize m_size;
 	VkDeviceAddress m_deviceAddress{0};
 	VkBufferUsageFlags m_bufferUsage;

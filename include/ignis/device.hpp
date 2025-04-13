@@ -6,8 +6,9 @@
 #include <unordered_map>
 #include <vector>
 #include <array>
-#include "vk_mem_alloc.h"
 #include "types.hpp"
+
+struct VmaAllocator_T;
 
 namespace ignis {
 
@@ -145,7 +146,7 @@ private:
 	VkPhysicalDevice m_phyiscalDevice{nullptr};
 	VkPhysicalDeviceProperties m_physicalDeviceProperties{};
 	VkDevice m_device{nullptr};
-	VmaAllocator m_allocator{nullptr};
+	VmaAllocator_T* m_allocator{nullptr};
 
 	class Features;
 	std::unique_ptr<Features> m_features;

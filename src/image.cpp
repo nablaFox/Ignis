@@ -1,8 +1,8 @@
+#include <cassert>
 #include "ignis/image.hpp"
-#include "ignis/command.hpp"
-#include "ignis/device.hpp"
 #include "exceptions.hpp"
 #include "vk_utils.hpp"
+#include "vk_mem_alloc.h"
 
 using namespace ignis;
 
