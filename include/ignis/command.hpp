@@ -112,12 +112,12 @@ public:
 					  uint32_t size = 0);
 
 	void setViewport(VkViewport);
-	void setScissor(VkRect2D);
+	void setScissor(uint32_t width, uint32_t height, uint32_t x = 0, uint32_t y = 0);
 
-	void clearViewport(uint32_t x,
-					   uint32_t y,
-					   uint32_t width,
-					   uint32_t height,
+	void clearViewport(float x,
+					   float y,
+					   float width,
+					   float height,
 					   VkClearColorValue);
 
 	void bindIndexBuffer(const Buffer&, VkDeviceSize offset = 0);

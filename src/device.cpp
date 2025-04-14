@@ -211,9 +211,6 @@ Device::Device(const CreateInfo& createInfo) {
 	m_features->pickPhysicalDevice(m_instance, createInfo.extensions,
 								   &m_phyiscalDevice, &m_physicalDeviceProperties);
 
-	// ::getPhysicalDevice(m_instance, createInfo.extensions, *m_features,
-	// 					&m_phyiscalDevice, &m_physicalDeviceProperties);
-
 	getGraphicsFamily(m_phyiscalDevice, &m_graphicsQueuesCount,
 					  &m_graphicsFamilyIndex);
 
@@ -353,7 +350,7 @@ void Device::submitCommands(std::vector<SubmitCmdInfo> submits,
 }
 
 VkSampleCountFlagBits Device::getMaxSampleCount() const {
-	VkSampleCountFlags counts =
+	const VkSampleCountFlags counts =
 		m_physicalDeviceProperties.limits.framebufferColorSampleCounts &
 		m_physicalDeviceProperties.limits.framebufferDepthSampleCounts;
 
@@ -483,7 +480,7 @@ void Device::updateBuffer(BufferId handle,
 	buffer.writeData(data, offset, size);
 }
 
-VkPipelineLayout Device::getPipelineLayout(size_t pushConstantSize) const {
+VkPipelineLayout Device::getPipelineLayout(VkDeviceSize pushConstantSize) const {
 	return m_gpuResources->getPipelinelayout(pushConstantSize);
 };
 

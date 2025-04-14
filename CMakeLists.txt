@@ -29,12 +29,9 @@ CPMAddPackage(
   GIT_TAG v3.2.0
 )
 
-target_link_libraries(ignis PUBLIC
-  Vulkan::Vulkan
-)
-
-target_link_libraries(ignis PRIVATE
-  GPUOpen::VulkanMemoryAllocator
+target_link_libraries(ignis 
+  PUBLIC Vulkan::Vulkan
+  PRIVATE GPUOpen::VulkanMemoryAllocator
 )
 
 if (IGNIS_INSTALL)
@@ -45,7 +42,9 @@ if (IGNIS_INSTALL)
     INCLUDES DESTINATION include
   )
 
-  install(DIRECTORY include/ignis 
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-  )
+  if (DEFINED ${CMAKE_INSTALL_INCLUDEDIR})
+    install(DIRECTORY include/ignis 
+      DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+    )
+  endif()
 endif()

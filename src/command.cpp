@@ -413,10 +413,10 @@ void Command::setViewport(VkViewport viewport) {
 	vkCmdSetViewport(m_commandBuffer, 0, 1, &viewport);
 }
 
-void Command::clearViewport(uint32_t x,
-							uint32_t y,
-							uint32_t width,
-							uint32_t height,
+void Command::clearViewport(float x,
+							float y,
+							float width,
+							float height,
 							VkClearColorValue clearColorValue) {
 	CHECK_IS_RECORDING;
 
@@ -424,7 +424,7 @@ void Command::clearViewport(uint32_t x,
 		.rect =
 			{
 				{(int32_t)x, (int32_t)y},
-				{width, height},
+				{(uint32_t)width, (uint32_t)height},
 			},
 		.layerCount = 1,
 	};
@@ -437,9 +437,14 @@ void Command::clearViewport(uint32_t x,
 	vkCmdClearAttachments(m_commandBuffer, 1, &clearAtt, 1, &clearRect);
 }
 
-void Command::setScissor(VkRect2D scissor) {
+void Command::setScissor(uint32_t width, uint32_t height, uint32_t x, uint32_t y) {
 	CHECK_IS_RECORDING;
 	CHECK_PIPELINE_BOUND;
+
+	const VkRect2D scissor{
+		.offset = {static_cast<int32_t>(x), static_cast<int32_t>(y)},
+		.extent = {width, height},
+	};
 
 	vkCmdSetScissor(m_commandBuffer, 0, 1, &scissor);
 }

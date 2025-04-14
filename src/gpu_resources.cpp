@@ -142,7 +142,7 @@ Device::GpuResources::GpuResources(const BindlessResourcesCreateInfo& info)
 					   "Failed to create pipeline layout");
 
 	// create other pipeline layouts
-	for (uint32_t i = 1; i < MAX_PUSH_CONSTANT_WORD_SIZE; ++i) {
+	for (uint32_t i{1}; i < MAX_PUSH_CONSTANT_WORD_SIZE; i++) {
 		VkPushConstantRange const pushConstantRange{
 			.stageFlags = VK_SHADER_STAGE_ALL,
 			.offset = 0,
@@ -243,13 +243,15 @@ Image& Device::GpuResources::getImage(ImageId id) const {
 }
 
 void Device::GpuResources::destroyBuffer(BufferId& id) {
+	id = IGNIS_INVALID_BUFFER_ID;
+
 	auto it = m_buffers.find(id);
 
-	THROW_ERROR(it == m_buffers.end(), "Invalid buffer handle");
+	if (it == m_buffers.end()) {
+		return;
+	}
 
 	m_buffers.erase(it);
-
-	id = IGNIS_INVALID_BUFFER_ID;
 }
 
 void Device::GpuResources::destroyImage(ImageId& id) {
